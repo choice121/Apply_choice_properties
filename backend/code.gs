@@ -402,8 +402,10 @@ function processApplication(formData, fileBlob) {
       }
     }
 
-    sendApplicantConfirmation(formData, appId);
-    sendAdminNotification(formData, appId);
+    const applicantEmailSent = sendApplicantConfirmation(formData, appId);
+    logEmail('applicant_confirmation', formData['Email'], applicantEmailSent ? 'success' : 'failed', appId);
+    const adminEmailSent = sendAdminNotification(formData, appId);
+    logEmail('admin_notification', 'admin', adminEmailSent ? 'success' : 'failed', appId);
     logEmail('application_submitted', formData['Email'], 'success', appId);
 
     return { success: true, appId: appId, message: 'Application submitted successfully' };
@@ -2279,11 +2281,18 @@ function sendApplicantConfirmation(data, appId) {
     const dashboardLink  = baseUrl + '?path=dashboard&id=' + appId;
     const htmlBody = EmailTemplates.applicantConfirmation(data, appId, dashboardLink, paymentMethods);
     MailApp.sendEmail({
-      to: data['Email'], subject: `Choice Properties - Application Received (Ref: ${appId})`,
-      htmlBody: htmlBody, name: 'Choice Properties Leasing'
+      to: data['Email'],
+      subject: `Choice Properties - Application Received (Ref: ${appId})`,
+      htmlBody: htmlBody,
+      name: 'Choice Properties Leasing',
+      replyTo: 'choicepropertygroup@hotmail.com',
+      noReply: false
     });
     return true;
-  } catch (error) { console.error('sendApplicantConfirmation error:', error); return false; }
+  } catch (error) {
+    console.error('sendApplicantConfirmation error — appId: ' + appId + ' | to: ' + data['Email'] + ' | ' + error.toString());
+    return false;
+  }
 }
 
 function sendAdminNotification(data, appId) {

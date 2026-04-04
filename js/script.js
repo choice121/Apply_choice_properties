@@ -672,6 +672,7 @@ class RentalApplication {
                 preferenceNote: 'We\'ll use these for non-urgent follow-up after your payment is complete.',
                 questions: 'Questions? Call or text',
                 helpText: 'we\'re here to help.',
+                spamWarning: '📧 A confirmation email has been sent to you. If you don\'t see it within a few minutes, please check your <strong>spam or junk folder</strong>.',
                 trackStatus: 'Track My Application',
                 newApplication: 'New Application',
                 reapplicationPolicyTitle: 'Reapplication Protection',
@@ -901,6 +902,7 @@ class RentalApplication {
                 preferenceNote: 'Usaremos estas para seguimiento no urgente después de que se complete su pago.',
                 questions: '¿Preguntas? Llame o envíe un mensaje de texto al',
                 helpText: 'estamos aquí para ayudar.',
+                spamWarning: '📧 Se le ha enviado un correo de confirmación. Si no lo ve en unos minutos, revise su carpeta de <strong>spam o correo no deseado</strong>.',
                 trackStatus: 'Seguir Mi Solicitud',
                 newApplication: 'Nueva Solicitud',
                 reapplicationPolicyTitle: 'Protección de Reaplicación',
@@ -1539,6 +1541,10 @@ class RentalApplication {
                     <button onclick="sessionStorage.removeItem('lastSuccessAppId'); location.reload();" class="btn-new">
                         <i class="fas fa-plus"></i> ${t.newApplication}
                     </button>
+                </div>
+
+                <div class="spam-warning-notice" style="background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:14px 16px;margin:16px 0;font-size:13.5px;color:#5d4037;line-height:1.5;">
+                    ${t.spamWarning}
                 </div>
 
                 <div class="help-line">
