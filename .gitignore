@@ -1,0 +1,13 @@
+# Replit environment files
+.replit
+replit.nix
+.cache/
+.local/
+.agents/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Archives
+*.zip
