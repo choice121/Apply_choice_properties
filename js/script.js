@@ -46,7 +46,7 @@ class RentalApplication {
         this.retryCount = 0;
         this.retryTimeout = null;
         
-        this.BACKEND_URL = 'https://script.google.com/macros/s/AKfycbxRo3T68MfK1pT7SiIsbSgVQTtWJB2wSzQA8G9NTcpZqkYSI7SKl7HpHjL5e-wc98AK/exec';
+        this.BACKEND_URL = 'https://script.google.com/macros/s/AKfycbwqctrCLYOPaz1nZeMS5SXuqK7FRXbN5Bf0dSx3-3leyp_B7Bfr4HPC8YZaZ9wZVxtn/exec';
         
         this.initialize();
     }
