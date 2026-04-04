@@ -1683,7 +1683,8 @@ window.copyAppId = function() {
 
         const hostname = window.location.hostname;
         const isDev = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.replit.dev');
-        if (!isDev) {
+        const isTestMode = new URLSearchParams(window.location.search).get('test') === 'true';
+        if (!isDev && !isTestMode) {
             const container = document.getElementById('testButtonContainer');
             if (container) container.style.display = 'none';
             return;
