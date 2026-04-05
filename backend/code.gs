@@ -159,7 +159,16 @@ function doGet(e) {
   const id     = params.parameter.id   || '';
 
   if (path === 'admin') {
-    return renderAdminPanel();
+    const token = params.parameter.token || '';
+    if (token && validateAdminToken(token)) {
+      return renderAdminPanel(token);
+    }
+    const userEmail = Session.getActiveUser().getEmail();
+    const authorizedEmails = getAdminEmails();
+    if (userEmail && authorizedEmails.includes(userEmail)) {
+      return renderAdminPanel('');
+    }
+    return renderAdminLoginPage();
   } else if (path === 'dashboard' && id) {
     const result = getApplication(id);
     if (result.success) {
@@ -271,6 +280,289 @@ function renderLoginPage(errorMsg) {
 }
 
 // ============================================================
+// ADMIN AUTH — Token + OTP + Password System
+// ============================================================
+
+function generateAdminToken() {
+  const props = PropertiesService.getScriptProperties();
+  let secret = props.getProperty('ADMIN_AUTH_SECRET');
+  if (!secret) {
+    secret = Utilities.getUuid() + Utilities.getUuid();
+    props.setProperty('ADMIN_AUTH_SECRET', secret);
+  }
+  const ts  = Math.floor(Date.now() / 1000);
+  const sig = Utilities.base64Encode(
+    Utilities.computeHmacSha256Signature('admin:' + ts, secret)
+  );
+  return Utilities.base64EncodeWebSafe(sig + '.' + ts);
+}
+
+function validateAdminToken(token) {
+  if (!token) return false;
+  try {
+    const props  = PropertiesService.getScriptProperties();
+    const secret = props.getProperty('ADMIN_AUTH_SECRET');
+    if (!secret) return false;
+    const decoded  = Utilities.newBlob(Utilities.base64DecodeWebSafe(token)).getDataAsString();
+    const lastDot  = decoded.lastIndexOf('.');
+    if (lastDot === -1) return false;
+    const sig = decoded.substring(0, lastDot);
+    const ts  = parseInt(decoded.substring(lastDot + 1));
+    if (isNaN(ts)) return false;
+    const now = Math.floor(Date.now() / 1000);
+    if (now - ts > 8 * 60 * 60) return false;
+    const expectedSig = Utilities.base64Encode(
+      Utilities.computeHmacSha256Signature('admin:' + ts, secret)
+    );
+    return sig === expectedSig;
+  } catch (e) { return false; }
+}
+
+function sendAdminOTP(email) {
+  try {
+    if (!email) return { success: false, error: 'Email is required.' };
+    const normalized       = email.trim().toLowerCase();
+    const authorizedEmails = getAdminEmails().map(e => e.toLowerCase());
+    authorizedEmails.push('choiceproperties404@gmail.com');
+    if (!authorizedEmails.includes(normalized)) {
+      return { success: false, error: 'This email is not authorized.' };
+    }
+    const otp    = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiry = Date.now() + 10 * 60 * 1000;
+    PropertiesService.getScriptProperties().setProperty('ADMIN_OTP_' + normalized, otp + ':' + expiry);
+    MailApp.sendEmail({
+      to: email.trim(),
+      subject: '🔐 Your Admin Login Code — Choice Properties',
+      htmlBody: `
+        <div style="font-family:sans-serif;max-width:420px;margin:auto;padding:32px;background:#fff;border-radius:16px;">
+          <h2 style="color:#1e293b;margin-bottom:8px;">Admin Login Code</h2>
+          <p style="color:#475569;margin-bottom:24px;">Use the code below to access the Choice Properties admin panel.</p>
+          <div style="font-size:40px;font-weight:700;letter-spacing:10px;color:#4f46e5;background:#f1f5f9;border-radius:12px;padding:24px;text-align:center;">${otp}</div>
+          <p style="color:#94a3b8;font-size:13px;margin-top:20px;">⏱ Expires in 10 minutes. Do not share this code with anyone.</p>
+        </div>`,
+      name: 'Choice Properties Security'
+    });
+    return { success: true };
+  } catch (e) { return { success: false, error: 'Failed to send code: ' + e.toString() }; }
+}
+
+function verifyAdminOTP(email, otp) {
+  try {
+    const normalized = email.trim().toLowerCase();
+    const stored     = PropertiesService.getScriptProperties().getProperty('ADMIN_OTP_' + normalized);
+    if (!stored) return { success: false, error: 'No code found. Please request a new one.' };
+    const parts      = stored.split(':');
+    const storedOtp  = parts[0];
+    const expiry     = parseInt(parts[1]);
+    if (Date.now() > expiry) {
+      PropertiesService.getScriptProperties().deleteProperty('ADMIN_OTP_' + normalized);
+      return { success: false, error: 'Code expired. Please request a new one.' };
+    }
+    if (otp.trim() !== storedOtp) return { success: false, error: 'Incorrect code. Please try again.' };
+    PropertiesService.getScriptProperties().deleteProperty('ADMIN_OTP_' + normalized);
+    return { success: true, token: generateAdminToken() };
+  } catch (e) { return { success: false, error: 'Verification failed: ' + e.toString() }; }
+}
+
+function validateAdminPassword(username, password) {
+  try {
+    const props      = PropertiesService.getScriptProperties();
+    const storedUser = props.getProperty('ADMIN_USERNAME');
+    const storedHash = props.getProperty('ADMIN_PASSWORD_HASH');
+    if (!storedUser || !storedHash) {
+      return { success: false, error: 'Admin credentials not configured. Run setupAdminPassword() in the GAS editor first.' };
+    }
+    const inputHash = Utilities.base64Encode(
+      Utilities.computeHmacSha256Signature(password, storedUser)
+    );
+    if (username.trim() !== storedUser || inputHash !== storedHash) {
+      return { success: false, error: 'Invalid username or password.' };
+    }
+    return { success: true, token: generateAdminToken() };
+  } catch (e) { return { success: false, error: 'Login failed: ' + e.toString() }; }
+}
+
+// Run this ONCE manually in the GAS editor to set your admin credentials:
+function setupAdminPassword() {
+  const username = 'admin';            // ← change to your preferred username
+  const password = 'ChoiceAdmin2025!'; // ← change to a strong password
+  const props    = PropertiesService.getScriptProperties();
+  props.setProperty('ADMIN_USERNAME', username);
+  const hash = Utilities.base64Encode(
+    Utilities.computeHmacSha256Signature(password, username)
+  );
+  props.setProperty('ADMIN_PASSWORD_HASH', hash);
+  Logger.log('✅ Admin credentials set. Username: ' + username);
+}
+
+// ============================================================
+// renderAdminLoginPage()
+// ============================================================
+function renderAdminLoginPage(errorMsg) {
+  return HtmlService.createHtmlOutput(`
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Admin Login — Choice Properties</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .card { background: white; border-radius: 24px; padding: 40px; max-width: 460px; width: 100%; box-shadow: 0 30px 80px rgba(0,0,0,.5); }
+    .logo { text-align: center; margin-bottom: 32px; }
+    .logo-icon { font-size: 44px; margin-bottom: 10px; }
+    .logo h1 { font-size: 22px; font-weight: 700; color: #1e293b; }
+    .logo p { font-size: 13px; color: #94a3b8; margin-top: 4px; }
+    .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #94a3b8; margin-bottom: 14px; }
+    label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 5px; }
+    input[type=text], input[type=email], input[type=password] {
+      width: 100%; padding: 11px 14px; border: 1.5px solid #e2e8f0;
+      border-radius: 10px; font-size: 14px; font-family: 'Inter', sans-serif;
+      outline: none; transition: border-color .2s; margin-bottom: 12px;
+    }
+    input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.1); }
+    .btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .2s; font-family: 'Inter', sans-serif; }
+    .btn-primary { background: #4f46e5; color: white; }
+    .btn-primary:hover { background: #4338ca; }
+    .btn-outline { background: #f8fafc; color: #1e293b; border: 1.5px solid #e2e8f0; }
+    .btn-outline:hover { background: #f1f5f9; }
+    .btn:disabled { opacity: .55; cursor: not-allowed; }
+    .divider { display: flex; align-items: center; gap: 12px; margin: 28px 0; color: #94a3b8; font-size: 12px; font-weight: 500; }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e2e8f0; }
+    .alert { padding: 12px 14px; border-radius: 10px; font-size: 13px; margin-bottom: 20px; }
+    .alert-error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
+    .otp-row { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 12px; }
+    .otp-row input { flex: 1; margin-bottom: 0; }
+    .otp-row .btn-outline { flex-shrink: 0; width: auto; padding: 11px 16px; font-size: 13px; }
+    #otpCodeSection { display: none; }
+    .msg { font-size: 13px; margin-top: 6px; min-height: 18px; line-height: 1.4; }
+    .msg.error { color: #dc2626; }
+    .msg.success { color: #16a34a; }
+    .msg.info { color: #4f46e5; }
+  </style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <div class="logo-icon">🏢</div>
+    <h1>Choice Properties</h1>
+    <p>Admin Portal — Secure Login</p>
+  </div>
+
+  ${errorMsg ? '<div class="alert alert-error">⚠️ ' + errorMsg + '</div>' : ''}
+
+  <div class="section-title">Sign in with authorized email</div>
+  <label for="otpEmail">Email Address</label>
+  <div class="otp-row">
+    <input type="email" id="otpEmail" placeholder="choiceproperties404@gmail.com" autocomplete="email">
+    <button class="btn btn-outline" id="otpSendBtn" onclick="requestOTP()">Send Code</button>
+  </div>
+  <div id="otpCodeSection">
+    <label for="otpCode">6-Digit Verification Code</label>
+    <input type="text" id="otpCode" placeholder="123456" maxlength="6" inputmode="numeric" autocomplete="one-time-code">
+    <button class="btn btn-primary" onclick="verifyOTP()">Verify &amp; Sign In</button>
+  </div>
+  <div class="msg" id="otpMsg"></div>
+
+  <div class="divider">or</div>
+
+  <div class="section-title">Sign in with username &amp; password</div>
+  <label for="upUser">Username</label>
+  <input type="text" id="upUser" placeholder="admin" autocomplete="username">
+  <label for="upPass">Password</label>
+  <input type="password" id="upPass" placeholder="••••••••" autocomplete="current-password">
+  <button class="btn btn-primary" onclick="passwordLogin()">Sign In</button>
+  <div class="msg" id="upMsg"></div>
+</div>
+
+<script>
+  const GAS_URL = window.location.href.split('?')[0];
+
+  function post(body) {
+    return fetch(GAS_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: body,
+      redirect: 'follow'
+    }).then(r => r.json());
+  }
+
+  function setMsg(id, text, type) {
+    const el = document.getElementById(id);
+    el.innerHTML = text;
+    el.className = 'msg ' + (type || '');
+  }
+
+  function requestOTP() {
+    const email = document.getElementById('otpEmail').value.trim();
+    if (!email) { setMsg('otpMsg', 'Please enter your email address.', 'error'); return; }
+    const btn = document.getElementById('otpSendBtn');
+    btn.disabled = true; btn.textContent = 'Sending...';
+    setMsg('otpMsg', '', '');
+    post('_action=adminSendOTP&email=' + encodeURIComponent(email))
+      .then(function(data) {
+        if (data.success) {
+          document.getElementById('otpCodeSection').style.display = 'block';
+          setMsg('otpMsg', '✅ Code sent! Check your inbox (and spam folder).', 'success');
+          btn.textContent = 'Resend Code'; btn.disabled = false;
+        } else {
+          setMsg('otpMsg', data.error || 'Failed to send code.', 'error');
+          btn.textContent = 'Send Code'; btn.disabled = false;
+        }
+      })
+      .catch(function() { setMsg('otpMsg', 'Network error. Please try again.', 'error'); btn.textContent = 'Send Code'; btn.disabled = false; });
+  }
+
+  function verifyOTP() {
+    const email = document.getElementById('otpEmail').value.trim();
+    const otp   = document.getElementById('otpCode').value.trim();
+    if (!otp) { setMsg('otpMsg', 'Please enter the verification code.', 'error'); return; }
+    setMsg('otpMsg', 'Verifying...', 'info');
+    post('_action=adminVerifyOTP&email=' + encodeURIComponent(email) + '&otp=' + encodeURIComponent(otp))
+      .then(function(data) {
+        if (data.success) {
+          setMsg('otpMsg', '✅ Verified! Redirecting to admin panel...', 'success');
+          window.location.href = GAS_URL + '?path=admin&token=' + encodeURIComponent(data.token);
+        } else {
+          setMsg('otpMsg', data.error || 'Invalid code.', 'error');
+        }
+      })
+      .catch(function() { setMsg('otpMsg', 'Network error. Please try again.', 'error'); });
+  }
+
+  function passwordLogin() {
+    const user = document.getElementById('upUser').value.trim();
+    const pass = document.getElementById('upPass').value;
+    if (!user || !pass) { setMsg('upMsg', 'Please enter both username and password.', 'error'); return; }
+    setMsg('upMsg', 'Signing in...', 'info');
+    post('_action=adminPasswordLogin&username=' + encodeURIComponent(user) + '&password=' + encodeURIComponent(pass))
+      .then(function(data) {
+        if (data.success) {
+          setMsg('upMsg', '✅ Success! Redirecting...', 'success');
+          window.location.href = GAS_URL + '?path=admin&token=' + encodeURIComponent(data.token);
+        } else {
+          setMsg('upMsg', data.error || 'Invalid credentials.', 'error');
+        }
+      })
+      .catch(function() { setMsg('upMsg', 'Network error. Please try again.', 'error'); });
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key !== 'Enter') return;
+    var focused = document.activeElement && document.activeElement.id;
+    if (focused === 'otpCode') verifyOTP();
+    else if (focused === 'upPass' || focused === 'upUser') passwordLogin();
+    else if (focused === 'otpEmail') requestOTP();
+  });
+</script>
+</body>
+</html>
+  `).setTitle('Admin Login — Choice Properties');
+}
+
+// ============================================================
 // doPost() — Handle form submissions
 // ============================================================
 function doPost(e) {
@@ -316,6 +608,20 @@ function doPost(e) {
       return ContentService
         .createTextOutput(JSON.stringify(result))
         .setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // ── Route: admin auth ──
+    if (formData['_action'] === 'adminSendOTP') {
+      const result = sendAdminOTP(formData['email'] || '');
+      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+    }
+    if (formData['_action'] === 'adminVerifyOTP') {
+      const result = verifyAdminOTP(formData['email'] || '', formData['otp'] || '');
+      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+    }
+    if (formData['_action'] === 'adminPasswordLogin') {
+      const result = validateAdminPassword(formData['username'] || '', formData['password'] || '');
+      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
     }
 
     const result = processApplication(formData, fileBlob);
@@ -3343,26 +3649,26 @@ function renderApplicantDashboard(appId) {
 // ============================================================
 // renderAdminPanel() — ENHANCED UI
 // ============================================================
-function renderAdminPanel() {
+function renderAdminPanel(authToken) {
   initializeSheets();
   const ss = getSpreadsheet();
-  const authorizedEmails = getAdminEmails();
-  const userEmail = Session.getActiveUser().getEmail();
 
-  if (!authorizedEmails.includes(userEmail)) {
-    return HtmlService.createHtmlOutput(`
-      <!DOCTYPE html><html><head><title>Access Denied</title>
-      <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-      <style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:'Inter',sans-serif;background:#0f172a;min-height:100vh;display:flex;align-items:center;justify-content:center;}</style>
-      </head><body>
-        <div style="background:white;border-radius:24px;padding:48px 40px;text-align:center;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.4);">
-          <div style="font-size:56px;margin-bottom:16px;">⛔</div>
-          <h2 style="font-size:24px;font-weight:700;color:#1e293b;margin-bottom:8px;">Access Denied</h2>
-          <p style="color:#64748b;font-size:14px;margin-bottom:20px;">You are not authorized to view this admin panel.</p>
-          <div style="background:#f1f5f9;border-radius:10px;padding:12px;font-size:13px;color:#475569;">Logged in as:<br><strong style="color:#1e293b;">${userEmail}</strong></div>
-        </div>
-      </body></html>
-    `).setTitle('Access Denied');
+  let isAuthorized = false;
+  let userEmail    = 'Admin';
+  if (authToken && validateAdminToken(authToken)) {
+    isAuthorized = true;
+    userEmail    = 'choiceproperties404@gmail.com';
+  } else {
+    const authorizedEmails = getAdminEmails();
+    const googleEmail      = Session.getActiveUser().getEmail();
+    if (googleEmail && authorizedEmails.includes(googleEmail)) {
+      isAuthorized = true;
+      userEmail    = googleEmail;
+    }
+  }
+
+  if (!isAuthorized) {
+    return renderAdminLoginPage('Session expired or not authorized. Please sign in.');
   }
 
   const result       = getAllApplications();
