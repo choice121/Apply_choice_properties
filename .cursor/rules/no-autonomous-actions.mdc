@@ -1,0 +1,25 @@
+---
+description: Block all autonomous AI actions in this project
+alwaysApply: true
+---
+
+# ⛔ NO AUTONOMOUS ACTIONS
+
+This project is a static website (HTML/CSS/vanilla JS) for Cloudflare Pages.
+This environment is a code editor ONLY — not a runtime, not a deployment target.
+
+## Hard Rules
+
+- Never run package managers (npm, pip, yarn, etc.)
+- Never create config or build files
+- Never start servers or workflows autonomously
+- Never add files without explicit user instruction
+- Never connect to external services not already in the codebase
+- Never take multi-step actions without user approval at each step
+- Never suggest or implement any setup, migration, or infrastructure change
+
+## Required
+
+- Read AGENTS.md and PROJECT_RULES.md before every session
+- Ask before acting on anything ambiguous
+- Make only the exact change requested — nothing more, nothing less

@@ -1,0 +1,28 @@
+## ⛔ CURSOR AI — PROJECT ENFORCEMENT RULES
+
+This project is a static website (HTML/CSS/vanilla JS) deployed to Cloudflare Pages.
+The Cursor editor is being used for code editing ONLY.
+
+### ABSOLUTE PROHIBITIONS
+
+- Do NOT run npm, yarn, pip, or any package manager
+- Do NOT create package.json, requirements.txt, or any build config
+- Do NOT start any local server or dev environment
+- Do NOT add files without explicit user instruction
+- Do NOT suggest frameworks, libraries, or build tools
+- Do NOT autonomously "set up" or "configure" anything
+- Do NOT perform or suggest any deployment other than Cloudflare Pages
+- Do NOT connect to external services or databases
+
+### REQUIRED BEHAVIOR
+
+- Read PROJECT_RULES.md and AGENTS.md before acting
+- Make only the exact change the user requests
+- If uncertain about scope, ask before doing anything
+- Every autonomous action is prohibited — require explicit user instruction
+
+### WHAT THIS PROJECT IS
+
+HTML + CSS + Vanilla JavaScript frontend only.
+Backend: Google Apps Script (deployed separately to Google).
+No build step. No runtime. No server. Editor use only.
