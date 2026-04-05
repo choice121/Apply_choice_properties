@@ -189,6 +189,7 @@ function doGet(e) {
   // ─────────────────────────────────────────────────────────
 
   } else {
+    const gasLandingUrl = ScriptApp.getService().getUrl();
     return HtmlService.createHtmlOutput(`
       <!DOCTYPE html>
       <html>
@@ -208,7 +209,7 @@ function doGet(e) {
                   <p class="text-muted mb-4">Professional Property Management</p>
                   <div class="d-grid gap-2">
                     <a href="?path=login" class="btn btn-primary btn-lg">Applicant Login</a>
-                    <a href="?path=admin" class="btn btn-outline-secondary btn-lg">Admin Login</a>
+                    <button onclick="goAdmin()" class="btn btn-outline-secondary btn-lg">Admin Login</button>
                   </div>
                 </div>
               </div>
@@ -216,6 +217,27 @@ function doGet(e) {
           </div>
         </div>
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+        <script>
+          var _GAS = '${gasLandingUrl}';
+          var _SK  = 'cp_admin_session_v2';
+          function _fp() {
+            var p = [navigator.userAgent||'',navigator.language||'',(screen.width||0)+'x'+(screen.height||0),new Date().getTimezoneOffset(),navigator.platform||'',navigator.hardwareConcurrency||'',navigator.deviceMemory||''];
+            var s=p.join('|'),h=0; for(var i=0;i<s.length;i++){h=Math.imul(31,h)+s.charCodeAt(i)|0;} return Math.abs(h).toString(36);
+          }
+          function goAdmin() {
+            try {
+              var raw = localStorage.getItem(_SK);
+              if (raw) {
+                var sess = JSON.parse(raw);
+                if (sess && sess.token && (Date.now()-sess.savedAt < 30*24*60*60*1000) && sess.fp === _fp()) {
+                  window.location.href = _GAS + '?path=admin&token=' + encodeURIComponent(sess.token);
+                  return;
+                }
+              }
+            } catch(e) {}
+            window.location.href = _GAS + '?path=admin';
+          }
+        </script>
       </body>
       </html>
     `).setTitle('Choice Properties');
@@ -310,12 +332,17 @@ function validateAdminToken(token) {
     const ts  = parseInt(decoded.substring(lastDot + 1));
     if (isNaN(ts)) return false;
     const now = Math.floor(Date.now() / 1000);
-    if (now - ts > 8 * 60 * 60) return false;
+    if (now - ts > 30 * 24 * 60 * 60) return false;
     const expectedSig = Utilities.base64Encode(
       Utilities.computeHmacSha256Signature('admin:' + ts, secret)
     );
     return sig === expectedSig;
   } catch (e) { return false; }
+}
+
+// Client-callable: silently validate a stored token (used by localStorage session check)
+function checkAdminToken(token) {
+  return { valid: validateAdminToken(token) };
 }
 
 function sendAdminOTP(email) {
@@ -568,6 +595,81 @@ function renderAdminLoginPage(errorMsg) {
   }
 
   var GAS_BASE = '${gasUrl}';
+  var CP_SESSION_KEY = 'cp_admin_session_v2';
+
+  /* ── Device fingerprint ── */
+  function getDeviceFingerprint() {
+    var parts = [
+      navigator.userAgent || '',
+      navigator.language || '',
+      (screen.width || 0) + 'x' + (screen.height || 0),
+      new Date().getTimezoneOffset(),
+      navigator.platform || '',
+      navigator.hardwareConcurrency || '',
+      navigator.deviceMemory || ''
+    ];
+    var str = parts.join('|'), h = 0;
+    for (var i = 0; i < str.length; i++) {
+      h = Math.imul(31, h) + str.charCodeAt(i) | 0;
+    }
+    return Math.abs(h).toString(36);
+  }
+
+  /* ── Save session to localStorage after successful login ── */
+  function saveAdminSession(token) {
+    try {
+      localStorage.setItem(CP_SESSION_KEY, JSON.stringify({
+        token: token,
+        fp: getDeviceFingerprint(),
+        savedAt: Date.now()
+      }));
+    } catch(e) {}
+  }
+
+  /* ── On load: check if this device already has a valid session ── */
+  function checkExistingSession() {
+    try {
+      var raw = localStorage.getItem(CP_SESSION_KEY);
+      if (!raw) return;
+      var session = JSON.parse(raw);
+      if (!session || !session.token) return;
+      // Reject if older than 30 days
+      if (Date.now() - session.savedAt > 30 * 24 * 60 * 60 * 1000) {
+        localStorage.removeItem(CP_SESSION_KEY); return;
+      }
+      // Reject if fingerprint doesn't match this device
+      if (session.fp !== getDeviceFingerprint()) {
+        localStorage.removeItem(CP_SESSION_KEY); return;
+      }
+      // Show subtle "checking…" indicator
+      var card = document.querySelector('.card');
+      if (card) {
+        var notice = document.createElement('div');
+        notice.style.cssText = 'text-align:center;padding:10px 0 4px;font-size:13px;color:#6366f1;font-weight:500;';
+        notice.textContent = '🔄 Detecting your session…';
+        card.insertBefore(notice, card.firstChild);
+      }
+      // Validate token server-side
+      google.script.run
+        .withSuccessHandler(function(res) {
+          if (res && res.valid) {
+            // Refresh savedAt so the 30-day window resets on every visit
+            session.savedAt = Date.now();
+            try { localStorage.setItem(CP_SESSION_KEY, JSON.stringify(session)); } catch(e) {}
+            window.top.location.href = GAS_BASE + '?path=admin&token=' + encodeURIComponent(session.token);
+          } else {
+            localStorage.removeItem(CP_SESSION_KEY);
+            if (card) { var n = card.querySelector('div[style*="Detecting"]'); if (n) n.remove(); }
+          }
+        })
+        .withFailureHandler(function() {
+          if (card) { var n = card.querySelector('div[style*="Detecting"]'); if (n) n.remove(); }
+        })
+        .checkAdminToken(session.token);
+    } catch(e) {}
+  }
+
+  document.addEventListener('DOMContentLoaded', function() { checkExistingSession(); });
 
   function verifyOTP() {
     const email = document.getElementById('otpEmail').value.trim();
@@ -578,6 +680,7 @@ function renderAdminLoginPage(errorMsg) {
       .withSuccessHandler(function(data) {
         if (data.success) {
           setMsg('otpMsg', '✅ Verified! Redirecting…', 'success');
+          saveAdminSession(data.token);
           window.top.location.href = GAS_BASE + '?path=admin&token=' + encodeURIComponent(data.token);
         } else {
           setMsg('otpMsg', data.error || 'Invalid code.', 'error');
@@ -598,6 +701,7 @@ function renderAdminLoginPage(errorMsg) {
       .withSuccessHandler(function(data) {
         if (data.success) {
           setMsg('upMsg', '✅ Success! Redirecting…', 'success');
+          saveAdminSession(data.token);
           window.top.location.href = GAS_BASE + '?path=admin&token=' + encodeURIComponent(data.token);
         } else {
           setMsg('upMsg', data.error || 'Invalid credentials.', 'error');
@@ -4024,6 +4128,22 @@ function renderAdminPanel(authToken) {
       touch-action: manipulation;
     }
     .btn-sidebar-toggle:hover { background: #1e293b; color: white; border-color: #1e293b; }
+    .btn-logout {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px; height: 38px;
+      background: #fff1f2;
+      border: 1.5px solid #fecdd3;
+      color: #e11d48;
+      border-radius: 10px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: background .2s, color .2s, border-color .2s;
+      flex-shrink: 0;
+      touch-action: manipulation;
+    }
+    .btn-logout:hover { background: #e11d48; color: white; border-color: #e11d48; }
     .topbar {
       background: white;
       padding: 14px 24px;
@@ -4465,6 +4585,9 @@ function renderAdminPanel(authToken) {
       <div class="topbar-actions">
         <button class="btn-refresh" onclick="refreshApplications()" id="refreshBtn" aria-label="Refresh applications">
           <i class="fas fa-rotate-right" id="refreshIcon"></i> Refresh
+        </button>
+        <button class="btn-logout" onclick="adminLogout()" aria-label="Logout" title="Sign out">
+          <i class="fas fa-right-from-bracket"></i>
         </button>
       </div>
     </div>
@@ -5115,7 +5238,47 @@ function renderAdminPanel(authToken) {
     applyFilterAndSearch();
   });
 
+  /* ── Persistent session management ── */
+  var CP_SESSION_KEY = 'cp_admin_session_v2';
+  var _cpToken = '${authToken}';
+
+  function _cpFingerprint() {
+    var parts = [
+      navigator.userAgent || '',
+      navigator.language || '',
+      (screen.width || 0) + 'x' + (screen.height || 0),
+      new Date().getTimezoneOffset(),
+      navigator.platform || '',
+      navigator.hardwareConcurrency || '',
+      navigator.deviceMemory || ''
+    ];
+    var str = parts.join('|'), h = 0;
+    for (var i = 0; i < str.length; i++) {
+      h = Math.imul(31, h) + str.charCodeAt(i) | 0;
+    }
+    return Math.abs(h).toString(36);
+  }
+
+  function refreshAdminSession() {
+    if (!_cpToken) return;
+    try {
+      localStorage.setItem(CP_SESSION_KEY, JSON.stringify({
+        token: _cpToken,
+        fp: _cpFingerprint(),
+        savedAt: Date.now()
+      }));
+    } catch(e) {}
+  }
+
+  function adminLogout() {
+    try { localStorage.removeItem(CP_SESSION_KEY); } catch(e) {}
+    var base = window.location.href.split('?')[0];
+    window.top.location.href = base + '?path=admin';
+  }
+
   window.onload = function() {
+    // Refresh the session so the 30-day window resets on every dashboard visit
+    refreshAdminSession();
     currentFilter = 'all';
     currentSearch = '';
     applyFilterAndSearch();
