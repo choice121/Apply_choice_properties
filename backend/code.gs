@@ -323,12 +323,12 @@ function sendAdminOTP(email) {
     if (!email) return { success: false, error: 'Email is required.' };
     const normalized       = email.trim().toLowerCase();
     const authorizedEmails = getAdminEmails().map(e => e.toLowerCase());
-    authorizedEmails.push('choiceproperties404@gmail.com');
     if (!authorizedEmails.includes(normalized)) {
       return { success: false, error: 'This email is not authorized.' };
     }
-    const otp    = Math.floor(100000 + Math.random() * 900000).toString();
+    const otp    = (parseInt(Utilities.getUuid().replace(/-/g, '').substring(0, 8), 16) % 900000 + 100000).toString();
     const expiry = Date.now() + 10 * 60 * 1000;
+    PropertiesService.getScriptProperties().deleteProperty('ADMIN_OTP_STRIKES_' + normalized);
     PropertiesService.getScriptProperties().setProperty('ADMIN_OTP_' + normalized, otp + ':' + expiry);
     MailApp.sendEmail({
       to: email.trim(),
@@ -349,17 +349,29 @@ function sendAdminOTP(email) {
 function verifyAdminOTP(email, otp) {
   try {
     const normalized = email.trim().toLowerCase();
-    const stored     = PropertiesService.getScriptProperties().getProperty('ADMIN_OTP_' + normalized);
+    const props      = PropertiesService.getScriptProperties();
+    const stored     = props.getProperty('ADMIN_OTP_' + normalized);
     if (!stored) return { success: false, error: 'No code found. Please request a new one.' };
     const parts      = stored.split(':');
     const storedOtp  = parts[0];
     const expiry     = parseInt(parts[1]);
     if (Date.now() > expiry) {
-      PropertiesService.getScriptProperties().deleteProperty('ADMIN_OTP_' + normalized);
+      props.deleteProperty('ADMIN_OTP_' + normalized);
       return { success: false, error: 'Code expired. Please request a new one.' };
     }
-    if (otp.trim() !== storedOtp) return { success: false, error: 'Incorrect code. Please try again.' };
-    PropertiesService.getScriptProperties().deleteProperty('ADMIN_OTP_' + normalized);
+    if (otp.trim() !== storedOtp) {
+      const strikeKey = 'ADMIN_OTP_STRIKES_' + normalized;
+      const strikes   = parseInt(props.getProperty(strikeKey) || '0') + 1;
+      if (strikes >= 5) {
+        props.deleteProperty('ADMIN_OTP_' + normalized);
+        props.deleteProperty(strikeKey);
+        return { success: false, error: 'Too many failed attempts. Please request a new code.' };
+      }
+      props.setProperty(strikeKey, strikes.toString());
+      return { success: false, error: 'Incorrect code. Please try again.' };
+    }
+    props.deleteProperty('ADMIN_OTP_' + normalized);
+    props.deleteProperty('ADMIN_OTP_STRIKES_' + normalized);
     return { success: true, token: generateAdminToken() };
   } catch (e) { return { success: false, error: 'Verification failed: ' + e.toString() }; }
 }
@@ -384,8 +396,12 @@ function validateAdminPassword(username, password) {
 
 // Run this ONCE manually in the GAS editor to set your admin credentials:
 function setupAdminPassword() {
-  const username = 'admin';            // ← change to your preferred username
-  const password = 'ChoiceAdmin2025!'; // ← change to a strong password
+  const username = '';  // ← set your username here before running
+  const password = '';  // ← set your password here before running
+  if (!username || !password) {
+    Logger.log('❌ Set your username and password in this function before running it.');
+    return;
+  }
   const props    = PropertiesService.getScriptProperties();
   props.setProperty('ADMIN_USERNAME', username);
   const hash = Utilities.base64Encode(
@@ -399,6 +415,8 @@ function setupAdminPassword() {
 // renderAdminLoginPage()
 // ============================================================
 function renderAdminLoginPage(errorMsg) {
+  const props             = PropertiesService.getScriptProperties();
+  const passwordConfigured = !!(props.getProperty('ADMIN_USERNAME') && props.getProperty('ADMIN_PASSWORD_HASH'));
   return HtmlService.createHtmlOutput(`
 <!DOCTYPE html>
 <html lang="en">
@@ -468,13 +486,17 @@ function renderAdminLoginPage(errorMsg) {
 
   <div class="divider">or</div>
 
+  ${passwordConfigured ? `
   <div class="section-title">Sign in with username &amp; password</div>
   <label for="upUser">Username</label>
-  <input type="text" id="upUser" placeholder="admin" autocomplete="username">
+  <input type="text" id="upUser" placeholder="Username" autocomplete="username">
   <label for="upPass">Password</label>
   <input type="password" id="upPass" placeholder="••••••••" autocomplete="current-password">
   <button class="btn btn-primary" onclick="passwordLogin()">Sign In</button>
   <div class="msg" id="upMsg"></div>
+  ` : `
+  <p style="text-align:center;color:#94a3b8;font-size:13px;padding:8px 0;">Password login not configured — use email code above.</p>
+  `}
 </div>
 
 <script>
@@ -4778,6 +4800,9 @@ function renderAdminPanel(authToken) {
   });
 
   window.onload = function() {
+    if (window.history && window.history.replaceState) {
+      window.history.replaceState(null, '', window.location.pathname + '?path=admin');
+    }
     currentFilter = 'all';
     currentSearch = '';
     applyFilterAndSearch();
