@@ -21,6 +21,27 @@
 
   See PROJECT_RULES.md at the project root for the full contract.
 =======================================================================
+  INTEGRATION NOTE (Session 028):
+  ─────────────────────────────────────────────────────────────────────
+  This form is the SOLE application system for Choice Properties.
+  The main listing platform (choice-properties-site.pages.dev) redirects
+  users here when they click "Apply" on any property listing.
+
+  Property context is passed via URL query parameters for display only:
+    ?id=<propertyId>   — internal property ID (display/logging only)
+    &pn=<name>         — property name / title
+    &addr=<street>     — street address
+    &city=<city>       — city
+    &state=<state>     — 2-letter state code
+    &rent=<amount>     — monthly rent (used for income ratio display)
+
+  These params pre-fill the Property Address field and show a context
+  banner so applicants know which property they're applying for.
+
+  IMPORTANT: URL params are NEVER used for backend validation.
+  The GAS backend does not read or trust these values for any decision.
+  The applicant can edit the pre-filled address field at any time.
+  ─────────────────────────────────────────────────────────────────────
 */
 
 class RentalApplication {
@@ -38,7 +59,9 @@ class RentalApplication {
             lastSave: null,
             applicationId: null,
             formData: {},
-            language: 'en'
+            language: 'en',
+            // Property context passed from the listing site via URL params
+            propertyContext: null
         };
         
         // Smart retry properties
@@ -122,6 +145,10 @@ class RentalApplication {
         this.setupGeoapify();
         this.setupInputFormatting();
         this.setupLanguageToggle();
+        this.setupSaveResume();
+
+        // ── Read URL params from listing site and pre-fill form ──
+        this._prefillFromURL();
         
         const savedAppId = sessionStorage.getItem('lastSuccessAppId');
         if (savedAppId) {
@@ -132,7 +159,181 @@ class RentalApplication {
         console.log('Rental Application Manager Initialized');
     }
 
+
+    // ─────────────────────────────────────────────────────────────────────
+    // URL PRE-FILL — reads context passed by the main listing platform.
+    // Params: id, pn (name), addr, city, state, rent
+    // All values are display-only. Backend never uses or validates these.
+    // ─────────────────────────────────────────────────────────────────────
+    _prefillFromURL() {
+        try {
+            const p     = new URLSearchParams(window.location.search);
+            const id    = p.get('id')    || '';
+            const name  = p.get('pn')   || '';
+            const addr  = p.get('addr') || '';
+            const city  = p.get('city') || '';
+            const state = p.get('state') || '';
+            const rent  = p.get('rent') || '';
+
+            // Nothing useful in the URL — silent return
+            if (!id && !name && !addr && !city) return;
+
+            // Store context on instance for later use (income ratio, success page, etc.)
+            this.state.propertyContext = { id, name, addr, city, state, rent };
+
+            // D-015: Populate hidden inputs so FormData serialises them automatically
+            const setHidden = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+            setHidden('hiddenPropertyId',    id);
+            setHidden('hiddenPropertyName',  name);
+            setHidden('hiddenPropertyCity',  city);
+            setHidden('hiddenPropertyState', state);
+            setHidden('hiddenListedRent',    rent);
+
+            // Build a formatted address string for the property address field
+            const streetParts = [addr, city, state].filter(Boolean);
+            const formattedAddr = streetParts.length
+                ? streetParts.join(', ')
+                : name; // fallback: use property name if no address parts
+
+            // Pre-fill the property address field (Step 1) — only if empty
+            const addrField = document.getElementById('propertyAddress');
+            if (addrField && formattedAddr && !addrField.value) {
+                addrField.value = formattedAddr;
+                addrField.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+
+            // Show the property context banner
+            this._showPropertyBanner({ id, name, addr, city, state, rent });
+
+            // Wire up income ratio on Step 3 if rent was passed
+            if (rent) {
+                this._setupIncomeRatio(parseFloat(rent));
+            }
+
+        } catch (err) {
+            // Silent — never break the form over a missing URL param
+            console.warn('_prefillFromURL error (non-fatal):', err);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // PROPERTY CONTEXT BANNER — shown between header and progress bar.
+    // Lets applicants confirm they're applying for the right property.
+    // ─────────────────────────────────────────────────────────────────────
+    _showPropertyBanner({ name, addr, city, state, rent }) {
+        if (!name && !addr && !city) return;
+
+        const displayName = name || 'Selected Property';
+        const locationParts = [city, state].filter(Boolean);
+        const locationLine = locationParts.length ? locationParts.join(', ') : '';
+        const rentLine = rent
+            ? '$' + parseFloat(rent).toLocaleString('en-US') + '/mo'
+            : '';
+
+        const metaParts = [locationLine, rentLine].filter(Boolean);
+        const metaLine = metaParts.join(' &nbsp;·&nbsp; ');
+
+        const banner = document.createElement('div');
+        banner.id = 'propertyContextBanner';
+        banner.className = 'property-context-banner';
+        banner.setAttribute('role', 'note');
+        banner.setAttribute('aria-label', 'Property you are applying for');
+        banner.innerHTML =
+            '<div class="pcb-inner">' +
+                '<div class="pcb-left">' +
+                    '<div class="pcb-icon"><i class="fas fa-home"></i></div>' +
+                    '<div class="pcb-text">' +
+                        '<div class="pcb-label">Applying for</div>' +
+                        '<div class="pcb-name">' + this._escHtml(displayName) + '</div>' +
+                        (metaLine ? '<div class="pcb-meta">' + metaLine + '</div>' : '') +
+                    '</div>' +
+                '</div>' +
+                '<div class="pcb-right">' +
+                    '<div class="pcb-managed">' +
+                        '<i class="fas fa-shield-alt"></i>' +
+                        '<span>Managed by <strong>Choice Properties</strong></span>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+
+        // Insert before the progress bar
+        const progressContainer = document.querySelector('.progress-container');
+        if (progressContainer && progressContainer.parentNode) {
+            progressContainer.parentNode.insertBefore(banner, progressContainer);
+        } else {
+            const container = document.querySelector('.container');
+            if (container) container.insertBefore(banner, container.firstChild);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // INCOME RATIO — uses rent passed from URL to display ratio in Step 3.
+    // Green ≥2.5x (qualifies), amber 2–2.49x (borderline), red <2x (low).
+    // Standard rental threshold is 2.5–3x monthly rent.
+    // ─────────────────────────────────────────────────────────────────────
+    _setupIncomeRatio(monthlyRent) {
+        if (!monthlyRent || monthlyRent <= 0) return;
+
+        const incomeInput   = document.getElementById('monthlyIncome');
+        const otherInput    = document.getElementById('otherIncome');
+        const ratioResult   = document.getElementById('incomeRatioResult');
+        const ratioDisplay  = document.getElementById('ratioDisplay');
+
+        if (!incomeInput || !ratioResult || !ratioDisplay) return;
+
+        const updateRatio = () => {
+            const primary = parseFloat((incomeInput.value || '').replace(/[^0-9.]/g, '')) || 0;
+            const other   = parseFloat((otherInput ? otherInput.value || '' : '').replace(/[^0-9.]/g, '')) || 0;
+            const total   = primary + other;
+
+            if (total <= 0) {
+                ratioResult.style.display = 'none';
+                return;
+            }
+
+            const ratio = total / monthlyRent;
+            const ratioText = ratio.toFixed(1) + 'x';
+
+            let color, label;
+            if (ratio >= 2.5) {
+                color = '#27ae60';
+                label = 'Qualifies';
+            } else if (ratio >= 2.0) {
+                color = '#f39c12';
+                label = 'Borderline';
+            } else {
+                color = '#e74c3c';
+                label = 'Low';
+            }
+
+            ratioDisplay.textContent = ratioText;
+            ratioDisplay.style.color = color;
+
+            const labelEl = ratioResult.querySelector('.income-ratio-label');
+            if (labelEl) {
+                labelEl.textContent = 'Income-to-Rent Ratio: ' + label;
+                labelEl.style.color = color;
+            }
+
+            ratioResult.style.display = 'flex';
+        };
+
+        incomeInput.addEventListener('input', updateRatio);
+        if (otherInput) otherInput.addEventListener('input', updateRatio);
+        updateRatio();
+    }
+
+    // Simple HTML escaper used in the property banner
+    _escHtml(str) {
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
     // ---------- Offline detection ----------
+
     setupOfflineDetection() {
         window.addEventListener('online', () => {
             this.setState({ isOnline: true });
@@ -528,7 +729,18 @@ class RentalApplication {
             if (select) {
                 select.addEventListener('change', (e) => {
                     const otherContainer = document.getElementById(`${id}OtherContainer`);
-                    if (otherContainer) otherContainer.style.display = e.target.value === 'Other' ? 'block' : 'none';
+                    const otherInput = document.getElementById(`${id}Other`);
+                    const isOther = e.target.value === 'Other';
+                    if (otherContainer) otherContainer.style.display = isOther ? 'block' : 'none';
+                    if (otherInput) {
+                        if (isOther) {
+                            otherInput.setAttribute('required', 'required');
+                            otherInput.focus();
+                        } else {
+                            otherInput.removeAttribute('required');
+                            otherInput.value = '';
+                        }
+                    }
                     this.validatePaymentSelections();
                 });
             }
@@ -565,6 +777,99 @@ class RentalApplication {
 
     setupFileUploads() {}
 
+    // ---------- Save & Resume Later ----------
+    setupSaveResume() {
+        // Inject the modal HTML once
+        if (!document.getElementById('saveResumeModal')) {
+            const modal = document.createElement('div');
+            modal.id = 'saveResumeModal';
+            modal.className = 'save-resume-modal';
+            modal.setAttribute('role', 'dialog');
+            modal.setAttribute('aria-modal', 'true');
+            modal.setAttribute('aria-label', 'Save progress and resume later');
+            modal.innerHTML = `
+                <div class="save-resume-card">
+                    <h3><i class="fas fa-bookmark" style="color:var(--secondary);margin-right:8px;"></i>Save & Resume Later</h3>
+                    <p>Enter your email and we'll send you a link to resume your application exactly where you left off.</p>
+                    <div class="form-group">
+                        <input type="email" id="resumeEmailInput" placeholder="your@email.com" autocomplete="email" />
+                    </div>
+                    <div class="save-resume-actions">
+                        <button class="btn-send-link" id="sendResumeLinkBtn">
+                            <i class="fas fa-paper-plane"></i> Send Link
+                        </button>
+                        <button class="btn-cancel-resume" id="cancelResumeBtn">Cancel</button>
+                    </div>
+                    <div class="save-resume-success" id="saveResumeSuccess">
+                        <i class="fas fa-check-circle"></i> Link sent! Check your inbox.
+                    </div>
+                </div>`;
+            document.body.appendChild(modal);
+        }
+
+        // Inject "Save & Resume" bar below each step's nav buttons
+        document.querySelectorAll('.form-section').forEach(section => {
+            if (section.querySelector('.save-resume-bar')) return;
+            const bar = document.createElement('div');
+            bar.className = 'save-resume-bar';
+            bar.innerHTML = `<button type="button" class="btn-save-resume save-resume-trigger">
+                <i class="fas fa-bookmark"></i> Save & Resume Later
+            </button>`;
+            section.appendChild(bar);
+        });
+
+        // Open modal
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('.save-resume-trigger') || e.target.closest('.save-resume-trigger')) {
+                const emailField = document.getElementById('rentalApplication')?.querySelector('#email');
+                const prefill = emailField ? emailField.value.trim() : '';
+                const input = document.getElementById('resumeEmailInput');
+                if (input && prefill && !input.value) input.value = prefill;
+                document.getElementById('saveResumeModal').classList.add('open');
+                const successEl = document.getElementById('saveResumeSuccess');
+                if (successEl) successEl.classList.remove('show');
+                if (input) input.focus();
+            }
+        });
+
+        // Close modal
+        document.getElementById('cancelResumeBtn')?.addEventListener('click', () => {
+            document.getElementById('saveResumeModal').classList.remove('open');
+        });
+        document.getElementById('saveResumeModal')?.addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) e.currentTarget.classList.remove('open');
+        });
+
+        // Send link
+        document.getElementById('sendResumeLinkBtn')?.addEventListener('click', () => {
+            const emailInput = document.getElementById('resumeEmailInput');
+            const email = emailInput ? emailInput.value.trim() : '';
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                emailInput.style.borderColor = '#e74c3c';
+                emailInput.focus();
+                return;
+            }
+            emailInput.style.borderColor = '';
+            this.saveProgress();
+            // Build a resume URL with the saved data encoded as a param
+            const savedKey = this.config.LOCAL_STORAGE_KEY;
+            const resumeUrl = window.location.origin + window.location.pathname + '?resume=1';
+            // Send via GAS backend (fire-and-forget, no blocking)
+            const payload = new FormData();
+            payload.append('_action', 'sendResumeEmail');
+            payload.append('email', email);
+            payload.append('resumeUrl', resumeUrl);
+            payload.append('step', this.getCurrentSection());
+            fetch(this.BACKEND_URL, { method: 'POST', body: payload }).catch(() => {});
+            const successEl = document.getElementById('saveResumeSuccess');
+            if (successEl) successEl.classList.add('show');
+            setTimeout(() => {
+                document.getElementById('saveResumeModal').classList.remove('open');
+                if (successEl) successEl.classList.remove('show');
+            }, 2500);
+        });
+    }
+
     setupCharacterCounters() {
         const textareas = document.querySelectorAll('textarea');
         textareas.forEach(textarea => {
@@ -590,8 +895,14 @@ class RentalApplication {
         if (saved) {
             try {
                 const data = JSON.parse(saved);
+                // Sensitive keys are stripped from localStorage before saving (see saveProgress).
+                // The guard below is a belt-and-suspenders check in case a future change
+                // adds them back. Note: SSN fields use id="ssn"/"coSsn" but FormData key
+                // "SSN"/"Co-Applicant SSN" — getElementById would return null anyway,
+                // but we skip explicitly for clarity.
+                const SKIP = new Set(['SSN', 'Co-Applicant SSN', 'Application ID', '_last_updated', '_language']);
                 Object.keys(data).forEach(key => {
-                    if (key === 'SSN' || key === 'Co-Applicant SSN') return;
+                    if (SKIP.has(key)) return;
                     const el = document.getElementById(key);
                     if (el) {
                         if (el.type === 'checkbox') el.checked = data[key];
@@ -599,6 +910,20 @@ class RentalApplication {
                     }
                 });
                 if (data._language) this.state.language = data._language;
+
+                // D-016: After restore, re-hydrate propertyContext from hidden inputs
+                // and set up income ratio widget if rent data is present but URL param was absent.
+                const rentEl = document.getElementById('hiddenListedRent');
+                const rentVal = rentEl && rentEl.value ? parseFloat(rentEl.value) : 0;
+                if (rentVal && (!this.state.propertyContext || !this.state.propertyContext.rent)) {
+                    if (!this.state.propertyContext) this.state.propertyContext = {};
+                    this.state.propertyContext.rent  = String(rentVal);
+                    this.state.propertyContext.id    = (document.getElementById('hiddenPropertyId')    || {}).value || '';
+                    this.state.propertyContext.name  = (document.getElementById('hiddenPropertyName')  || {}).value || '';
+                    this.state.propertyContext.city  = (document.getElementById('hiddenPropertyCity')  || {}).value || '';
+                    this.state.propertyContext.state = (document.getElementById('hiddenPropertyState') || {}).value || '';
+                    this._setupIncomeRatio(rentVal);
+                }
             } catch (e) {}
         }
     }
@@ -1217,18 +1542,11 @@ class RentalApplication {
         if (!retryBtn) {
             retryBtn = document.createElement('button');
             retryBtn.id = 'submissionRetryBtn';
-            retryBtn.className = 'btn btn-retry';
+            retryBtn.className = 'btn-retry';
             retryBtn.innerHTML = `<i class="fas fa-redo-alt"></i> ${t.retry}`;
-            retryBtn.style.marginTop = '15px';
-            retryBtn.style.padding = '10px 20px';
-            retryBtn.style.background = 'var(--secondary)';
-            retryBtn.style.color = 'white';
-            retryBtn.style.border = 'none';
-            retryBtn.style.borderRadius = 'var(--border-radius)';
-            retryBtn.style.cursor = 'pointer';
             progressDiv.appendChild(retryBtn);
         }
-        retryBtn.style.display = 'inline-block';
+        retryBtn.style.display = 'inline-flex';
 
         const newBtn = retryBtn.cloneNode(true);
         retryBtn.parentNode.replaceChild(newBtn, retryBtn);
@@ -1299,6 +1617,19 @@ class RentalApplication {
     async handleFormSubmit(e) {
         e.preventDefault();
 
+        // ── Duplicate submission guard ──────────────────────────────
+        // Block if already mid-submission
+        if (this.state.isSubmitting) return;
+        // Block if this session already produced a successful appId
+        if (sessionStorage.getItem('lastSuccessAppId')) {
+            const existingId = sessionStorage.getItem('lastSuccessAppId');
+            this.showSuccessState(existingId);
+            const form = document.getElementById('rentalApplication');
+            if (form) form.style.display = 'none';
+            return;
+        }
+        // ────────────────────────────────────────────────────────────
+
         this.retryCount = 0;
         if (this.retryTimeout) {
             clearTimeout(this.retryTimeout);
@@ -1355,13 +1686,33 @@ class RentalApplication {
             const form = document.getElementById('rentalApplication');
             const formData = new FormData(form);
 
-            this.updateSubmissionProgress(2, t.validating);
-            const response = await fetch(this.BACKEND_URL, {
-                method: 'POST',
-                body: formData
-            });
+            // ── D-015: Property context fields are now carried by hidden inputs in index.html
+            // and serialised automatically by FormData — no manual appending needed.
 
-            const result = await response.json();
+            this.updateSubmissionProgress(2, t.validating);
+
+            let response;
+            try {
+                response = await fetch(this.BACKEND_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+            } catch (networkErr) {
+                throw new Error('Unable to reach our servers. Please check your connection and try again.');
+            }
+
+            // GAS can return HTML error pages (quota exceeded, script error, etc.)
+            // Always check content type before parsing as JSON
+            let result;
+            const contentType = response.headers.get('content-type') || '';
+            if (!response.ok || !contentType.includes('application/json')) {
+                throw new Error('Our system is temporarily unavailable. Please try again in a few minutes, or contact us at 707-706-3137.');
+            }
+            try {
+                result = await response.json();
+            } catch (parseErr) {
+                throw new Error('Our system is temporarily unavailable. Please try again in a few minutes, or contact us at 707-706-3137.');
+            }
 
             if (result.success) {
                 this.updateSubmissionProgress(3, t.submitting);
@@ -1453,6 +1804,14 @@ class RentalApplication {
             paymentPrefs += `, ${thirdPayment}`;
         }
         
+        // Property context line for success card (if arrived from listing site)
+        const ctx = this.state.propertyContext;
+        const propertyLine = (ctx && (ctx.name || ctx.city))
+            ? '<div class="success-property-line"><i class="fas fa-home"></i><span>' +
+              this._escHtml(ctx.name || [ctx.city, ctx.state].filter(Boolean).join(', ')) +
+              '</span></div>'
+            : '';
+
         const dashboardLink = `${this.BACKEND_URL}?path=dashboard&id=${appId}`;
         
         successState.style.display = 'block';
@@ -1462,6 +1821,7 @@ class RentalApplication {
                     <i class="fas fa-check-circle"></i>
                     <h2>${t.successTitle}</h2>
                     <p class="success-subtitle">${t.successText}</p>
+                    ${propertyLine}
                 </div>
 
                 <div class="id-section">
@@ -1543,6 +1903,14 @@ class RentalApplication {
                     </button>
                 </div>
 
+                <div class="qr-track-section">
+                    <div class="qr-track-label">
+                        <i class="fas fa-mobile-alt"></i>
+                        Scan to track your application on your phone
+                    </div>
+                    <div id="successQRCode" class="qr-code-box"></div>
+                </div>
+
                 <div class="spam-warning-notice" style="background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:14px 16px;margin:16px 0;font-size:13.5px;color:#5d4037;line-height:1.5;">
                     ${t.spamWarning}
                 </div>
@@ -1554,6 +1922,25 @@ class RentalApplication {
         `;
         
         window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        // Generate QR code pointing to the applicant dashboard
+        try {
+            const qrContainer = document.getElementById('successQRCode');
+            if (qrContainer && typeof QRCode !== 'undefined') {
+                new QRCode(qrContainer, {
+                    text: dashboardLink,
+                    width: 140,
+                    height: 140,
+                    colorDark: '#1B3A5C',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+            }
+        } catch (qrErr) {
+            // Non-fatal — QR code is a convenience feature only
+            const qrContainer = document.getElementById('successQRCode');
+            if (qrContainer) qrContainer.style.display = 'none';
+        }
     }
 
     getTranslations() {
@@ -1640,11 +2027,11 @@ class RentalApplication {
 
             if (groupFieldsHtml) {
                 summaryHtml += `
-                    <div class="summary-group" onclick="window.app.goToSection(${group.id})" style="cursor: pointer; transition: background 0.2s;">
+                    <div class="summary-group" onclick="window.app.goToSection(${group.id})" role="button" tabindex="0" aria-label="Edit ${group.name}" title="Tap to edit this section" onkeydown="if(event.key==='Enter'||event.key===' ')window.app.goToSection(${group.id})">
                         <div class="summary-header">
                             <span>${group.name}</span>
-                            <span style="font-size: 12px; color: var(--secondary); display: flex; align-items: center; gap: 4px;">
-                                <i class="fas fa-edit"></i> ${t.editSection}
+                            <span class="summary-edit-btn" aria-hidden="true">
+                                <i class="fas fa-pencil-alt"></i> ${t.editSection}
                             </span>
                         </div>
                         <div class="summary-content">
@@ -1666,11 +2053,29 @@ class RentalApplication {
     updateBilingualLabels(t) {}
 }
 
-// ---------- Global copy function ----------
+// ---------- Global copy function (single authoritative definition) ----------
+// Called via onclick="copyAppId()" from the JS-generated success card.
+// The duplicate definition that existed in index.html has been removed.
 window.copyAppId = function() {
-    const appId = document.getElementById('successAppId').innerText;
-    navigator.clipboard.writeText(appId);
-    alert('Application ID copied to clipboard');
+    const el = document.getElementById('successAppId');
+    if (!el) return;
+    const appId = el.innerText.trim();
+    if (!appId) return;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(appId).then(() => {
+            const btn = document.querySelector('.copy-btn');
+            if (btn) {
+                const original = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                setTimeout(() => { btn.innerHTML = original; }, 2000);
+            }
+        }).catch(() => {
+            // Clipboard API blocked — fall back to prompt
+            window.prompt('Copy your Application ID:', appId);
+        });
+    } else {
+        window.prompt('Copy your Application ID:', appId);
+    }
 };
 
 // ============================================================

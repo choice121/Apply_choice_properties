@@ -72,11 +72,11 @@
         <div class="progress-container" data-progress-text="Step 1 of 6: Property & Applicant">
             <div class="progress-bar">
                 <div class="progress-fill" id="progressFill"></div>
-                <div class="progress-step completed" id="step1">
+                <div class="progress-step active" id="step1">
                     <div class="step-number">1</div>
                     <div class="step-label" data-i18n="step1Label">Property & Applicant</div>
                 </div>
-                <div class="progress-step active" id="step2">
+                <div class="progress-step" id="step2">
                     <div class="step-number">2</div>
                     <div class="step-label" data-i18n="step2Label">Residency & Occupancy</div>
                 </div>
@@ -131,8 +131,8 @@
     <div class="submission-note" data-i18n="submissionMessage">Please don't close this window. This may take a few moments...</div>
 </div>
 
-        <!-- Success State -->
-        <div class="success-state" id="successState">
+        <!-- Success State — hidden by default; JS populates and shows via showSuccessState() -->
+        <div class="success-state" id="successState" style="display:none;">
             <div class="success-card">
                 <div class="success-header">
                     <i class="fas fa-check-circle"></i>
@@ -253,6 +253,12 @@
                     <input type="text" id="propertyAddress" name="Property Address" required placeholder="Street address, city, state, zip" data-i18n="propertyAddressPlaceholder">
                     <div class="error-message" data-i18n="errAddress">Please enter the property address</div>
                 </div>
+                <!-- D-015: Hidden inputs — carry URL param property context through FormData automatically -->
+                <input type="hidden" id="hiddenPropertyId"    name="Property ID">
+                <input type="hidden" id="hiddenPropertyName"  name="Property Name">
+                <input type="hidden" id="hiddenPropertyCity"  name="Property City">
+                <input type="hidden" id="hiddenPropertyState" name="Property State">
+                <input type="hidden" id="hiddenListedRent"    name="Listed Rent">
 
                 <div class="form-row">
                     <div class="form-col">
@@ -1065,13 +1071,6 @@
         <i class="fas fa-wifi-slash"></i> <span data-i18n="offlineMessage">You are currently offline. Progress will be saved locally.</span>
     </div>
 
-    <script>
-        function copyAppId() {
-            const appId = document.getElementById('successAppId').innerText;
-            navigator.clipboard.writeText(appId);
-            alert('Application ID copied to clipboard');
-        }
-    </script>
     <script src="js/script.js"></script>
 
     <!-- Test Fill Button (keep for development) -->

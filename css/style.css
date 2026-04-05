@@ -985,11 +985,12 @@ input.error, select.error, textarea.error {
 }
 
 /* Edit Section button styling */
+.summary-edit-btn,
 .summary-group .summary-header span:last-child {
     background: var(--light);
-    padding: 4px 10px;
+    padding: 5px 12px;
     border-radius: 30px;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 600;
     color: var(--secondary);
     border: 1px solid var(--border-color);
@@ -997,22 +998,36 @@ input.error, select.error, textarea.error {
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: 5px;
+    white-space: nowrap;
+    user-select: none;
 }
 
+.summary-edit-btn i,
 .summary-group .summary-header span:last-child i {
     font-size: 11px;
     color: var(--secondary);
 }
 
-.summary-group .summary-header span:last-child:hover {
+.summary-group:hover .summary-edit-btn,
+.summary-group:hover .summary-header span:last-child,
+.summary-edit-btn:hover {
     background: var(--secondary);
     color: white;
     border-color: var(--secondary);
 }
 
-.summary-group .summary-header span:last-child:hover i {
+.summary-group:hover .summary-edit-btn i,
+.summary-group:hover .summary-header span:last-child i {
     color: white;
+}
+
+/* Tap highlight on mobile */
+@media (hover: none) {
+    .summary-group:active .summary-edit-btn {
+        background: var(--secondary);
+        color: white;
+    }
 }
 
 /* ===== OTHER REMINDERS ===== */
@@ -1592,6 +1607,199 @@ button {
     box-shadow: 0 12px 24px rgba(0,0,0,0.1);
 }
 
+/* ── QR Code — track on phone ── */
+.qr-track-section {
+    text-align: center;
+    margin: 20px 0 8px;
+    padding: 20px;
+    background: #f8fafc;
+    border-radius: 14px;
+    border: 1px solid var(--border-color);
+}
+.qr-track-label {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 500;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+}
+.qr-track-label i {
+    color: var(--secondary);
+    font-size: 15px;
+}
+.qr-code-box {
+    display: inline-block;
+    padding: 10px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+.qr-code-box img,
+.qr-code-box canvas {
+    display: block;
+    border-radius: 6px;
+}
+@media (min-width: 600px) {
+    .qr-track-section {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        text-align: left;
+    }
+    .qr-track-label {
+        flex-direction: column;
+        align-items: flex-start;
+        margin-bottom: 0;
+        flex: 1;
+        font-size: 14px;
+    }
+}
+.btn-retry {
+    margin-top: 15px;
+    padding: 10px 20px;
+    background: var(--secondary);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: var(--transition);
+}
+.btn-retry:hover {
+    background: var(--primary);
+    transform: translateY(-1px);
+}
+
+/* ── Save & Resume Later ── */
+.save-resume-bar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 8px;
+    padding: 10px 0 4px;
+}
+.btn-save-resume {
+    background: none;
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 7px 14px;
+    border-radius: 30px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: var(--transition);
+}
+.btn-save-resume:hover {
+    border-color: var(--secondary);
+    color: var(--secondary);
+    background: #f0f7ff;
+}
+.save-resume-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 9000;
+    background: rgba(0,0,0,0.45);
+    align-items: center;
+    justify-content: center;
+}
+.save-resume-modal.open {
+    display: flex;
+}
+.save-resume-card {
+    background: white;
+    border-radius: 18px;
+    padding: 32px 28px;
+    max-width: 420px;
+    width: 92%;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.18);
+    position: relative;
+    text-align: center;
+}
+.save-resume-card h3 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--dark);
+    margin-bottom: 8px;
+}
+.save-resume-card p {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+.save-resume-card .form-group {
+    text-align: left;
+    margin-bottom: 16px;
+}
+.save-resume-card input[type="email"] {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1.5px solid var(--border-color);
+    border-radius: 10px;
+    font-size: 15px;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+.save-resume-card input[type="email"]:focus {
+    outline: none;
+    border-color: var(--secondary);
+}
+.save-resume-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 8px;
+}
+.btn-send-link {
+    background: var(--secondary);
+    color: white;
+    border: none;
+    border-radius: 30px;
+    padding: 11px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: var(--transition);
+}
+.btn-send-link:hover { background: var(--primary); }
+.btn-cancel-resume {
+    background: none;
+    border: 1px solid var(--border-color);
+    border-radius: 30px;
+    padding: 11px 20px;
+    font-size: 14px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: var(--transition);
+}
+.btn-cancel-resume:hover { border-color: #ccc; color: var(--dark); }
+.save-resume-success {
+    display: none;
+    color: #27ae60;
+    font-weight: 600;
+    font-size: 15px;
+    margin-top: 12px;
+    align-items: center;
+    gap: 8px;
+    justify-content: center;
+}
+.save-resume-success.show { display: flex; }
+
 .help-line {
     text-align: center;
     color: var(--text-muted);
@@ -2147,3 +2355,161 @@ footer {
 /* ===== VALIDATION STATES ===== */
 .is-valid { border-color: var(--success) !important; }
 .is-invalid { border-color: var(--danger) !important; }
+
+/* =====================================================================
+   PROPERTY CONTEXT BANNER — Session 028
+   Shown at top of form when user arrives from a listing page.
+   Inserted between header and progress bar by _showPropertyBanner().
+   ===================================================================== */
+
+.property-context-banner {
+    background: linear-gradient(135deg, #0f2a44 0%, #1B3A5C 100%);
+    border-bottom: 2px solid var(--accent);
+    padding: 12px 24px;
+}
+
+.pcb-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.pcb-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.pcb-icon {
+    width: 36px;
+    height: 36px;
+    background: rgba(201, 160, 74, 0.2);
+    border: 1px solid rgba(201, 160, 74, 0.4);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+    font-size: 15px;
+    flex-shrink: 0;
+}
+
+.pcb-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 2px;
+}
+
+.pcb-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.2;
+}
+
+.pcb-meta {
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 2px;
+}
+
+.pcb-right {
+    flex-shrink: 0;
+}
+
+.pcb-managed {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.55);
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 6px;
+    padding: 5px 10px;
+}
+
+.pcb-managed i {
+    color: var(--accent);
+    font-size: 11px;
+}
+
+.pcb-managed strong {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+/* Mobile: stack managed-by below property name */
+@media (max-width: 540px) {
+    .property-context-banner {
+        padding: 10px 16px;
+    }
+    .pcb-inner {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    .pcb-name {
+        font-size: 14px;
+    }
+    .pcb-managed {
+        font-size: 11px;
+    }
+}
+
+/* =====================================================================
+   SUCCESS PROPERTY LINE — shown in success card when context is present
+   ===================================================================== */
+
+.success-property-line {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.75);
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 20px;
+    padding: 4px 12px;
+}
+
+.success-property-line i {
+    font-size: 11px;
+    opacity: 0.8;
+}
+
+/* =====================================================================
+   INCOME RATIO DISPLAY — Step 3, wired when rent param is present
+   ===================================================================== */
+
+.income-ratio {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: var(--light);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--border-color);
+    margin-top: 12px;
+}
+
+.income-ratio-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    transition: color 0.3s;
+}
+
+.income-ratio-value {
+    font-size: 20px;
+    font-weight: 800;
+    font-family: 'Inter', monospace;
+    transition: color 0.3s;
+    min-width: 48px;
+}

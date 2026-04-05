@@ -13,6 +13,80 @@ const SHEET_NAME = 'Applications';
 const SETTINGS_SHEET = 'Settings';
 const LOG_SHEET = 'EmailLogs';
 const ADMIN_EMAILS_RANGE = 'AdminEmails';
+const APPLICATION_FEE = 50; // D-014: single source of truth for the application fee amount
+
+// ============================================================
+// D-002/D-003/D-004: JURISDICTION MAP
+// Maps 2-letter state codes → lease legal language.
+// Used by renderLeaseSigningPage() so the lease reflects the
+// correct state law for the property — not just Michigan.
+// Add states as Choice Properties expands into new markets.
+// ============================================================
+const JURISDICTION_MAP = {
+  'AL': { stateName: 'Alabama',       county: 'applicable county', depositReturnDays: 60, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+          eSignAct: 'Alabama Uniform Electronic Transactions Act (Ala. Code § 8-1A-1 et seq.) and the federal' },
+  'AK': { stateName: 'Alaska',        county: 'applicable borough', depositReturnDays: 14, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+          eSignAct: 'Alaska Uniform Electronic Transactions Act (AS § 09.80) and the federal' },
+  'AZ': { stateName: 'Arizona',       county: 'applicable county', depositReturnDays: 14, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+          eSignAct: 'Arizona Uniform Electronic Transactions Act (A.R.S. § 44-7001 et seq.) and the federal' },
+  'CA': { stateName: 'California',    county: 'applicable county', depositReturnDays: 21, earlyTermNoticeDays: 60, moveOutNoticeDays: 30, mtmNoticeDays: 60,
+          eSignAct: 'California Uniform Electronic Transactions Act (Cal. Civ. Code § 1633.1 et seq.) and the federal' },
+  'CO': { stateName: 'Colorado',      county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 21, moveOutNoticeDays: 21, mtmNoticeDays: 21,
+          eSignAct: 'Colorado Uniform Electronic Transactions Act (C.R.S. § 24-71.3-101 et seq.) and the federal' },
+  'FL': { stateName: 'Florida',       county: 'applicable county', depositReturnDays: 15, earlyTermNoticeDays: 60, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+          eSignAct: 'Florida Electronic Signature Act (F.S. § 668.001 et seq.) and the federal' },
+  'GA': { stateName: 'Georgia',       county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 60, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+          eSignAct: 'Georgia Electronic Records and Signatures Act (O.C.G.A. § 10-12-1 et seq.) and the federal' },
+  'IL': { stateName: 'Illinois',      county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 60, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+          eSignAct: 'Illinois Electronic Commerce Security Act (5 ILCS 175) and the federal' },
+  'MI': { stateName: 'Michigan',      county: 'Oakland County',    depositReturnDays: 30, earlyTermNoticeDays: 60, moveOutNoticeDays: 60, mtmNoticeDays: 30,
+          eSignAct: 'Michigan Electronic Signature Act (MCL § 450.832 et seq.) and the federal' },
+  'MN': { stateName: 'Minnesota',     county: 'applicable county', depositReturnDays: 21, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+          eSignAct: 'Minnesota Uniform Electronic Transactions Act (Minn. Stat. § 325L) and the federal' },
+  'NV': { stateName: 'Nevada',        county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+          eSignAct: 'Nevada Electronic Transactions Act (NRS § 719) and the federal' },
+  'NJ': { stateName: 'New Jersey',    county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 60, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+          eSignAct: 'New Jersey Uniform Electronic Transactions Act (N.J.S.A. § 12A:12-1 et seq.) and the federal' },
+  'NY': { stateName: 'New York',      county: 'applicable county', depositReturnDays: 14, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+          eSignAct: 'New York Electronic Signatures and Records Act (State Technology Law §§ 301-309) and the federal' },
+  'NC': { stateName: 'North Carolina',county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 7,
+          eSignAct: 'North Carolina Uniform Electronic Transactions Act (N.C.G.S. § 66-311 et seq.) and the federal' },
+  'OH': { stateName: 'Ohio',          county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+          eSignAct: 'Ohio Uniform Electronic Transactions Act (R.C. § 1306) and the federal' },
+  'OR': { stateName: 'Oregon',        county: 'applicable county', depositReturnDays: 31, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+          eSignAct: 'Oregon Uniform Electronic Transactions Act (ORS § 84.001 et seq.) and the federal' },
+  'PA': { stateName: 'Pennsylvania',  county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 15,
+          eSignAct: 'Pennsylvania Electronic Transactions Act (73 P.S. § 2260.101 et seq.) and the federal' },
+  'TN': { stateName: 'Tennessee',     county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+          eSignAct: 'Tennessee Uniform Electronic Transactions Act (T.C.A. § 47-10-101 et seq.) and the federal' },
+  'TX': { stateName: 'Texas',         county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+          eSignAct: 'Texas Uniform Electronic Transactions Act (Tex. Bus. & Com. Code § 322) and the federal' },
+  'VA': { stateName: 'Virginia',      county: 'applicable county', depositReturnDays: 45, earlyTermNoticeDays: 60, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+          eSignAct: 'Virginia Electronic Transactions Act (Va. Code § 59.1-479 et seq.) and the federal' },
+  'WA': { stateName: 'Washington',    county: 'applicable county', depositReturnDays: 21, earlyTermNoticeDays: 20, moveOutNoticeDays: 20, mtmNoticeDays: 20,
+          eSignAct: 'Washington Uniform Electronic Transactions Act (RCW § 19.360) and the federal' },
+  // ── DEFAULT — used when state is unknown or not yet mapped ──
+  'DEFAULT': { stateName: 'the applicable state', county: 'the applicable county',
+               depositReturnDays: 30, earlyTermNoticeDays: 60,
+               moveOutNoticeDays: 30, mtmNoticeDays: 30,
+               eSignAct: 'the federal' }
+};
+
+// Returns the jurisdiction entry for a given 2-letter state code.
+// Falls back to DEFAULT if the state isn't mapped yet.
+function getJurisdiction(stateCode) {
+  const code = (stateCode || '').toString().trim().toUpperCase();
+  return JURISDICTION_MAP[code] || JURISDICTION_MAP['DEFAULT'];
+}
+
+// Returns the e-signature legal text for the given state.
+// Used in the lease e-sign notice, checkbox label, and step list.
+// For Michigan: cites the state act + federal E-SIGN.
+// For all other states: cites the state UETA equivalent + federal E-SIGN.
+function getESignText(stateCode) {
+  const j = getJurisdiction(stateCode);
+  return j.eSignAct + ' Electronic Signatures in Global and National Commerce Act (E-SIGN Act, 15 U.S.C. § 7001 et seq.)';
+}
 
 // ============================================================
 // Helper: get or create spreadsheet
@@ -72,12 +146,20 @@ function initializeSheets() {
       'Co-Applicant Monthly Income', 'Co-Applicant Employment Duration', 'Co-Applicant Consent',
       'Vehicle Make', 'Vehicle Model', 'Vehicle Year', 'Vehicle License Plate',
       'Emergency Contact Relationship', 'Preferred Contact Method', 'Preferred Time', 'Preferred Time Specific',
+      // ── NEW: Property context columns (from URL params, D-001) ────
+      'Property ID', 'Property Name', 'Property City', 'Property State', 'Listed Rent',
       // ── NEW: Lease columns ────────────────────────────────
       'Property Owner', 'Managed By',
       'Lease Status', 'Lease Sent Date', 'Lease Signed Date',
       'Lease Start Date', 'Lease End Date', 'Monthly Rent',
       'Security Deposit', 'Move-in Costs', 'Lease Notes',
-      'Tenant Signature', 'Signature Timestamp', 'Lease IP Address'
+      'Rent Due Day', 'Grace Period Days', 'Late Fee Amount',
+      // ── NEW: Phase 5 lease property-specific columns (D-017, D-018) ──
+      'Unit Type', 'Bedrooms', 'Bathrooms', 'Parking Space', 'Included Utilities',
+      'Pet Deposit Amount', 'Monthly Pet Rent',
+      'Tenant Signature', 'Signature Timestamp', 'Lease IP Address',
+      // ── NEW: Holding Fee columns (Session 037) ──
+      'Holding Fee Amount', 'Holding Fee Status', 'Holding Fee Date', 'Holding Fee Notes'
     ];
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
     sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold').setBackground('#1a5276').setFontColor('#ffffff');
@@ -109,17 +191,26 @@ function initializeSheets() {
   }
 }
 
-// ── Add lease columns to sheets that existed before this update ──
+// ── Add property context + lease columns to sheets that existed before this update ──
 function addMissingLeaseColumns(sheet) {
-  const leaseColumns = [
+  const newColumns = [
+    // D-001: property context columns
+    'Property ID', 'Property Name', 'Property City', 'Property State', 'Listed Rent',
+    // Original lease columns
     'Property Owner', 'Managed By',
     'Lease Status', 'Lease Sent Date', 'Lease Signed Date',
     'Lease Start Date', 'Lease End Date', 'Monthly Rent',
     'Security Deposit', 'Move-in Costs', 'Lease Notes',
-    'Tenant Signature', 'Signature Timestamp', 'Lease IP Address'
+    'Rent Due Day', 'Grace Period Days', 'Late Fee Amount',
+    // Phase 5 columns
+    'Unit Type', 'Bedrooms', 'Bathrooms', 'Parking Space', 'Included Utilities',
+    'Pet Deposit Amount', 'Monthly Pet Rent',
+    'Tenant Signature', 'Signature Timestamp', 'Lease IP Address',
+    // Session 037: Holding Fee columns
+    'Holding Fee Amount', 'Holding Fee Status', 'Holding Fee Date', 'Holding Fee Notes'
   ];
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  leaseColumns.forEach(col => {
+  newColumns.forEach(col => {
     if (!headers.includes(col)) {
       const nextCol = sheet.getLastColumn() + 1;
       sheet.getRange(1, nextCol).setValue(col)
@@ -787,6 +878,10 @@ function doPost(e) {
       const result = validateAdminPassword(formData['username'] || '', formData['password'] || '');
       return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
     }
+    if (formData['_action'] === 'sendResumeEmail') {
+      const result = sendResumeEmail(formData['email'] || '', formData['resumeUrl'] || '', formData['step'] || '1');
+      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+    }
 
     const result = processApplication(formData, fileBlob);
     return ContentService
@@ -819,6 +914,16 @@ function processApplication(formData, fileBlob) {
     const col   = getColumnMap(sheet);
     const appId = formData.appId || generateAppId();
 
+    // ── Resolve "Other" payment text into the main payment columns ──
+    // If the user selected "Other" and typed a value, store that text directly
+    // so the Sheet never contains the bare word "Other".
+    ['Primary Payment Method', 'Alternative Payment Method', 'Third Choice Payment Method'].forEach(field => {
+      const otherField = field + ' Other';
+      if (formData[field] === 'Other' && formData[otherField] && formData[otherField].trim()) {
+        formData[field] = formData[otherField].trim();
+      }
+    });
+
     let fileUrl = '';
     if (fileBlob) {
       try {
@@ -840,6 +945,12 @@ function processApplication(formData, fileBlob) {
         case 'Document URL':          rowData.push(fileUrl); break;
         case 'Preferred Contact Method': rowData.push(getCheckboxValues(formData, 'Preferred Contact Method')); break;
         case 'Preferred Time':        rowData.push(getCheckboxValues(formData, 'Preferred Time')); break;
+        // ── D-001: Property context from URL params ──
+        case 'Property ID':           rowData.push(formData['Property ID']    || ''); break;
+        case 'Property Name':         rowData.push(formData['Property Name']  || ''); break;
+        case 'Property City':         rowData.push(formData['Property City']  || ''); break;
+        case 'Property State':        rowData.push(formData['Property State'] || ''); break;
+        case 'Listed Rent':           rowData.push(formData['Listed Rent']    || ''); break;
         // ── Ownership columns ──
         case 'Property Owner':        rowData.push(formData['Property Owner'] || 'Choice Properties'); break;
         case 'Managed By':            rowData.push('Choice Properties'); break;
@@ -914,7 +1025,7 @@ function generateAppId() {
 // Called from admin panel. Populates lease data, then emails
 // the tenant a link to sign.
 // ─────────────────────────────────────────────────────────
-function generateAndSendLease(appId, monthlyRent, securityDeposit, leaseStartDate, leaseNotes) {
+function generateAndSendLease(appId, monthlyRent, securityDeposit, leaseStartDate, leaseNotes, rentDueDay, gracePeriodDays, lateFeeAmount, unitType, bedrooms, bathrooms, parkingSpace, includedUtilities, petDeposit, monthlyPetRent) {
   try {
     const ss    = getSpreadsheet();
     const sheet = ss.getSheetByName(SHEET_NAME);
@@ -949,6 +1060,9 @@ function generateAndSendLease(appId, monthlyRent, securityDeposit, leaseStartDat
     const rent          = parseFloat(monthlyRent)      || 0;
     const deposit       = parseFloat(securityDeposit)  || 0;
     const moveInCosts   = rent + deposit;
+    const rentDue       = parseInt(rentDueDay)          || 1;
+    const graceDays     = parseInt(gracePeriodDays)     || 5;
+    const lateFee       = parseFloat(lateFeeAmount)     || 50;
 
     // Write lease data to sheet
     sheet.getRange(rowIndex, col['Lease Status']).setValue('sent');
@@ -959,6 +1073,17 @@ function generateAndSendLease(appId, monthlyRent, securityDeposit, leaseStartDat
     sheet.getRange(rowIndex, col['Security Deposit']).setValue(deposit);
     sheet.getRange(rowIndex, col['Move-in Costs']).setValue(moveInCosts);
     sheet.getRange(rowIndex, col['Lease Notes']).setValue(leaseNotes || '');
+    if (col['Rent Due Day'])      sheet.getRange(rowIndex, col['Rent Due Day']).setValue(rentDue);
+    if (col['Grace Period Days']) sheet.getRange(rowIndex, col['Grace Period Days']).setValue(graceDays);
+    if (col['Late Fee Amount'])   sheet.getRange(rowIndex, col['Late Fee Amount']).setValue(lateFee);
+    // Phase 5 fields (D-017, D-018)
+    if (col['Unit Type'])           sheet.getRange(rowIndex, col['Unit Type']).setValue(unitType || '');
+    if (col['Bedrooms'])            sheet.getRange(rowIndex, col['Bedrooms']).setValue(bedrooms || '');
+    if (col['Bathrooms'])           sheet.getRange(rowIndex, col['Bathrooms']).setValue(bathrooms || '');
+    if (col['Parking Space'])       sheet.getRange(rowIndex, col['Parking Space']).setValue(parkingSpace || '');
+    if (col['Included Utilities'])  sheet.getRange(rowIndex, col['Included Utilities']).setValue(includedUtilities || '');
+    if (col['Pet Deposit Amount'])  sheet.getRange(rowIndex, col['Pet Deposit Amount']).setValue(parseFloat(petDeposit) || 0);
+    if (col['Monthly Pet Rent'])    sheet.getRange(rowIndex, col['Monthly Pet Rent']).setValue(parseFloat(monthlyPetRent) || 0);
 
     // Add admin note
     const currentNotes = sheet.getRange(rowIndex, col['Admin Notes']).getValue();
@@ -985,7 +1110,11 @@ function generateAndSendLease(appId, monthlyRent, securityDeposit, leaseStartDat
       endDate       : endDateStr,
       term          : desiredTerm,
       property      : sheet.getRange(rowIndex, col['Property Address']).getValue(),
-      propertyOwner : propertyOwner
+      propertyOwner : propertyOwner,
+      propertyState : col['Property State'] ? sheet.getRange(rowIndex, col['Property State']).getValue() || 'MI' : 'MI',
+      rentDueDay    : rentDue,
+      gracePeriodDays: graceDays,
+      lateFeeAmount : lateFee
     });
 
     logEmail('lease_sent', tenantEmail, 'success', appId);
@@ -1052,28 +1181,34 @@ function signLease(appId, tenantSignature, ipAddress) {
     );
 
     // Gather data for emails
-    const email      = sheet.getRange(rowIndex, col['Email']).getValue();
-    const firstName  = sheet.getRange(rowIndex, col['First Name']).getValue();
-    const lastName   = sheet.getRange(rowIndex, col['Last Name']).getValue();
-    const phone      = sheet.getRange(rowIndex, col['Phone']).getValue();
-    const property   = sheet.getRange(rowIndex, col['Property Address']).getValue();
-    const rent       = sheet.getRange(rowIndex, col['Monthly Rent']).getValue();
-    const deposit    = sheet.getRange(rowIndex, col['Security Deposit']).getValue();
-    const startDate  = sheet.getRange(rowIndex, col['Lease Start Date']).getValue();
-    const endDate    = sheet.getRange(rowIndex, col['Lease End Date']).getValue();
-    const moveInCost = sheet.getRange(rowIndex, col['Move-in Costs']).getValue();
+    const email         = sheet.getRange(rowIndex, col['Email']).getValue();
+    const firstName     = sheet.getRange(rowIndex, col['First Name']).getValue();
+    const lastName      = sheet.getRange(rowIndex, col['Last Name']).getValue();
+    const phone         = sheet.getRange(rowIndex, col['Phone']).getValue();
+    const property      = sheet.getRange(rowIndex, col['Property Address']).getValue();
+    const rent          = sheet.getRange(rowIndex, col['Monthly Rent']).getValue();
+    const deposit       = sheet.getRange(rowIndex, col['Security Deposit']).getValue();
+    const startDate     = sheet.getRange(rowIndex, col['Lease Start Date']).getValue();
+    const endDate       = sheet.getRange(rowIndex, col['Lease End Date']).getValue();
+    const moveInCost    = sheet.getRange(rowIndex, col['Move-in Costs']).getValue();
+    // Bug fix: read propertyState from the sheet row directly — `app` was never
+    // defined in signLease(), causing a ReferenceError that silently swallowed emails.
+    const propertyState = col['Property State']
+      ? sheet.getRange(rowIndex, col['Property State']).getValue() || 'MI'
+      : 'MI';
 
     const baseUrl       = ScriptApp.getService().getUrl();
     const dashboardLink = baseUrl + '?path=dashboard&id=' + appId;
 
     sendLeaseSignedTenantEmail(appId, email, firstName, phone, {
-      property    : property,
-      rent        : rent,
-      deposit     : deposit,
-      moveInCost  : moveInCost,
-      startDate   : startDate,
-      endDate     : endDate,
-      signature   : tenantSignature.trim(),
+      property      : property,
+      rent          : rent,
+      deposit       : deposit,
+      moveInCost    : moveInCost,
+      startDate     : startDate,
+      endDate       : endDate,
+      signature     : tenantSignature.trim(),
+      propertyState : propertyState,
       dashboardLink
     });
 
@@ -1161,7 +1296,12 @@ function renderLeaseSigningPage(appId) {
   const term          = app['Desired Lease Term'] || '';
   const rent          = parseFloat(app['Monthly Rent'])       || 0;
   const deposit       = parseFloat(app['Security Deposit'])   || 0;
-  const moveInCost    = parseFloat(app['Move-in Costs'])      || (rent + deposit);
+  const holdingFeeAmt    = parseFloat(app['Holding Fee Amount']) || 0;
+  const holdingFeeStatus = app['Holding Fee Status'] || 'none';
+  const holdingFeePaid   = holdingFeeStatus === 'paid' && holdingFeeAmt > 0;
+  const holdingFeePending= holdingFeeStatus === 'requested' && holdingFeeAmt > 0;
+  const rawMoveIn     = parseFloat(app['Move-in Costs'])      || (rent + deposit);
+  const moveInCost    = holdingFeePaid ? Math.max(0, rawMoveIn - holdingFeeAmt) : rawMoveIn;
   const startDate     = app['Lease Start Date']   || '';
   const endDate       = app['Lease End Date']     || '';
   const phone         = app['Phone']              || '';
@@ -1173,6 +1313,28 @@ function renderLeaseSigningPage(appId) {
   const baseUrl       = ScriptApp.getService().getUrl();
   const todayStr      = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MMMM dd, yyyy');
 
+  // ── D-005/D-006: Lease financial config (admin-set, defaults for existing rows) ──
+  const rentDueDay     = parseInt(app['Rent Due Day'])      || 1;
+  const gracePeriodDays= parseInt(app['Grace Period Days']) || 5;
+  const lateFeeAmount  = parseFloat(app['Late Fee Amount']) || 50;
+  // Build human-readable due/grace strings
+  const rentDueSuffix  = rentDueDay === 1 ? 'st' : rentDueDay === 2 ? 'nd' : rentDueDay === 3 ? 'rd' : 'th';
+  const rentDueStr     = `${rentDueDay}${rentDueSuffix} day of each calendar month`;
+  const graceLateDay   = rentDueDay + gracePeriodDays;
+  const graceDateSfx   = graceLateDay === 1 ? 'st' : graceLateDay === 2 ? 'nd' : graceLateDay === 3 ? 'rd' : 'th';
+  const graceStr       = `${gracePeriodDays} days — rent is considered late after the ${graceLateDay}${graceDateSfx} of the month`;
+  const lateFeeStr     = `$${lateFeeAmount.toFixed(2)} assessed on the ${graceLateDay}${graceDateSfx}; $10.00 per day thereafter`;
+
+  // ── D-002/D-003/D-004: Jurisdiction derived from property state ──
+  // Property State is stored on the sheet row from D-001. Falls back to MI
+  // (Choice Properties HQ state) so existing rows before the D-001 fix still work.
+  const propertyState = app['Property State'] || 'MI';
+  const jur           = getJurisdiction(propertyState);
+  const eSignText     = getESignText(propertyState);
+  const eSignShort    = propertyState === 'MI'
+    ? 'Michigan Electronic Signature Act and the federal E-SIGN Act'
+    : 'applicable state Uniform Electronic Transactions Act (UETA) and the federal E-SIGN Act';
+
   // Determine correct landlord for this property
   const propertyOwner = app['Property Owner'] || 'Choice Properties';
   const isChoiceOwned = !propertyOwner || propertyOwner === 'Choice Properties' || propertyOwner.trim() === '';
@@ -1182,8 +1344,21 @@ function renderLeaseSigningPage(appId) {
     ? ''
     : `<li><b>Property Manager:</b> Choice Properties, 2265 Livernois Suite 500, Troy, MI 48083 | 707-706-3137 (acting as authorized management agent)</li>`;
 
-  // Utilities clause — generic since it varies by property
-  const utilitiesNote = 'Tenant is responsible for all utilities unless otherwise specified in a written addendum provided at lease signing. Please confirm any included utilities with Choice Properties management prior to move-in.';
+  // Utilities clause — dynamic (D-019): list included utilities if specified, else generic
+  const includedUtilities = app['Included Utilities'] || '';
+  const utilitiesNote = includedUtilities.trim()
+    ? `The following utilities are included in the monthly rent: <strong>${includedUtilities.trim()}</strong>. All other utilities and services not listed are the sole responsibility of the Tenant and must be established in Tenant's name prior to move-in.`
+    : 'Tenant is responsible for all utilities and services (electricity, gas, water, internet, trash, etc.) unless otherwise specified in a written addendum provided at lease signing. Please confirm any included utilities with Choice Properties management prior to move-in.';
+
+  // Phase 5 property detail fields (D-017)
+  const unitType      = app['Unit Type']    || '';
+  const bedrooms      = app['Bedrooms']     || '';
+  const bathrooms     = app['Bathrooms']    || '';
+  const parkingSpace  = app['Parking Space'] || '';
+
+  // Phase 5 pet financial fields (D-018)
+  const petDeposit    = parseFloat(app['Pet Deposit Amount'])  || 0;
+  const monthlyPetRent= parseFloat(app['Monthly Pet Rent'])    || 0;
 
   return HtmlService.createHtmlOutput(`
 <!DOCTYPE html>
@@ -1420,7 +1595,7 @@ function renderLeaseSigningPage(appId) {
   <div class="doc-ref-bar">
     <span>Document: CP-LEASE-${appId}</span>
     <span>Prepared: ${todayStr}</span>
-    <span>Jurisdiction: State of Michigan</span>
+    <span>Jurisdiction: State of ${jur.stateName}</span>
     <span>Prepared for: ${fullName} — Exclusively</span>
   </div>
 
@@ -1463,6 +1638,10 @@ function renderLeaseSigningPage(appId) {
     <div class="section-title">🏠 Rental Property & Term</div>
     <table class="kv-table">
       <tr><td>Rental Property Address</td><td><b>${property}</b></td></tr>
+      ${unitType      ? `<tr><td>Unit Type</td><td>${unitType}</td></tr>` : ''}
+      ${bedrooms      ? `<tr><td>Bedrooms</td><td>${bedrooms}</td></tr>` : ''}
+      ${bathrooms     ? `<tr><td>Bathrooms</td><td>${bathrooms}</td></tr>` : ''}
+      ${parkingSpace  ? `<tr><td>Parking Space</td><td>${parkingSpace}</td></tr>` : ''}
       <tr><td>Tenant(s)</td><td>${fullName}</td></tr>
       <tr><td>Lease Term</td><td>${term}</td></tr>
       <tr><td>Commencement Date</td><td><b>${startDate}</b></td></tr>
@@ -1481,16 +1660,21 @@ function renderLeaseSigningPage(appId) {
     <div class="section-title">💰 Rent, Deposit & Move-In Costs</div>
     <table class="kv-table">
       <tr><td>Monthly Rent</td><td><b>$${rent.toLocaleString()}.00</b></td></tr>
-      <tr><td>Rent Due Date</td><td>1st day of each calendar month</td></tr>
-      <tr><td>Grace Period</td><td>5 days — rent is considered late after the 5th of the month</td></tr>
-      <tr><td>Late Fee</td><td>$50.00 assessed on the 6th; $10.00 per day thereafter</td></tr>
+      <tr><td>Rent Due Date</td><td>${rentDueStr}</td></tr>
+      <tr><td>Grace Period</td><td>${graceStr}</td></tr>
+      <tr><td>Late Fee</td><td>${lateFeeStr}</td></tr>
       <tr><td>Returned Payment Fee</td><td>$35.00 for any returned check or failed electronic payment</td></tr>
       <tr><td>Security Deposit</td><td><b>$${deposit.toLocaleString()}.00</b></td></tr>
-      <tr><td>Total Due at Move-In</td><td><b>$${moveInCost.toLocaleString()}.00</b> (first month's rent + security deposit)</td></tr>
+      ${holdingFeePaid ? `<tr><td>Holding Fee Credit</td><td style="color:#059669;"><b>− $${holdingFeeAmt.toLocaleString()}.00</b> (applied from holding deposit received)</td></tr>` : ''}
+      ${holdingFeePending ? `<tr><td>Holding Fee (Pending)</td><td style="color:#b45309;"><b>$${holdingFeeAmt.toLocaleString()}.00</b> requested — credit will apply upon receipt</td></tr>` : ''}
+      <tr><td>Total Due at Move-In</td><td><b>$${moveInCost.toLocaleString()}.00</b> (${holdingFeePaid ? 'first month\'s rent + security deposit − holding fee credit' : 'first month\'s rent + security deposit'})</td></tr>
     </table>
 
     <div class="highlight-box blue">
-      <b>📅 Move-In Payment:</b> A total of <b>$${moveInCost.toLocaleString()}.00</b> is due in full prior to receiving keys and taking possession of the property. This amount covers your first month's rent ($${rent.toLocaleString()}) and security deposit ($${deposit.toLocaleString()}). No keys will be released until this payment is confirmed in writing by Management.
+      <b>📅 Move-In Payment:</b>${holdingFeePaid
+        ? ` A holding deposit of <b>$${holdingFeeAmt.toLocaleString()}.00</b> was previously received and has been credited toward your move-in total. Your remaining balance due at move-in is <b>$${moveInCost.toLocaleString()}.00</b>. This must be paid in full prior to receiving keys.`
+        : ` A total of <b>$${moveInCost.toLocaleString()}.00</b> is due in full prior to receiving keys and taking possession of the property. This amount covers your first month's rent ($${rent.toLocaleString()}) and security deposit ($${deposit.toLocaleString()}). No keys will be released until this payment is confirmed in writing by Management.`
+      }
     </div>
 
     <!-- ═══════════════════════════════════════
@@ -1502,12 +1686,12 @@ function renderLeaseSigningPage(appId) {
 
       <li>
         <b>1. Rent Payment.</b>
-        Tenant agrees to pay $${rent.toLocaleString()}.00 per month, due on the 1st of each month, payable to Choice Properties via the payment method agreed upon with Management. Partial payments are not accepted unless expressly agreed to in writing. Rent not received by the 5th of the month is considered late and subject to the late fees outlined in Article III.
+        Tenant agrees to pay $${rent.toLocaleString()}.00 per month, due on the ${rentDueStr}, payable to Choice Properties via the payment method agreed upon with Management. Partial payments are not accepted unless expressly agreed to in writing. Rent not received by the ${graceLateDay}${graceDateSfx} of the month is considered late and subject to the late fees outlined in Article III.
       </li>
 
       <li>
         <b>2. Security Deposit.</b>
-        A security deposit of $${deposit.toLocaleString()}.00 has been collected and is held in accordance with applicable Michigan law. The deposit is not to be applied toward any month's rent by the Tenant. Upon move-out, the deposit will be returned within 30 days, less any lawful deductions for unpaid rent, damage beyond normal wear and tear, cleaning costs, or other lease violations. The Tenant will receive an itemized deduction statement if any amount is withheld.
+        A security deposit of $${deposit.toLocaleString()}.00 has been collected and is held in accordance with applicable ${jur.stateName} law. The deposit is not to be applied toward any month's rent by the Tenant. Upon move-out, the deposit will be returned within ${jur.depositReturnDays} days, less any lawful deductions for unpaid rent, damage beyond normal wear and tear, cleaning costs, or other lease violations. The Tenant will receive an itemized deduction statement if any amount is withheld.
       </li>
 
       <li>
@@ -1518,7 +1702,7 @@ function renderLeaseSigningPage(appId) {
       <li>
         <b>4. Pets.</b>
         ${hasPets === 'Yes' || hasPets === 'yes' || hasPets === 'true'
-          ? `Tenant has disclosed the following pet(s) on the application: <em>${petDetails || 'details on file'}</em>. Any approved pet requires a separate Pet Addendum, which must be signed prior to move-in. Unauthorized pets, or pets not covered by an executed addendum, may result in additional fees and/or lease termination. Tenant is responsible for all damage, odors, or liability caused by any pet.`
+          ? `Tenant has disclosed the following pet(s) on the application: <em>${petDetails || 'details on file'}</em>. Any approved pet requires a separate Pet Addendum, which must be signed prior to move-in.${petDeposit > 0 ? ` A non-refundable pet deposit of <b>$${petDeposit.toFixed(2)}</b> is required prior to move-in.` : ''}${monthlyPetRent > 0 ? ` Monthly pet rent of <b>$${monthlyPetRent.toFixed(2)}</b> is due with each monthly rent payment.` : ''} Unauthorized pets, or pets not covered by an executed addendum, may result in additional fees and/or lease termination. Tenant is responsible for all damage, odors, or liability caused by any pet.`
           : `No pets are permitted at the property without prior written approval from Management and execution of a Pet Addendum. Discovery of an unauthorized pet may result in immediate lease termination proceedings and any applicable cleaning or remediation fees charged to the Tenant.`
         }
       </li>
@@ -1574,27 +1758,27 @@ function renderLeaseSigningPage(appId) {
 
       <li>
         <b>14. Lease Renewal & Month-to-Month.</b>
-        This Lease shall expire on the date listed in Article II. If neither party provides written notice at least 60 days prior to the expiration date, the Lease will automatically convert to a month-to-month tenancy under the same terms. Month-to-month rent is subject to adjustment with 30 days' written notice from Management. Either party may terminate a month-to-month tenancy with 30 days' written notice.
+        This Lease shall expire on the date listed in Article II. If neither party provides written notice at least ${jur.earlyTermNoticeDays} days prior to the expiration date, the Lease will automatically convert to a month-to-month tenancy under the same terms. Month-to-month rent is subject to adjustment with ${jur.mtmNoticeDays} days' written notice from Management. Either party may terminate a month-to-month tenancy with ${jur.mtmNoticeDays} days' written notice.
       </li>
 
       <li>
         <b>15. Early Termination.</b>
-        Tenant may terminate this Lease prior to the expiration date by providing a minimum of 60 days' written notice to Management and paying an early termination fee equal to two (2) months' rent, unless a different arrangement is agreed upon in writing. Notice must be submitted in writing to choicepropertygroup@hotmail.com or via text to 707-706-3137. Early termination does not relieve the Tenant of any outstanding financial obligations.
+        Tenant may terminate this Lease prior to the expiration date by providing a minimum of ${jur.earlyTermNoticeDays} days' written notice to Management and paying an early termination fee equal to two (2) months' rent, unless a different arrangement is agreed upon in writing. Notice must be submitted in writing to choicepropertygroup@hotmail.com or via text to 707-706-3137. Early termination does not relieve the Tenant of any outstanding financial obligations.
       </li>
 
       <li>
         <b>16. Move-Out Notice & Condition.</b>
-        Tenant must provide a minimum of 60 days' written notice prior to vacating at end of term or month-to-month. Upon vacating, Tenant must leave the property in the same condition as received, accounting for normal wear and tear. A move-out walkthrough inspection will be conducted. Tenant is encouraged to request a pre-move-out inspection at least 7 days prior to the move-out date to identify and correct issues before final inspection.
+        Tenant must provide a minimum of ${jur.moveOutNoticeDays} days' written notice prior to vacating at end of term or month-to-month. Upon vacating, Tenant must leave the property in the same condition as received, accounting for normal wear and tear. A move-out walkthrough inspection will be conducted. Tenant is encouraged to request a pre-move-out inspection at least 7 days prior to the move-out date to identify and correct issues before final inspection.
       </li>
 
       <li>
         <b>17. Default & Remedies.</b>
-        Failure to pay rent when due, material breach of any term of this Agreement, or violation of any applicable law or ordinance constitutes a default. In the event of default, Management may, in accordance with Michigan law, issue a notice to cure or vacate, initiate eviction proceedings, and/or pursue any other remedies available at law or in equity. Tenant shall be liable for all court costs, attorney fees, and damages incurred as a result of a default.
+        Failure to pay rent when due, material breach of any term of this Agreement, or violation of any applicable law or ordinance constitutes a default. In the event of default, Management may, in accordance with ${jur.stateName} law, issue a notice to cure or vacate, initiate eviction proceedings, and/or pursue any other remedies available at law or in equity. Tenant shall be liable for all court costs, attorney fees, and damages incurred as a result of a default.
       </li>
 
       <li>
         <b>18. Abandonment.</b>
-        If Tenant vacates the property prior to the end of the lease term without providing proper written notice and without surrendering the keys, Management may treat the property as abandoned after 7 days of confirmed absence, provided rent is unpaid. Management may then re-enter the premises, remove any personal property per Michigan law, and re-rent the unit. Tenant remains liable for rent through the end of the lease term or until the unit is re-rented, whichever occurs first.
+        If Tenant vacates the property prior to the end of the lease term without providing proper written notice and without surrendering the keys, Management may treat the property as abandoned after 7 days of confirmed absence, provided rent is unpaid. Management may then re-enter the premises, remove any personal property per ${jur.stateName} law, and re-rent the unit. Tenant remains liable for rent through the end of the lease term or until the unit is re-rented, whichever occurs first.
       </li>
 
       <li>
@@ -1619,7 +1803,7 @@ function renderLeaseSigningPage(appId) {
 
       <li>
         <b>23. Governing Law & Jurisdiction.</b>
-        This Agreement shall be governed by and construed in accordance with the laws of the State of Michigan. Any disputes arising under this Agreement shall be subject to the exclusive jurisdiction of the courts of Oakland County, Michigan, unless otherwise required by law.
+        This Agreement shall be governed by and construed in accordance with the laws of the State of ${jur.stateName}. Any disputes arising under this Agreement shall be subject to the exclusive jurisdiction of the courts of ${jur.county}, ${jur.stateName}, unless otherwise required by law.
       </li>
 
       <li>
@@ -1636,7 +1820,7 @@ function renderLeaseSigningPage(appId) {
 
     <!-- Legal notice -->
     <div class="highlight-box slate">
-      <b>⚖️ Electronic Signature Legal Notice:</b> By signing below, you confirm that you have read, understood, and agreed to all 25 articles and provisions of this Residential Lease Agreement. Your electronic signature is legally binding under the <em>Michigan Electronic Signature Act (MCL § 450.832 et seq.)</em> and the federal <em>Electronic Signatures in Global and National Commerce Act (E-SIGN Act, 15 U.S.C. § 7001 et seq.)</em>. Your full legal name, IP address, and timestamp will be permanently recorded as part of the execution record of this Agreement.
+      <b>⚖️ Electronic Signature Legal Notice:</b> By signing below, you confirm that you have read, understood, and agreed to all 25 articles and provisions of this Residential Lease Agreement. Your electronic signature is legally binding under the <em>${eSignText}</em>. Your full legal name, IP address, and timestamp will be permanently recorded as part of the execution record of this Agreement.
     </div>
 
     <!-- ═══════════════════════════════════════
@@ -1709,11 +1893,11 @@ function renderLeaseSigningPage(appId) {
         </div>
         <div class="checkbox-row" id="row2" onclick="toggleCheck('agreeBinding','row2')">
           <input type="checkbox" id="agreeBinding" onchange="validateSignatureForm()">
-          <label for="agreeBinding">I understand this electronic signature is legally binding under the Michigan Electronic Signature Act and the federal E-SIGN Act, and has the same legal effect as a handwritten signature.</label>
+          <label for="agreeBinding">I understand this electronic signature is legally binding under the ${eSignShort}, and has the same legal effect as a handwritten signature.</label>
         </div>
         <div class="checkbox-row" id="row3" onclick="toggleCheck('agreeFinancial','row3')">
           <input type="checkbox" id="agreeFinancial" onchange="validateSignatureForm()">
-          <label for="agreeFinancial">I agree to pay the move-in total of <b>$${moveInCost.toLocaleString()}.00</b> prior to taking possession, and monthly rent of <b>$${rent.toLocaleString()}.00</b> on the 1st of each month as outlined in Article III.</label>
+          <label for="agreeFinancial">I agree to pay the move-in total of <b>$${moveInCost.toLocaleString()}.00</b> prior to taking possession${holdingFeePaid ? ` (after holding fee credit of $${holdingFeeAmt.toLocaleString()}.00)` : ''}, and monthly rent of <b>$${rent.toLocaleString()}.00</b> on the 1st of each month as outlined in Article III.</label>
         </div>
         <div class="checkbox-row" id="row4" onclick="toggleCheck('agreeOwnership','row4')">
           <input type="checkbox" id="agreeOwnership" onchange="validateSignatureForm()">
@@ -2180,7 +2364,7 @@ const EmailTemplates = {
     <div class="section">
       <div class="section-label">Your Selected Payment Methods</div>
       <div class="callout amber">
-        <h4>Application Fee — $50.00</h4>
+        <h4>Application Fee — $${APPLICATION_FEE}.00</h4>
         <p style="margin-bottom:12px;">You have indicated the following preferred payment methods. Our team will reach out to you at the contact information above within 24 hours to arrange collection of your application fee.</p>
         <div>${paymentMethods.map(m => `<span class="pay-pill">${m}</span>`).join('')}</div>
       </div>
@@ -2190,7 +2374,7 @@ const EmailTemplates = {
     <div class="section">
       <div class="section-label">What Happens Next</div>
       <ul class="steps-list">
-        <li><span class="step-num">1</span><span><strong>Payment Arrangement</strong> — A member of our leasing team will contact you within 24 hours via text at <strong>${data['Phone']}</strong> to coordinate your $50.00 application fee.</span></li>
+        <li><span class="step-num">1</span><span><strong>Payment Arrangement</strong> — A member of our leasing team will contact you within 24 hours via text at <strong>${data['Phone']}</strong> to coordinate your $${APPLICATION_FEE}.00 application fee.</span></li>
         <li><span class="step-num">2</span><span><strong>Payment Confirmation</strong> — Once your fee is received and confirmed, you will receive an email notification and your application will advance to the review stage.</span></li>
         <li><span class="step-num">3</span><span><strong>Application Review</strong> — Our team will conduct a thorough review of your application within 2–3 business days of payment confirmation.</span></li>
         <li><span class="step-num">4</span><span><strong>Decision Notification</strong> — You will be notified of our decision via email. If approved, our leasing team will prepare your lease agreement for signature.</span></li>
@@ -2250,7 +2434,7 @@ const EmailTemplates = {
 
     <p class="intro-text">
       A new rental application has been submitted and requires your attention. The applicant is awaiting contact
-      to arrange payment of the $50.00 application fee. Please reach out within 24 hours.
+      to arrange payment of the $${APPLICATION_FEE}.00 application fee. Please reach out within 24 hours.
     </p>
 
     <!-- Applicant at a Glance -->
@@ -2272,7 +2456,7 @@ const EmailTemplates = {
     <div class="section">
       <div class="section-label">Payment Preferences</div>
       <div class="callout amber">
-        <h4>Contact Applicant to Collect $50.00 Fee</h4>
+        <h4>Contact Applicant to Collect $${APPLICATION_FEE}.00 Fee</h4>
         <p style="margin-bottom:12px;">The applicant has indicated the following preferred payment methods:</p>
         <div>${paymentMethods.map(m => `<span class="pay-pill">${m}</span>`).join('')}</div>
       </div>
@@ -2314,7 +2498,7 @@ const EmailTemplates = {
 `,
 
   // ── 3. Payment Confirmation ───────────────────────────────
-  paymentConfirmation: (appId, applicantName, phone, dashboardLink) => `
+  paymentConfirmation: (appId, applicantName, phone, dashboardLink, propertyAddress, propertyName) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2337,7 +2521,7 @@ const EmailTemplates = {
     <p class="greeting">Dear ${applicantName.split(' ')[0]},</p>
 
     <p class="intro-text">
-      We are pleased to confirm that your $50.00 application fee has been received and successfully recorded.
+      We are pleased to confirm that your $${APPLICATION_FEE}.00 application fee has been received and successfully recorded.
       Your application is now active and has been placed in our review queue. Thank you for completing
       this step promptly.
     </p>
@@ -2349,7 +2533,8 @@ const EmailTemplates = {
         <h4>✓ Payment Successfully Received</h4>
         <div class="financial-row"><span class="f-label">Application ID</span><span class="f-value">${appId}</span></div>
         <div class="financial-row"><span class="f-label">Applicant</span><span class="f-value">${applicantName}</span></div>
-        <div class="financial-row"><span class="f-label">Amount Paid</span><span class="f-value">$50.00</span></div>
+        ${(propertyAddress || propertyName) ? `<div class="financial-row"><span class="f-label">Property</span><span class="f-value">${propertyName || propertyAddress}</span></div>` : ''}
+        <div class="financial-row"><span class="f-label">Amount Paid</span><span class="f-value">$${APPLICATION_FEE}.00</span></div>
         <div class="financial-row"><span class="f-label">Payment Date</span><span class="f-value">${new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</span></div>
         <div class="financial-row"><span class="f-label">Status</span><span class="f-value" style="color:#059669;">Under Review</span></div>
       </div>
@@ -2393,8 +2578,12 @@ const EmailTemplates = {
 `,
 
   // ── 4. Status Update (Approved & Denied) ──────────────────
-  statusUpdate: (appId, firstName, status, reason, dashboardLink) => {
-    const isApproved = status === 'approved';
+  statusUpdate: (appId, firstName, status, reason, dashboardLink, propertyAddress, propertyName, propertyState) => {
+    const isApproved    = status === 'approved';
+    const propertyLabel = propertyName || propertyAddress || '';
+    // Bug fix: eSignText was previously derived from `leaseData.propertyState`
+    // which is undefined in this template. Now passed as a direct parameter.
+    const resolvedState = propertyState || 'MI';
     return `
 <!DOCTYPE html>
 <html lang="en">
@@ -2416,6 +2605,7 @@ const EmailTemplates = {
   <div class="email-body">
 
     <p class="greeting">Dear ${firstName},</p>
+    ${propertyLabel ? `<p style="font-size:13px;color:#64748b;margin:-4px 0 16px;">Property: <strong>${propertyLabel}</strong></p>` : ''}
 
     ${isApproved ? `
     <p class="intro-text">
@@ -2433,7 +2623,7 @@ const EmailTemplates = {
       <div class="section-label">Your Next Steps</div>
       <ul class="steps-list">
         <li><span class="step-num">1</span><span><strong>Lease Agreement</strong> — Our team will prepare a formal lease agreement and send it to you via email within 1–2 business days. Please review it carefully in its entirety.</span></li>
-        <li><span class="step-num">2</span><span><strong>Electronic Signature</strong> — You will sign your lease electronically. Your signature is legally binding under the Michigan Electronic Signature Act and the federal E-SIGN Act.</span></li>
+        <li><span class="step-num">2</span><span><strong>Electronic Signature</strong> — You will sign your lease electronically. Your signature is legally binding under the ${getESignText(resolvedState)}.</span></li>
         <li><span class="step-num">3</span><span><strong>Move-In Costs</strong> — Prior to receiving your keys, the move-in total (first month's rent plus security deposit) must be paid in full. This amount will be clearly outlined in your lease.</span></li>
         <li><span class="step-num">4</span><span><strong>Key Handoff</strong> — Once all documents and payments are complete, our team will coordinate your key pickup and official move-in date.</span></li>
       </ul>
@@ -2559,7 +2749,7 @@ const EmailTemplates = {
       <ul class="steps-list">
         <li><span class="step-num">1</span><span><strong>Review the Full Agreement</strong> — Read every section carefully. The lease outlines your rights, responsibilities, and all financial obligations.</span></li>
         <li><span class="step-num">2</span><span><strong>Confirm Checkboxes</strong> — You will be asked to confirm your agreement to specific terms before signing.</span></li>
-        <li><span class="step-num">3</span><span><strong>Sign Electronically</strong> — Enter your full legal name as your electronic signature. This is legally binding under Michigan and federal e-signature law.</span></li>
+        <li><span class="step-num">3</span><span><strong>Sign Electronically</strong> — Enter your full legal name as your electronic signature. This is legally binding under the ${getESignText(leaseData.propertyState || 'MI')}.</span></li>
         <li><span class="step-num">4</span><span><strong>Receive Confirmation</strong> — You will receive an immediate email confirmation once your signature is recorded.</span></li>
       </ul>
     </div>
@@ -2750,9 +2940,10 @@ function sendApplicantConfirmation(data, appId) {
     const baseUrl        = ScriptApp.getService().getUrl();
     const dashboardLink  = baseUrl + '?path=dashboard&id=' + appId;
     const htmlBody = EmailTemplates.applicantConfirmation(data, appId, dashboardLink, paymentMethods);
+    const propertySnippet = data['Property Address'] ? ` — ${data['Property Address'].split(',')[0]}` : '';
     MailApp.sendEmail({
       to: data['Email'],
-      subject: `Choice Properties - Application Received (Ref: ${appId})`,
+      subject: `✅ Application Received${propertySnippet} | Choice Properties (Ref: ${appId})`,
       htmlBody: htmlBody,
       name: 'Choice Properties Leasing',
       replyTo: 'choicepropertygroup@hotmail.com',
@@ -2772,10 +2963,11 @@ function sendAdminNotification(data, appId) {
     const baseUrl       = ScriptApp.getService().getUrl();
     const dashboardLink = baseUrl + '?path=dashboard&id=' + appId;
     const htmlBody = EmailTemplates.adminNotification(data, appId, baseUrl, dashboardLink, paymentMethods);
+    const propertySnippet = data['Property Address'] ? ` | ${data['Property Address']}` : '';
     adminEmails.forEach(email => {
       MailApp.sendEmail({
         to: email,
-        subject: `🔔 NEW APPLICATION: ${appId} - ${data['First Name']} ${data['Last Name']}`,
+        subject: `🔔 NEW APPLICATION: ${appId} - ${data['First Name']} ${data['Last Name']}${propertySnippet}`,
         htmlBody: htmlBody, name: 'Choice Properties System'
       });
     });
@@ -2783,14 +2975,86 @@ function sendAdminNotification(data, appId) {
   } catch (error) { console.error('sendAdminNotification error:', error); return false; }
 }
 
+function sendResumeEmail(email, resumeUrl, step) {
+  try {
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return { success: false, error: 'Invalid email' };
+    }
+    // D-013: parse property name from URL params in resumeUrl
+    let propertyLine = '';
+    try {
+      const urlParts = resumeUrl.split('?');
+      if (urlParts.length > 1) {
+        const params = {};
+        urlParts[1].split('&').forEach(p => {
+          const kv = p.split('=');
+          if (kv.length === 2) params[decodeURIComponent(kv[0])] = decodeURIComponent(kv[1].replace(/\+/g, ' '));
+        });
+        const propName = params['pn'] || params['addr'] || '';
+        if (propName) propertyLine = `<p style="color:#4a5568;font-size:14px;margin:0 0 16px;">You were applying for: <strong>${propName}</strong></p>`;
+      }
+    } catch (e) {}
+    const subject = '📋 Resume Your Choice Properties Application';
+    const htmlBody = `
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f5f7fa;font-family:'Inter',Arial,sans-serif;">
+<div style="max-width:520px;margin:32px auto;background:white;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
+  <div style="background:#1B3A5C;padding:28px 32px;text-align:center;">
+    <div style="font-size:22px;font-weight:800;color:white;letter-spacing:0.5px;">CP &nbsp; Choice Properties</div>
+    <div style="color:#a8c4e0;font-size:13px;margin-top:4px;">Rental Application System</div>
+  </div>
+  <div style="padding:32px;">
+    <h2 style="font-size:20px;font-weight:700;color:#1B3A5C;margin:0 0 12px;">Your application progress is saved!</h2>
+    ${propertyLine}
+    <p style="color:#4a5568;font-size:14px;line-height:1.6;margin:0 0 20px;">
+      We've saved your progress through Step ${step} of 6. Click the button below to pick up right where you left off — your information will be restored automatically.
+    </p>
+    <div style="text-align:center;margin:28px 0;">
+      <a href="${resumeUrl}" style="display:inline-block;background:#2A6FAD;color:white;text-decoration:none;padding:14px 32px;border-radius:50px;font-size:15px;font-weight:600;">
+        Continue My Application →
+      </a>
+    </div>
+    <p style="color:#718096;font-size:12px;line-height:1.5;margin:0;">
+      Your progress is saved locally in your browser. For best results, use the same device and browser you started on.<br><br>
+      Questions? Call or text <strong>707-706-3137</strong> or email <a href="mailto:choicepropertygroup@hotmail.com" style="color:#2A6FAD;">choicepropertygroup@hotmail.com</a>
+    </p>
+  </div>
+  <div style="background:#f8fafc;padding:16px 32px;text-align:center;font-size:11px;color:#a0aec0;border-top:1px solid #e2e8f0;">
+    Choice Properties &bull; 2265 Livernois, Suite 500, Troy, MI 48083
+  </div>
+</div>
+</body>
+</html>`;
+    MailApp.sendEmail({ to: email, subject: subject, htmlBody: htmlBody, name: 'Choice Properties' });
+    return { success: true };
+  } catch (error) {
+    console.error('sendResumeEmail error:', error);
+    return { success: false, error: error.toString() };
+  }
+}
+
 function sendPaymentConfirmation(appId, applicantEmail, applicantName, phone) {
   try {
     const baseUrl       = ScriptApp.getService().getUrl();
     const dashboardLink = baseUrl + '?path=dashboard&id=' + appId;
+    // D-011: fetch property context from sheet row
+    let propertyAddress = '';
+    let propertyName    = '';
+    try {
+      const result = getApplication(appId);
+      if (result.success) {
+        propertyAddress = result.application['Property Address'] || '';
+        propertyName    = result.application['Property Name']    || '';
+      }
+    } catch (e) {}
+    const propertyLabel   = propertyName || propertyAddress;
+    const propertySnippet = propertyLabel ? ` — ${propertyLabel.split(',')[0]}` : '';
     MailApp.sendEmail({
       to: applicantEmail,
-      subject: `✅ Payment Confirmed - Application ${appId}`,
-      htmlBody: EmailTemplates.paymentConfirmation(appId, applicantName, phone, dashboardLink),
+      subject: `✅ Payment Confirmed${propertySnippet} | Application ${appId}`,
+      htmlBody: EmailTemplates.paymentConfirmation(appId, applicantName, phone, dashboardLink, propertyAddress, propertyName),
       name: 'Choice Properties'
     });
     return true;
@@ -2801,10 +3065,28 @@ function sendStatusUpdateEmail(appId, email, firstName, status, reason) {
   try {
     const baseUrl       = ScriptApp.getService().getUrl();
     const dashboardLink = baseUrl + '?path=dashboard&id=' + appId;
+    // D-012: fetch property context from sheet row
+    let propertyAddress = '';
+    let propertyName    = '';
+    let propertyState   = 'MI'; // default to MI (HQ state) if not found
+    try {
+      const result = getApplication(appId);
+      if (result.success) {
+        propertyAddress = result.application['Property Address'] || '';
+        propertyName    = result.application['Property Name']    || '';
+        propertyState   = result.application['Property State']   || 'MI';
+      }
+    } catch (e) {}
+    const propertyLabel   = propertyName || propertyAddress;
+    const propertySnippet = propertyLabel ? ` — ${propertyLabel.split(',')[0]}` : '';
     MailApp.sendEmail({
       to: email,
-      subject: status === 'approved' ? `✅ Application Approved - ${appId}` : `Application Update - ${appId}`,
-      htmlBody: EmailTemplates.statusUpdate(appId, firstName, status, reason, dashboardLink),
+      subject: status === 'approved'
+        ? `✅ Application Approved${propertySnippet} | ${appId}`
+        : `Application Update${propertySnippet} | ${appId}`,
+      // Bug fix: pass propertyState so the template can resolve the correct e-sign text
+      // without referencing the nonexistent `leaseData` variable.
+      htmlBody: EmailTemplates.statusUpdate(appId, firstName, status, reason, dashboardLink, propertyAddress, propertyName, propertyState),
       name: 'Choice Properties'
     });
     return true;
@@ -2887,6 +3169,200 @@ function buildPaymentMethodList(data, withEmoji) {
   if (second)  methods.push(label('🥈', 'Secondary', second, secOth));
   if (third)   methods.push(label('🥉', 'Third Choice', third, thirdOth));
   return methods;
+}
+
+// ============================================================
+// requestHoldingFee()  — Session 037
+// Admin requests a holding fee from an approved applicant.
+// Sets Holding Fee Status → 'requested', emails the tenant.
+// ============================================================
+function requestHoldingFee(appId, amount, adminNotes) {
+  try {
+    const ss    = getSpreadsheet();
+    const sheet = ss.getSheetByName(SHEET_NAME);
+    if (!sheet) throw new Error('Applications sheet not found');
+    initializeSheets(); // ensure holding fee columns exist
+
+    const col  = getColumnMap(sheet);
+    const data = sheet.getDataRange().getValues();
+    let rowIndex = -1;
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][col['App ID'] - 1] === appId) { rowIndex = i + 1; break; }
+    }
+    if (rowIndex === -1) throw new Error('Application not found');
+
+    const feeAmount = parseFloat(amount);
+    if (!feeAmount || feeAmount <= 0) throw new Error('Please enter a valid holding fee amount.');
+
+    // Guard: only request a holding fee on approved, paid applications
+    const appStatus     = sheet.getRange(rowIndex, col['Status']).getValue();
+    const paymentStatus = sheet.getRange(rowIndex, col['Payment Status']).getValue();
+    if (appStatus !== 'approved')  throw new Error('Cannot request a holding fee — application is not yet approved.');
+    if (paymentStatus !== 'paid')  throw new Error('Cannot request a holding fee — application fee has not been confirmed.');
+
+    const currentStatus = sheet.getRange(rowIndex, col['Holding Fee Status']).getValue();
+    if (currentStatus === 'paid') throw new Error('Holding fee is already marked as paid.');
+
+    // Write to sheet
+    sheet.getRange(rowIndex, col['Holding Fee Amount']).setValue(feeAmount);
+    sheet.getRange(rowIndex, col['Holding Fee Status']).setValue('requested');
+    const noteText = `[${new Date().toLocaleString()}] Holding fee of $${feeAmount} requested.${adminNotes ? ' ' + adminNotes : ''}`;
+    const existing = sheet.getRange(rowIndex, col['Holding Fee Notes']).getValue();
+    sheet.getRange(rowIndex, col['Holding Fee Notes']).setValue(existing ? existing + '\n' + noteText : noteText);
+
+    // Also add to admin notes
+    const currAdminNotes = sheet.getRange(rowIndex, col['Admin Notes']).getValue();
+    sheet.getRange(rowIndex, col['Admin Notes']).setValue(
+      currAdminNotes ? currAdminNotes + '\n' + noteText : noteText
+    );
+
+    // Read tenant info for email
+    const email     = sheet.getRange(rowIndex, col['Email']).getValue();
+    const firstName = sheet.getRange(rowIndex, col['First Name']).getValue();
+    const lastName  = sheet.getRange(rowIndex, col['Last Name']).getValue();
+    const phone     = sheet.getRange(rowIndex, col['Phone']).getValue();
+    const property  = sheet.getRange(rowIndex, col['Property Address']).getValue();
+    const fullName  = firstName + ' ' + lastName;
+
+    // Send holding fee request email to tenant
+    sendHoldingFeeRequestEmail(appId, email, fullName, phone, feeAmount, property);
+    logEmail('holding_fee_request', email, 'success', appId);
+
+    return { success: true, message: `Holding fee of $${feeAmount} requested. Tenant has been emailed.` };
+  } catch (error) {
+    console.error('requestHoldingFee error:', error);
+    logEmail('holding_fee_request', 'admin', 'failed', appId, error.toString());
+    return { success: false, error: error.toString() };
+  }
+}
+
+// ============================================================
+// markHoldingFeePaid()  — Session 037
+// Admin confirms offline holding fee payment received.
+// Sets Holding Fee Status → 'paid', logs date.
+// ============================================================
+function markHoldingFeePaid(appId, adminNotes) {
+  try {
+    const ss    = getSpreadsheet();
+    const sheet = ss.getSheetByName(SHEET_NAME);
+    if (!sheet) throw new Error('Applications sheet not found');
+
+    const col  = getColumnMap(sheet);
+    const data = sheet.getDataRange().getValues();
+    let rowIndex = -1;
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][col['App ID'] - 1] === appId) { rowIndex = i + 1; break; }
+    }
+    if (rowIndex === -1) throw new Error('Application not found');
+
+    const currentStatus = sheet.getRange(rowIndex, col['Holding Fee Status']).getValue();
+    if (currentStatus === 'paid') throw new Error('Holding fee is already marked as paid.');
+    if (!currentStatus || currentStatus === 'none') throw new Error('No holding fee has been requested yet.');
+
+    const feeAmount = parseFloat(sheet.getRange(rowIndex, col['Holding Fee Amount']).getValue()) || 0;
+
+    sheet.getRange(rowIndex, col['Holding Fee Status']).setValue('paid');
+    sheet.getRange(rowIndex, col['Holding Fee Date']).setValue(new Date());
+
+    const noteText = `[${new Date().toLocaleString()}] Holding fee of $${feeAmount} marked as received.${adminNotes ? ' ' + adminNotes : ''}`;
+    const existing = sheet.getRange(rowIndex, col['Holding Fee Notes']).getValue();
+    sheet.getRange(rowIndex, col['Holding Fee Notes']).setValue(existing ? existing + '\n' + noteText : noteText);
+
+    const currAdminNotes = sheet.getRange(rowIndex, col['Admin Notes']).getValue();
+    sheet.getRange(rowIndex, col['Admin Notes']).setValue(
+      currAdminNotes ? currAdminNotes + '\n' + noteText : noteText
+    );
+
+    return { success: true, message: `Holding fee of $${feeAmount} marked as paid.` };
+  } catch (error) {
+    console.error('markHoldingFeePaid error:', error);
+    return { success: false, error: error.toString() };
+  }
+}
+
+// ============================================================
+// sendHoldingFeeRequestEmail()  — Session 037
+// Emails the tenant with holding fee amount and payment instructions.
+// ============================================================
+function sendHoldingFeeRequestEmail(appId, email, fullName, phone, feeAmount, property) {
+  try {
+    const firstName = fullName.split(' ')[0] || fullName;
+    const subject   = `Action Required — Holding Fee to Reserve Your Unit | ${property || 'Choice Properties'}`;
+    const body = `
+<!DOCTYPE html><html><head><meta charset="UTF-8">
+<style>
+  body{font-family:'Helvetica Neue',Arial,sans-serif;background:#f1f5f9;margin:0;padding:0;}
+  .wrap{max-width:600px;margin:32px auto;background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08);}
+  .header{background:linear-gradient(135deg,#1a5276,#2471a3);padding:28px 32px;color:#fff;}
+  .header h1{margin:0;font-size:20px;font-weight:700;letter-spacing:-.3px;}
+  .header p{margin:6px 0 0;font-size:13px;opacity:.8;}
+  .body{padding:28px 32px;}
+  .greeting{font-size:16px;font-weight:600;color:#1e293b;margin:0 0 12px;}
+  .intro{font-size:14px;color:#475569;line-height:1.7;margin:0 0 20px;}
+  .callout{background:#f0fdf4;border-left:4px solid #10b981;border-radius:8px;padding:16px 20px;margin:20px 0;}
+  .callout h4{margin:0 0 8px;font-size:14px;font-weight:700;color:#065f46;}
+  .callout p{margin:0;font-size:13px;color:#374151;line-height:1.6;}
+  .amount-box{background:#1a5276;color:#fff;border-radius:10px;padding:20px;text-align:center;margin:20px 0;}
+  .amount-box .label{font-size:12px;font-weight:600;opacity:.75;text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;}
+  .amount-box .amount{font-size:32px;font-weight:800;}
+  .steps{margin:20px 0;}
+  .step{display:flex;gap:12px;margin-bottom:12px;align-items:flex-start;}
+  .step-dot{flex-shrink:0;width:24px;height:24px;background:#1a5276;color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;margin-top:1px;}
+  .step p{margin:0;font-size:13px;color:#374151;line-height:1.6;}
+  .notice{background:#fef9c3;border:1px solid #fde68a;border-radius:8px;padding:14px 18px;margin:20px 0;font-size:13px;color:#713f12;line-height:1.6;}
+  .footer{background:#f8fafc;padding:20px 32px;text-align:center;font-size:12px;color:#94a3b8;border-top:1px solid #e2e8f0;}
+</style>
+</head><body>
+<div class="wrap">
+  <div class="header">
+    <h1>Choice Properties</h1>
+    <p>Holding Fee Request — App #${appId}</p>
+  </div>
+  <div class="body">
+    <p class="greeting">Dear ${firstName},</p>
+    <p class="intro">
+      Congratulations again on your approved application${property ? ' for <strong>' + property + '</strong>' : ''}. To officially reserve this unit and take it off the market while your lease is being prepared, a holding fee is required.
+    </p>
+
+    <div class="amount-box">
+      <div class="label">Holding Fee Due</div>
+      <div class="amount">$${feeAmount.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+    </div>
+
+    <div class="callout">
+      <h4>✓ This Fee Is Credited Toward Your Move-In</h4>
+      <p>The holding fee is not an additional charge. It will be fully credited toward your move-in total (first month's rent + security deposit) when you take possession of the property.</p>
+    </div>
+
+    <div class="steps">
+      <p style="font-size:13px;font-weight:700;color:#1e293b;margin:0 0 12px;">How to Pay</p>
+      <div class="step"><div class="step-dot">1</div><p><strong>Contact our team</strong> — Text or call us at <strong>707-706-3137</strong> to coordinate your preferred payment method (Zelle, money order, certified check, or cashier's check).</p></div>
+      <div class="step"><div class="step-dot">2</div><p><strong>Submit payment</strong> — Send the holding fee using your chosen method. Our team will provide payment details when you reach out.</p></div>
+      <div class="step"><div class="step-dot">3</div><p><strong>Receive confirmation</strong> — Once payment is received, our team will confirm in writing and proceed to prepare your lease agreement.</p></div>
+    </div>
+
+    <div class="notice">
+      ⏱ <strong>Please respond within 48 hours.</strong> Unit availability is time-sensitive. If the holding fee is not received within this window, the unit may be offered to other qualified applicants.
+    </div>
+
+    <p style="font-size:13px;color:#475569;line-height:1.7;">
+      If you have any questions, please text us at <strong>707-706-3137</strong> or email us at
+      <a href="mailto:choicepropertygroup@hotmail.com" style="color:#1a5276;">choicepropertygroup@hotmail.com</a>.
+      We look forward to welcoming you as a resident.
+    </p>
+  </div>
+  <div class="footer">
+    Choice Properties &nbsp;·&nbsp; 2265 Livernois Suite 500, Troy MI 48083<br>
+    707-706-3137 &nbsp;·&nbsp; choicepropertygroup@hotmail.com<br>
+    <span style="font-size:11px;">App ID: ${appId}</span>
+  </div>
+</div>
+</body></html>`;
+    MailApp.sendEmail({ to: email, subject: subject, htmlBody: body });
+  } catch (err) {
+    console.error('sendHoldingFeeRequestEmail error:', err);
+    throw err;
+  }
 }
 
 // ============================================================
@@ -3161,12 +3637,14 @@ function renderApplicantDashboard(appId) {
   }
 
   // ── Progress steps ──
+  const hfStatusDash = app['Holding Fee Status'] || 'none';
+  const hfAmtDash    = parseFloat(app['Holding Fee Amount']) || 0;
   const steps = [
-    { label: 'Submitted', done: true },
-    { label: 'Payment', done: app['Payment Status'] === 'paid' },
+    { label: 'Submitted',    done: true },
+    { label: 'Payment',      done: app['Payment Status'] === 'paid' },
     { label: 'Under Review', done: app['Payment Status'] === 'paid' && (app['Status'] === 'approved' || app['Status'] === 'denied') },
-    { label: 'Decision', done: app['Status'] === 'approved' || app['Status'] === 'denied' },
-    { label: 'Lease', done: app['Lease Status'] === 'signed' || app['Lease Status'] === 'active' }
+    { label: 'Decision',     done: app['Status'] === 'approved' || app['Status'] === 'denied' },
+    { label: 'Lease',        done: app['Lease Status'] === 'signed' || app['Lease Status'] === 'active' }
   ];
   const progressHtml = steps.map((s, i) => `
     <div style="display:flex;flex-direction:column;align-items:center;flex:1;position:relative;">
@@ -3174,6 +3652,30 @@ function renderApplicantDashboard(appId) {
       <div style="width:34px;height:34px;border-radius:50%;background:${s.done ? statusColor : '#e2e8f0'};color:${s.done ? 'white' : '#94a3b8'};display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;position:relative;z-index:1;box-shadow:${s.done ? '0 4px 10px rgba(0,0,0,.15)' : 'none'};">${s.done ? '✓' : (i + 1)}</div>
       <span style="font-size:11px;font-weight:600;color:${s.done ? '#1e293b' : '#94a3b8'};margin-top:7px;text-align:center;line-height:1.2;">${s.label}</span>
     </div>`).join('');
+
+  // ── Holding fee card (shown on approved apps when HF requested or paid) ──
+  let hfCardHtml = '';
+  if (app['Status'] === 'approved' && hfStatusDash !== 'none') {
+    const hfPaid = hfStatusDash === 'paid';
+    hfCardHtml = `
+      <div style="background:white;border-radius:18px;overflow:hidden;box-shadow:0 4px 20px ${hfPaid ? 'rgba(16,185,129,.12)' : 'rgba(245,158,11,.15)'};margin:0 0 20px;border:1.5px solid ${hfPaid ? '#a7f3d0' : '#fcd34d'};">
+        <div style="background:${hfPaid ? 'linear-gradient(135deg,#059669,#10b981)' : 'linear-gradient(135deg,#d97706,#f59e0b)'};padding:16px 22px;display:flex;align-items:center;gap:14px;">
+          <div style="width:42px;height:42px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">${hfPaid ? '✅' : '⏳'}</div>
+          <div>
+            <div style="color:white;font-weight:700;font-size:16px;">${hfPaid ? 'Holding Fee Received — Thank You!' : 'Action Required: Holding Fee'}</div>
+            <div style="color:rgba(255,255,255,.85);font-size:13px;margin-top:2px;">${hfPaid ? `$${hfAmtDash.toLocaleString()} credited toward your move-in total` : `$${hfAmtDash.toLocaleString()} due within 48 hours to hold your unit`}</div>
+          </div>
+        </div>
+        <div style="padding:16px 22px;font-size:14px;color:#374151;">
+          ${hfPaid
+            ? `<p style="margin:0;">Your holding deposit of <strong>$${hfAmtDash.toLocaleString()}</strong> has been received and will be fully credited toward your move-in total when you take possession. No further action is needed at this time — our team will be in touch with your lease details shortly.</p>`
+            : `<p style="margin:0 0 10px;">To officially reserve this unit, a holding fee of <strong>$${hfAmtDash.toLocaleString()}</strong> is required. Please contact our office to submit payment. This fee is not an additional charge — it will be credited in full toward your move-in costs.</p>
+               <p style="margin:0;color:#b45309;font-weight:600;">⏰ Please respond within 48 hours. The unit may be offered to another applicant if the holding fee is not received.</p>
+               <p style="margin:10px 0 0;"><strong>Contact us:</strong> <a href="tel:7077063137" style="color:#d97706;">707-706-3137</a> &nbsp;|&nbsp; <a href="mailto:choicepropertygroup@hotmail.com" style="color:#d97706;">choicepropertygroup@hotmail.com</a></p>`
+          }
+        </div>
+      </div>`;
+  }
 
   // ── Lease card ──
   const leaseStatus = app['Lease Status'] || 'none';
@@ -3609,7 +4111,7 @@ function renderApplicantDashboard(appId) {
     <!-- Payment pending card -->
     <div class="payment-alert" style="margin:20px 24px;">
       <h5>⏳ Payment Required</h5>
-      <p>Your application is on hold. Our team will text you at <strong>${app['Phone']}</strong> within 24 hours to collect your $50 application fee.</p>
+      <p>Your application is on hold. Our team will text you at <strong>${app['Phone']}</strong> within 24 hours to collect your $${APPLICATION_FEE} application fee.</p>
       <div>
         ${paymentMethods.map(m => `<span class="pay-method-pill">🎯 ${m.label}: ${m.value}</span>`).join('')}
       </div>
@@ -3629,6 +4131,7 @@ function renderApplicantDashboard(appId) {
     </div>
 
     <!-- Lease card (inside status-hero if relevant) -->
+    ${hfCardHtml    ? `<div style="padding:0 24px 4px;">${hfCardHtml}</div>`    : ''}
     ${leaseCardHtml ? `<div style="padding:0 24px 4px;">${leaseCardHtml}</div>` : ''}
 
     <!-- Toggle extra details -->
@@ -3719,8 +4222,10 @@ function renderApplicantDashboard(appId) {
       refreshBtn.title = 'Status updates automatically — no refresh needed';
     }
 
-    // Check every 5 seconds — catches admin changes within moments
-    _watchTimer = setInterval(checkForStatusChange, 5000);
+    // Check every 45 seconds — balances responsiveness with GAS daily execution quota.
+    // At 5s the quota (~6 min/day free tier) burns out with just a few concurrent viewers.
+    // 45s allows ~190 checks/day per applicant before quota pressure.
+    _watchTimer = setInterval(checkForStatusChange, 45000);
   }
 
   function checkForStatusChange() {
@@ -4377,6 +4882,10 @@ function renderAdminPanel(authToken) {
     .btn-lease { background:#dbeafe; color:#1e40af; border: 1.5px solid #93c5fd; }
     .btn-view  { background:#e0e7ff; color:#3730a3; border: 1.5px solid #a5b4fc; }
     .btn-text  { background:#f0fdf4; color:#15803d; border: 1.5px solid #86efac; }
+    .btn-hold-req  { background:#fef3c7; color:#78350f; border: 1.5px solid #fcd34d; }
+    .btn-hold-paid { background:#d1fae5; color:#065f46; border: 1.5px solid #6ee7b7; }
+    .badge-hold-req  { background:#fef3c7; color:#92400e; }
+    .badge-hold-paid { background:#d1fae5; color:#065f46; }
 
     /* ── Modals ── */
     .modal-overlay {
@@ -4693,6 +5202,33 @@ function renderAdminPanel(authToken) {
   </div>
 </div>
 
+<!-- ── Holding Fee Modal ── -->
+<div class="modal-overlay" id="holdingFeeModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h5 id="hfModalTitle">Request Holding Fee</h5>
+      <p id="hfModalSubtitle" style="color:#64748b;"></p>
+    </div>
+    <div class="modal-body">
+      <div id="hfAlertArea"></div>
+      <div class="contact-info-box" id="hfContactInfo"></div>
+      <div id="hfAmountField" class="form-group">
+        <label class="form-label" for="hfAmount">Holding Fee Amount ($) <span style="color:#ef4444;">*</span></label>
+        <input type="number" class="form-control" id="hfAmount" placeholder="e.g., 500" min="1" step="1">
+        <p style="font-size:12px;color:#64748b;margin-top:6px;">This amount will be credited toward the tenant's move-in total once received.</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="hfNotes">Admin Notes (optional)</label>
+        <textarea class="form-control" id="hfNotes" rows="2" placeholder="e.g., Venmo @choice-properties, due by Friday..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn btn-cancel" onclick="closeHoldingFeeModal()">Cancel</button>
+      <button class="modal-btn btn-confirm-action" id="hfConfirmBtn" style="background:linear-gradient(to right,#d97706,#f59e0b);">Send Request</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── Send Lease Modal ── -->
 <div class="modal-overlay" id="leaseModal">
   <div class="modal-box">
@@ -4721,6 +5257,58 @@ function renderAdminPanel(authToken) {
       <div class="form-group" style="margin-bottom:0;">
         <label class="form-label">Notes / Special Conditions</label>
         <textarea class="form-control" id="leaseNotes" rows="2" placeholder="e.g., Utilities included, parking space #4..."></textarea>
+      </div>
+      <hr style="margin:16px 0;border:none;border-top:1px solid #e2e8f0;">
+      <p style="font-size:12px;color:#64748b;margin-bottom:12px;">🏠 <strong>Property Details</strong> — optional; shown on the lease if provided</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" style="font-size:12px;">Unit Type</label>
+          <input type="text" class="form-control" id="leaseUnitType" placeholder="e.g., Apartment, House">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" style="font-size:12px;">Parking Space</label>
+          <input type="text" class="form-control" id="leaseParkingSpace" placeholder="e.g., #4, Driveway">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" style="font-size:12px;">Bedrooms</label>
+          <input type="text" class="form-control" id="leaseBedrooms" placeholder="e.g., 2">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" style="font-size:12px;">Bathrooms</label>
+          <input type="text" class="form-control" id="leaseBathrooms" placeholder="e.g., 1.5">
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:10px;margin-bottom:0;">
+        <label class="form-label" style="font-size:12px;">Included Utilities (leave blank if none)</label>
+        <input type="text" class="form-control" id="leaseIncludedUtilities" placeholder="e.g., Water, Trash, Gas">
+      </div>
+      <hr style="margin:16px 0;border:none;border-top:1px solid #e2e8f0;">
+      <p style="font-size:12px;color:#64748b;margin-bottom:12px;">🐾 <strong>Pet Terms</strong> — only if tenant has pets; leave at 0 if not applicable</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" style="font-size:12px;">Pet Deposit ($)</label>
+          <input type="number" class="form-control" id="leasePetDeposit" value="0" min="0" step="0.01" placeholder="0">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" style="font-size:12px;">Monthly Pet Rent ($)</label>
+          <input type="number" class="form-control" id="leaseMonthlyPetRent" value="0" min="0" step="0.01" placeholder="0">
+        </div>
+      </div>
+      <hr style="margin:16px 0;border:none;border-top:1px solid #e2e8f0;">
+      <p style="font-size:12px;color:#64748b;margin-bottom:12px;">⚙️ <strong>Financial Terms</strong> — defaults shown; edit only if this property differs</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" style="font-size:12px;">Rent Due Day</label>
+          <input type="number" class="form-control" id="leaseRentDueDay" value="1" min="1" max="28" placeholder="1">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" style="font-size:12px;">Grace Period (days)</label>
+          <input type="number" class="form-control" id="leaseGraceDays" value="5" min="0" max="15" placeholder="5">
+        </div>
+        <div class="form-group" style="margin-bottom:0;">
+          <label class="form-label" style="font-size:12px;">Late Fee ($)</label>
+          <input type="number" class="form-control" id="leaseLateFee" value="50" min="0" step="0.01" placeholder="50">
+        </div>
       </div>
     </div>
     <div class="modal-footer">
@@ -4931,7 +5519,14 @@ function renderAdminPanel(authToken) {
     currentAppId = appId;
     pausePolling();
     document.getElementById('leaseModalSubtitle').textContent = tenantName + '  ·  ' + appId;
-    ['leaseRent','leaseDeposit','leaseStartDate','leaseNotes'].forEach(id => document.getElementById(id).value = '');
+    ['leaseRent','leaseDeposit','leaseStartDate','leaseNotes',
+     'leaseUnitType','leaseParkingSpace','leaseBedrooms','leaseBathrooms','leaseIncludedUtilities'
+    ].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('leaseRentDueDay').value      = '1';
+    document.getElementById('leaseGraceDays').value       = '5';
+    document.getElementById('leaseLateFee').value         = '50';
+    document.getElementById('leasePetDeposit').value      = '0';
+    document.getElementById('leaseMonthlyPetRent').value  = '0';
     document.getElementById('leaseAlertArea').innerHTML = '';
     document.getElementById('moveInPreview').textContent = 'Enter rent and deposit above';
     document.getElementById('leaseModal').classList.add('open');
@@ -4947,6 +5542,16 @@ function renderAdminPanel(authToken) {
     const deposit   = document.getElementById('leaseDeposit').value;
     const startDate = document.getElementById('leaseStartDate').value;
     const notes     = document.getElementById('leaseNotes').value;
+    const rentDueDay        = document.getElementById('leaseRentDueDay').value       || '1';
+    const graceDays         = document.getElementById('leaseGraceDays').value        || '5';
+    const lateFee           = document.getElementById('leaseLateFee').value          || '50';
+    const unitType          = document.getElementById('leaseUnitType').value         || '';
+    const bedrooms          = document.getElementById('leaseBedrooms').value         || '';
+    const bathrooms         = document.getElementById('leaseBathrooms').value        || '';
+    const parkingSpace      = document.getElementById('leaseParkingSpace').value     || '';
+    const includedUtilities = document.getElementById('leaseIncludedUtilities').value|| '';
+    const petDeposit        = document.getElementById('leasePetDeposit').value       || '0';
+    const monthlyPetRent    = document.getElementById('leaseMonthlyPetRent').value   || '0';
     const alertArea = document.getElementById('leaseAlertArea');
     if (!rent || !deposit || !startDate) {
       alertArea.innerHTML = '<div class="alert alert-danger">Please fill in all required fields.</div>';
@@ -4974,28 +5579,11 @@ function renderAdminPanel(authToken) {
         btn.disabled = false; btn.textContent = 'Send Lease to Tenant';
         alertArea.innerHTML = '<div class="alert alert-danger">Server error: ' + err + '</div>';
       })
-      .generateAndSendLease(currentAppId, rent, deposit, startDate, notes);
+      .generateAndSendLease(currentAppId, rent, deposit, startDate, notes, rentDueDay, graceDays, lateFee,
+                             unitType, bedrooms, bathrooms, parkingSpace, includedUtilities, petDeposit, monthlyPetRent);
   }
 
-  // ── Action modal ──
-  function showConfirmModal(action, appId, applicantName, contactMethod, contactTimes) {
-    currentAction = action; currentAppId = appId;
-    pausePolling();
-    const config = {
-      markPaid : { title: 'Mark as Paid',         sub: 'A payment confirmation email will be sent to the applicant.', btn: 'Confirm Payment',  notes: false },
-      approve  : { title: 'Approve Application',   sub: 'An approval email will be sent to the applicant.',            btn: 'Approve',          notes: false },
-      deny     : { title: 'Deny Application',       sub: 'The applicant will be notified by email.',                    btn: 'Deny Application', notes: true }
-    };
-    const c = config[action];
-    document.getElementById('modalTitle').textContent    = c.title;
-    document.getElementById('modalSubtitle').textContent = applicantName + ' · ' + appId;
-    document.getElementById('contactInfo').innerHTML     = '<strong>' + (action === 'deny' ? 'Applicant:' : 'Contact:') + '</strong> ' + contactMethod + ' · ' + contactTimes;
-    document.getElementById('notesField').style.display = c.notes ? 'block' : 'none';
-    document.getElementById('actionNotes').value        = '';
-    document.getElementById('modalConfirmBtn').textContent = c.btn;
-    document.getElementById('confirmModal').classList.add('open');
-    document.body.classList.add('modal-open');
-  }
+  // ── Confirm modal close + submit ──
   function closeModal() {
     document.getElementById('confirmModal').classList.remove('open');
     document.body.classList.remove('modal-open');
@@ -5014,7 +5602,6 @@ function renderAdminPanel(authToken) {
         showToast('Error: ' + (result.error || 'Unknown error'), 'error');
         return;
       }
-      // Immediately fetch fresh data and update dashboard
       fetchAndRenderAll('');
     };
     const onFail = err => {
@@ -5022,13 +5609,68 @@ function renderAdminPanel(authToken) {
       btn.disabled = false;
       showToast('Error: ' + err, 'error');
     };
-    if      (currentAction === 'markPaid') google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).markAsPaid(currentAppId, notes);
-    else if (currentAction === 'approve')  google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).updateStatus(currentAppId, 'approved', notes);
-    else if (currentAction === 'deny')     google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).updateStatus(currentAppId, 'denied', notes);
+    if      (currentAction === 'markPaid')    google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).markAsPaid(currentAppId, notes);
+    else if (currentAction === 'approve')     google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).updateStatus(currentAppId, 'approved', notes);
+    else if (currentAction === 'deny')        google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).updateStatus(currentAppId, 'denied', notes);
+    else if (currentAction === 'holdFeePaid') google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).markHoldingFeePaid(currentAppId, notes);
+  };
+
+  // ── Holding Fee Modal open/close ──
+  function showHoldingFeeModal(appId, applicantName, contactMethod) {
+    currentAppId = appId;
+    pausePolling();
+    document.getElementById('hfModalTitle').textContent    = 'Request Holding Fee';
+    document.getElementById('hfModalSubtitle').textContent = applicantName + ' · ' + appId;
+    document.getElementById('hfContactInfo').innerHTML     = '<strong>Contact:</strong> ' + contactMethod;
+    document.getElementById('hfAmountField').style.display = 'block';
+    document.getElementById('hfAmount').value              = '';
+    document.getElementById('hfNotes').value               = '';
+    document.getElementById('hfAlertArea').innerHTML       = '';
+    document.getElementById('hfConfirmBtn').textContent    = 'Send Request';
+    document.getElementById('hfConfirmBtn').disabled       = false;
+    document.getElementById('holdingFeeModal').classList.add('open');
+    document.body.classList.add('modal-open');
+    setTimeout(() => document.getElementById('hfAmount').focus(), 120);
+  }
+  function closeHoldingFeeModal() {
+    document.getElementById('holdingFeeModal').classList.remove('open');
+    document.body.classList.remove('modal-open');
+    resumePolling();
+  }
+  document.getElementById('hfConfirmBtn').onclick = function() {
+    const amount = parseFloat(document.getElementById('hfAmount').value);
+    const notes  = document.getElementById('hfNotes').value.trim();
+    const alertArea = document.getElementById('hfAlertArea');
+    alertArea.innerHTML = '';
+    if (!amount || amount <= 0) {
+      alertArea.innerHTML = '<div class="alert alert-danger">Please enter a valid holding fee amount.</div>';
+      return;
+    }
+    const btn = this;
+    btn.disabled = true; btn.textContent = 'Sending...';
+    _actionInProgress = true;
+    google.script.run
+      .withSuccessHandler(result => {
+        _actionInProgress = false;
+        if (result && result.success === false) {
+          btn.disabled = false; btn.textContent = 'Send Request';
+          alertArea.innerHTML = '<div class="alert alert-danger">' + (result.error || 'An error occurred.') + '</div>';
+          return;
+        }
+        closeHoldingFeeModal();
+        showToast('Holding fee requested — tenant emailed.', 'success');
+        fetchAndRenderAll('');
+      })
+      .withFailureHandler(err => {
+        _actionInProgress = false;
+        btn.disabled = false; btn.textContent = 'Send Request';
+        alertArea.innerHTML = '<div class="alert alert-danger">Error: ' + err + '</div>';
+      })
+      .requestHoldingFee(currentAppId, amount, notes);
   };
 
   // ── Close modals on backdrop click ──
-  ['confirmModal','leaseModal'].forEach(id => {
+  ['confirmModal','holdingFeeModal','leaseModal'].forEach(id => {
     document.getElementById(id).addEventListener('click', function(e) {
       if (e.target === this) {
         this.classList.remove('open');
@@ -5038,6 +5680,27 @@ function renderAdminPanel(authToken) {
       }
     });
   });
+
+  // ── showConfirmModal — extended for holdFeePaid ──
+  function showConfirmModal(action, appId, applicantName, contactMethod, contactTimes) {
+    currentAction = action; currentAppId = appId;
+    pausePolling();
+    const config = {
+      markPaid    : { title: 'Mark as Paid',          sub: 'A payment confirmation email will be sent to the applicant.', btn: 'Confirm Payment',  notes: false },
+      approve     : { title: 'Approve Application',    sub: 'An approval email will be sent to the applicant.',            btn: 'Approve',          notes: false },
+      deny        : { title: 'Deny Application',        sub: 'The applicant will be notified by email.',                    btn: 'Deny Application', notes: true  },
+      holdFeePaid : { title: 'Mark Hold Fee Received',  sub: 'Holding fee will be credited toward move-in total.',          btn: 'Confirm Receipt',  notes: true  }
+    };
+    const c = config[action];
+    document.getElementById('modalTitle').textContent    = c.title;
+    document.getElementById('modalSubtitle').textContent = applicantName + ' · ' + appId;
+    document.getElementById('contactInfo').innerHTML     = '<strong>' + (action === 'deny' ? 'Applicant:' : 'Contact:') + '</strong> ' + contactMethod + ' · ' + contactTimes;
+    document.getElementById('notesField').style.display = c.notes ? 'block' : 'none';
+    document.getElementById('actionNotes').value        = '';
+    document.getElementById('modalConfirmBtn').textContent = c.btn;
+    document.getElementById('confirmModal').classList.add('open');
+    document.body.classList.add('modal-open');
+  }
 
   // ── Toast notifications ──
   function showToast(msg, type) {
@@ -5079,12 +5742,21 @@ function renderAdminPanel(authToken) {
     const safeName    = (app['First Name'] + ' ' + app['Last Name']).replace(/'/g, "\\\\'");
     const safeContact = contactMethod.replace(/'/g, "\\\\'");
     const safeTimes   = contactTimes.replace(/'/g, "\\\\'");
-    const canMarkPaid  = app['Payment Status'] === 'unpaid';
-    const canApprove   = app['Payment Status'] === 'paid' && app['Status'] === 'pending';
-    const canDeny      = canApprove;
-    const canSendLease = app['Status'] === 'approved' && leaseStatus !== 'signed' && leaseStatus !== 'active';
-    const dateStr      = app['Timestamp'] ? new Date(app['Timestamp']).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
-    const phoneClean   = (app['Phone'] || '').replace(/\\D/g, '');
+    const canMarkPaid   = app['Payment Status'] === 'unpaid';
+    const canApprove    = app['Payment Status'] === 'paid' && app['Status'] === 'pending';
+    const canDeny       = canApprove;
+    const canSendLease  = app['Status'] === 'approved' && leaseStatus !== 'signed' && leaseStatus !== 'active';
+    const dateStr       = app['Timestamp'] ? new Date(app['Timestamp']).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+    const phoneClean    = (app['Phone'] || '').replace(/\\D/g, '');
+    const hfStatus      = app['Holding Fee Status'] || 'none';
+    const hfAmt         = parseFloat(app['Holding Fee Amount']) || 0;
+    const canRequestHF  = app['Status'] === 'approved' && hfStatus === 'none';
+    const canConfirmHF  = hfStatus === 'requested';
+    const hfBadgeHtml   = hfStatus === 'paid'
+      ? \`<span class="status-badge badge-hold-paid" style="margin-left:6px;" title="Holding fee $${hfAmt} received"><i class="fas fa-hand-holding-dollar"></i> Hold Fee Paid</span>\`
+      : hfStatus === 'requested'
+      ? \`<span class="status-badge badge-hold-req" style="margin-left:6px;" title="Holding fee $${hfAmt} requested"><i class="fas fa-hourglass-half"></i> Hold Fee Pending</span>\`
+      : '';
 
     let payPrefsHtml = '';
     if (app['Payment Status'] === 'unpaid') {
@@ -5103,7 +5775,10 @@ function renderAdminPanel(authToken) {
               <div class="card-name">\${app['First Name']} \${app['Last Name']}</div>
               <div class="card-meta"><i class="fas fa-hashtag" style="font-size:10px;opacity:.5;"></i> \${app['App ID']} &middot; \${dateStr}</div>
             </div>
-            <span class="status-badge \${badgeClass}">\${statusText}</span>
+            <div style="display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end;align-items:center;">
+              <span class="status-badge \${badgeClass}">\${statusText}</span>
+              \${hfBadgeHtml}
+            </div>
           </div>
           <div class="card-info-row">
             <a href="mailto:\${app['Email']}" class="info-chip" aria-label="Email \${app['Email']}"><i class="fas fa-envelope" style="opacity:.6;"></i> \${app['Email']}</a>
@@ -5118,6 +5793,8 @@ function renderAdminPanel(authToken) {
             <button class="act-btn btn-appr"  onclick="showConfirmModal('approve','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canApprove?'':'disabled'} aria-label="Approve"><i class="fas fa-circle-check"></i> Approve</button>
             <button class="act-btn btn-deny"  onclick="showConfirmModal('deny','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canDeny?'':'disabled'} aria-label="Deny"><i class="fas fa-circle-xmark"></i> Deny</button>
             <button class="act-btn btn-lease" onclick="showLeaseModal('\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canSendLease?'':'disabled'} aria-label="Send lease"><i class="fas fa-file-signature"></i> Send Lease</button>
+            <button class="act-btn btn-hold-req"  onclick="showHoldingFeeModal('\${app['App ID']}','\${safeName}','\${safeContact}')" \${canRequestHF?'':'disabled'} aria-label="Request holding fee"><i class="fas fa-hand-holding-dollar"></i> Request Hold Fee</button>
+            <button class="act-btn btn-hold-paid" onclick="showConfirmModal('holdFeePaid','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canConfirmHF?'':'disabled'} aria-label="Mark holding fee received"><i class="fas fa-circle-check"></i> Hold Fee Received</button>
             <a href="?path=dashboard&id=\${app['App ID']}" target="_blank" class="act-btn btn-view" aria-label="View dashboard"><i class="fas fa-eye"></i> View</a>
             <a href="sms:7077063137?body=Hi%20\${encodeURIComponent(app['First Name']||'')}%2C%20this%20is%20Choice%20Properties%20re%20app%20\${app['App ID']}" class="act-btn btn-text" aria-label="Text applicant"><i class="fas fa-comment-sms"></i> Text</a>
           </div>
@@ -5319,6 +5996,15 @@ function buildAdminCard(app, baseUrl) {
   const canDeny       = canApprove;
   const canSendLease  = app['Status'] === 'approved' && leaseStatus !== 'signed' && leaseStatus !== 'active';
   const dateStr       = app['Timestamp'] ? new Date(app['Timestamp']).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+  const hfStatus      = app['Holding Fee Status'] || 'none';
+  const hfAmt         = parseFloat(app['Holding Fee Amount']) || 0;
+  const canRequestHF  = app['Status'] === 'approved' && hfStatus === 'none';
+  const canConfirmHF  = hfStatus === 'requested';
+  const hfBadgeHtml   = hfStatus === 'paid'
+    ? `<span class="status-badge badge-hold-paid" style="margin-left:6px;" title="Holding fee $${hfAmt} received"><i class="fas fa-hand-holding-dollar"></i> Hold Fee Paid</span>`
+    : hfStatus === 'requested'
+    ? `<span class="status-badge badge-hold-req" style="margin-left:6px;" title="Holding fee $${hfAmt} requested"><i class="fas fa-hourglass-half"></i> Hold Fee Pending</span>`
+    : '';
 
   let payPrefsHtml = '';
   if (app['Payment Status'] === 'unpaid') {
@@ -5337,7 +6023,10 @@ function buildAdminCard(app, baseUrl) {
             <div class="card-name">${app['First Name']} ${app['Last Name']}</div>
             <div class="card-meta"><i class="fas fa-hashtag" style="font-size:10px;opacity:.5;"></i> ${app['App ID']} &middot; ${dateStr}</div>
           </div>
-          <span class="status-badge ${badgeClass}">${statusText}</span>
+          <div style="display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end;align-items:center;">
+            <span class="status-badge ${badgeClass}">${statusText}</span>
+            ${hfBadgeHtml}
+          </div>
         </div>
         <div class="card-info-row">
           <a href="mailto:${app['Email']}" class="info-chip" aria-label="Email ${app['Email']}"><i class="fas fa-envelope" style="opacity:.6;"></i> ${app['Email']}</a>
@@ -5352,6 +6041,8 @@ function buildAdminCard(app, baseUrl) {
           <button class="act-btn btn-appr"  onclick="showConfirmModal('approve','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canApprove?'':'disabled'} aria-label="Approve"><i class="fas fa-circle-check"></i> Approve</button>
           <button class="act-btn btn-deny"  onclick="showConfirmModal('deny','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canDeny?'':'disabled'} aria-label="Deny"><i class="fas fa-circle-xmark"></i> Deny</button>
           <button class="act-btn btn-lease" onclick="showLeaseModal('${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canSendLease?'':'disabled'} aria-label="Send lease"><i class="fas fa-file-signature"></i> Send Lease</button>
+          <button class="act-btn btn-hold-req"  onclick="showHoldingFeeModal('${app['App ID']}','${safeName}','${safeContact}')" ${canRequestHF?'':'disabled'} aria-label="Request holding fee"><i class="fas fa-hand-holding-dollar"></i> Request Hold Fee</button>
+          <button class="act-btn btn-hold-paid" onclick="showConfirmModal('holdFeePaid','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canConfirmHF?'':'disabled'} aria-label="Mark holding fee received"><i class="fas fa-circle-check"></i> Hold Fee Received</button>
           <a href="${baseUrl}?path=dashboard&id=${app['App ID']}" target="_blank" class="act-btn btn-view" aria-label="View dashboard"><i class="fas fa-eye"></i> View</a>
           <a href="sms:7077063137?body=Hi%20${encodeURIComponent(app['First Name']||'')}%2C%20this%20is%20Choice%20Properties%20re%20app%20${app['App ID']}" class="act-btn btn-text" aria-label="Text applicant"><i class="fas fa-comment-sms"></i> Text</a>
         </div>
