@@ -442,7 +442,7 @@ function renderAdminLoginPage(errorMsg) {
       .card { padding: 28px 20px; border-radius: 16px; }
     }
     .logo { text-align: center; margin-bottom: 28px; }
-    .logo-icon { font-size: 40px; margin-bottom: 8px; }
+    .logo-icon { width: 56px; height: 56px; background: linear-gradient(135deg, #1B3A5C, #2A6FAD); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 800; color: white; letter-spacing: -.5px; margin: 0 auto 12px; box-shadow: 0 6px 20px rgba(42,111,173,.35); border: 1.5px solid rgba(255,255,255,.15); }
     .logo h1 { font-size: 20px; font-weight: 700; color: #1e293b; }
     .logo p { font-size: 13px; color: #94a3b8; margin-top: 4px; }
     .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #94a3b8; margin-bottom: 12px; }
@@ -489,7 +489,7 @@ function renderAdminLoginPage(errorMsg) {
 <body>
 <div class="card">
   <div class="logo">
-    <div class="logo-icon">🏢</div>
+    <div class="logo-icon">CP</div>
     <h1>Choice Properties</h1>
     <p>Admin Portal — Secure Login</p>
   </div>
@@ -3145,118 +3145,129 @@ function renderApplicantDashboard(appId) {
   <meta charset="UTF-8">
   <title>Application Status — Choice Properties</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1B3A5C">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { font-size: 16px; }
+    html { font-size: 16px; -webkit-tap-highlight-color: transparent; }
     body {
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-      background: linear-gradient(160deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+      background: linear-gradient(160deg, #0D2137 0%, #1B3A5C 50%, #0D2137 100%);
       min-height: 100vh;
       color: #1e293b;
-      padding: 24px 16px 48px;
+      padding: 20px 16px 40px;
     }
-    .shell {
-      max-width: 680px;
-      margin: 0 auto;
-    }
+    .shell { max-width: 640px; margin: 0 auto; }
+
     /* ── Top bar ── */
     .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
+      padding: 0 2px;
     }
-    .brand {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
+    .brand { display: flex; align-items: center; gap: 11px; }
     .brand-logo {
       width: 44px; height: 44px;
-      background: linear-gradient(135deg,#1d4ed8,#3b82f6);
+      background: linear-gradient(135deg, #1B3A5C, #2A6FAD);
       border-radius: 12px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 20px;
-      box-shadow: 0 4px 12px rgba(29,78,216,.35);
+      font-size: 14px; font-weight: 800; color: white; letter-spacing: -.5px;
+      box-shadow: 0 4px 14px rgba(42,111,173,.45);
+      border: 1.5px solid rgba(255,255,255,.18);
+      flex-shrink: 0;
     }
-    .brand-name { color: white; font-weight: 700; font-size: 17px; line-height: 1.2; }
-    .brand-sub  { color: rgba(255,255,255,.55); font-size: 12px; }
+    .brand-name { color: white; font-weight: 700; font-size: 16px; line-height: 1.2; }
+    .brand-sub  { color: rgba(255,255,255,.5); font-size: 11px; margin-top: 2px; font-weight: 500; }
     .refresh-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
       background: rgba(255,255,255,.1);
-      border: 1px solid rgba(255,255,255,.15);
-      color: white;
-      padding: 8px 16px;
-      border-radius: 20px;
+      border: 1.5px solid rgba(255,255,255,.18);
+      color: rgba(255,255,255,.9);
+      padding: 9px 18px;
+      border-radius: 50px;
       font-size: 13px;
-      font-weight: 500;
+      font-weight: 600;
       cursor: pointer;
       transition: all .2s;
       font-family: inherit;
+      touch-action: manipulation;
     }
-    .refresh-btn:hover { background: rgba(255,255,255,.2); }
+    .refresh-btn:hover, .refresh-btn:active { background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.3); }
 
     /* ── Status hero card ── */
     .status-hero {
       background: white;
-      border-radius: 24px;
+      border-radius: 22px;
       overflow: hidden;
-      box-shadow: 0 20px 60px rgba(0,0,0,.3);
-      margin-bottom: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.35);
+      margin-bottom: 16px;
     }
     .status-banner {
       background: ${statusGradient};
-      padding: 28px 28px 24px;
+      padding: 28px 24px 26px;
       position: relative;
       overflow: hidden;
     }
     .status-banner::after {
       content: '';
       position: absolute;
-      top: -40px; right: -40px;
-      width: 180px; height: 180px;
+      top: -50px; right: -50px;
+      width: 200px; height: 200px;
       background: rgba(255,255,255,.07);
       border-radius: 50%;
     }
     .status-icon-wrap {
-      width: 64px; height: 64px;
+      width: 60px; height: 60px;
       background: rgba(255,255,255,.18);
-      border-radius: 20px;
+      border-radius: 18px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 30px;
+      font-size: 28px;
       margin-bottom: 14px;
       backdrop-filter: blur(4px);
+      border: 1.5px solid rgba(255,255,255,.2);
     }
     .status-title {
       color: white;
       font-size: 26px;
       font-weight: 800;
-      letter-spacing: -.3px;
-      margin-bottom: 4px;
+      letter-spacing: -.4px;
+      margin-bottom: 5px;
+      line-height: 1.1;
     }
-    .status-sub { color: rgba(255,255,255,.8); font-size: 14px; }
+    .status-sub { color: rgba(255,255,255,.82); font-size: 14px; line-height: 1.4; }
     .app-id-pill {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       background: rgba(255,255,255,.15);
       color: white;
       padding: 6px 14px;
-      border-radius: 20px;
+      border-radius: 50px;
       font-size: 12px;
-      font-weight: 600;
+      font-weight: 700;
       font-family: 'Courier New', monospace;
-      margin-top: 12px;
-      border: 1px solid rgba(255,255,255,.25);
+      margin-top: 14px;
+      border: 1.5px solid rgba(255,255,255,.25);
+      letter-spacing: .3px;
     }
+
     /* ── Progress tracker ── */
     .progress-wrap {
-      padding: 22px 24px 20px;
+      padding: 20px 20px 18px;
       border-bottom: 1px solid #f1f5f9;
     }
     .progress-label {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 1.2px;
       color: #94a3b8;
       margin-bottom: 16px;
     }
@@ -3265,13 +3276,14 @@ function renderApplicantDashboard(appId) {
       justify-content: space-between;
       align-items: flex-start;
     }
-    /* ── Payment pending card ── */
+
+    /* ── Payment pending alert ── */
     .payment-alert {
-      margin: 20px 24px;
-      background: linear-gradient(135deg,#fffbeb,#fef3c7);
+      margin: 18px 20px;
+      background: linear-gradient(135deg, #fffbeb, #fef3c7);
       border: 1.5px solid #fcd34d;
       border-radius: 16px;
-      padding: 20px;
+      padding: 18px 20px;
     }
     .payment-alert h5 {
       font-size: 15px;
@@ -3282,114 +3294,177 @@ function renderApplicantDashboard(appId) {
       align-items: center;
       gap: 8px;
     }
-    .payment-alert p { font-size: 14px; color: #78350f; margin-bottom: 10px; }
+    .payment-alert p { font-size: 13px; color: #78350f; line-height: 1.5; margin-bottom: 12px; }
     .pay-method-pill {
-      display: inline-block;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
       background: white;
-      border: 1px solid #f59e0b;
-      border-radius: 20px;
-      padding: 5px 14px;
-      font-size: 13px;
-      font-weight: 600;
+      border: 1.5px solid #f59e0b;
+      border-radius: 50px;
+      padding: 5px 13px;
+      font-size: 12px;
+      font-weight: 700;
       color: #92400e;
       margin: 3px 4px 3px 0;
     }
+
     /* ── Info grid ── */
-    .info-section { padding: 20px 24px 4px; }
+    .info-section { padding: 18px 20px 4px; }
     .section-header {
-      font-size: 11px;
+      font-size: 10px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 1px;
+      letter-spacing: 1.2px;
       color: #94a3b8;
       margin-bottom: 14px;
     }
     .info-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      gap: 10px;
       margin-bottom: 20px;
     }
     .info-tile {
       background: #f8fafc;
-      border: 1px solid #f1f5f9;
+      border: 1px solid #e8edf3;
       border-radius: 14px;
-      padding: 14px 16px;
+      padding: 13px 15px;
       transition: box-shadow .2s;
     }
-    .info-tile:hover { box-shadow: 0 4px 12px rgba(0,0,0,.06); }
+    .info-tile:hover { box-shadow: 0 4px 14px rgba(0,0,0,.07); }
     .tile-label {
-      font-size: 11px;
-      font-weight: 600;
+      font-size: 10px;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: .5px;
+      letter-spacing: .6px;
       color: #94a3b8;
       margin-bottom: 5px;
     }
     .tile-value {
-      font-size: 15px;
+      font-size: 14px;
       font-weight: 700;
       color: #1e293b;
       word-break: break-word;
+      line-height: 1.3;
     }
+
     /* ── Toggle button ── */
     .toggle-btn {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      width: calc(100% - 48px);
-      margin: 0 24px 20px;
+      gap: 9px;
+      width: calc(100% - 40px);
+      margin: 4px 20px 18px;
       background: #f8fafc;
       border: 1.5px solid #e2e8f0;
       color: #475569;
-      padding: 13px;
+      padding: 14px 16px;
       border-radius: 14px;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       transition: all .2s;
       font-family: inherit;
+      touch-action: manipulation;
     }
-    .toggle-btn:hover { background: #f1f5f9; border-color: #cbd5e1; }
-    .extra-details { display: none; padding: 0 24px; }
-    /* ── Contact footer ── */
-    .contact-footer {
-      background: linear-gradient(135deg,#0f172a,#1e293b);
-      color: white;
-      padding: 24px;
-      text-align: center;
-      margin: 0 0 20px;
+    .toggle-btn:hover, .toggle-btn:active { background: #f1f5f9; border-color: #cbd5e1; color: #1e293b; }
+    .extra-details { display: none; padding: 0 20px 4px; }
+
+    /* ── Contact card (replaces dark footer) ── */
+    .contact-card {
+      background: white;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 8px 28px rgba(0,0,0,.2);
+      margin-bottom: 16px;
     }
-    .contact-footer .phone {
-      font-size: 26px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-      margin: 8px 0;
+    .contact-card-header {
+      background: linear-gradient(135deg, #0D2137, #1B3A5C);
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
     }
-    .contact-footer p { color: rgba(255,255,255,.7); font-size: 13px; }
-    /* ── Action link ── */
-    .back-link {
-      display: block;
-      text-align: center;
-      padding: 14px;
-      background: rgba(255,255,255,.07);
-      border: 1px solid rgba(255,255,255,.12);
-      color: rgba(255,255,255,.8);
+    .contact-card-icon {
+      width: 42px; height: 42px;
+      background: rgba(255,255,255,.12);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 17px; color: white; flex-shrink: 0;
+      border: 1.5px solid rgba(255,255,255,.18);
+    }
+    .contact-card-title { color: white; font-weight: 700; font-size: 15px; line-height: 1.2; }
+    .contact-card-sub { color: rgba(255,255,255,.55); font-size: 12px; margin-top: 2px; }
+    .contact-card-body { padding: 16px 18px; display: flex; flex-direction: column; gap: 10px; }
+    .contact-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 14px;
+      background: #f8fafc;
+      border-radius: 12px;
+      border: 1px solid #e8edf3;
       text-decoration: none;
-      border-radius: 14px;
-      font-size: 14px;
-      font-weight: 500;
-      margin-bottom: 20px;
       transition: all .2s;
+      touch-action: manipulation;
     }
-    .back-link:hover { background: rgba(255,255,255,.12); color: white; }
+    .contact-row:hover, .contact-row:active { background: #f1f5f9; border-color: #cbd5e1; }
+    .contact-row-icon {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 15px; flex-shrink: 0;
+    }
+    .contact-row-icon.phone { background: #dcfce7; color: #15803d; }
+    .contact-row-icon.email { background: #dbeafe; color: #1d4ed8; }
+    .contact-row-icon.address { background: #f3e8ff; color: #7c3aed; }
+    .contact-row-text { flex: 1; min-width: 0; }
+    .contact-row-label { font-size: 10px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: .5px; }
+    .contact-row-value { font-size: 14px; font-weight: 600; color: #1e293b; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .contact-row-arrow { color: #94a3b8; font-size: 12px; flex-shrink: 0; }
+
+    /* Keep .contact-footer for JS DOM queries — rendered invisible */
+    .contact-footer { display: none; }
+
+    /* ── Back link ── */
+    .back-link {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 15px 24px;
+      background: rgba(255,255,255,.1);
+      border: 1.5px solid rgba(255,255,255,.2);
+      color: rgba(255,255,255,.92);
+      text-decoration: none;
+      border-radius: 16px;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 24px;
+      transition: all .2s;
+      touch-action: manipulation;
+    }
+    .back-link:hover, .back-link:active { background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.32); color: white; }
+
     /* ── Responsive ── */
     @media (max-width: 480px) {
-      .info-grid { grid-template-columns: 1fr; }
-      .status-title { font-size: 22px; }
+      body { padding: 16px 12px 36px; }
+      .status-title { font-size: 23px; }
+      .status-banner { padding: 22px 20px 20px; }
+      .info-section { padding: 16px 16px 4px; }
+      .toggle-btn { width: calc(100% - 32px); margin: 4px 16px 16px; }
+      .extra-details { padding: 0 16px 4px; }
+      .progress-wrap { padding: 18px 16px 16px; }
+      .payment-alert { margin: 16px 16px; }
     }
-    /* ── Slide animation ── */
+    @media (max-width: 360px) {
+      .progress-steps > div > span { display: none !important; }
+      .info-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ── Animations ── */
     @keyframes slideDown { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
     .animate-in { animation: slideDown .3s ease forwards; }
   </style>
@@ -3400,13 +3475,15 @@ function renderApplicantDashboard(appId) {
   <!-- Top bar -->
   <div class="top-bar">
     <div class="brand">
-      <div class="brand-logo">🏢</div>
+      <div class="brand-logo">CP</div>
       <div>
         <div class="brand-name">Choice Properties</div>
-        <div class="brand-sub">Property Management</div>
+        <div class="brand-sub">Rental Application Portal</div>
       </div>
     </div>
-    <button class="refresh-btn" onclick="window.location.reload()">↻ Refresh</button>
+    <button class="refresh-btn" onclick="window.location.reload()" aria-label="Refresh status">
+      <i class="fas fa-rotate-right"></i> Refresh
+    </button>
   </div>
 
   <!-- Status hero card -->
@@ -3415,7 +3492,7 @@ function renderApplicantDashboard(appId) {
       <div class="status-icon-wrap">${statusIcon}</div>
       <div class="status-title">${statusText}</div>
       <div class="status-sub">${statusSubtext}</div>
-      <div class="app-id-pill">ID: ${app['App ID']}</div>
+      <div class="app-id-pill"><i class="fas fa-hashtag" style="font-size:10px;opacity:.7;"></i> ${app['App ID']}</div>
     </div>
 
     <!-- Progress tracker -->
@@ -3451,23 +3528,56 @@ function renderApplicantDashboard(appId) {
     ${leaseCardHtml ? `<div style="padding:0 24px 4px;">${leaseCardHtml}</div>` : ''}
 
     <!-- Toggle extra details -->
-    <button class="toggle-btn" onclick="toggleDetails(this)" id="toggleBtn">
-      <span id="toggleIcon">▸</span> Show Full Application Details
+    <button class="toggle-btn" onclick="toggleDetails(this)" id="toggleBtn" aria-expanded="false">
+      <i class="fas fa-chevron-right" id="toggleIcon"></i> Show Full Application Details
     </button>
     <div class="extra-details" id="extraDetails">
       ${extraHtml || '<p style="color:#94a3b8;font-size:14px;padding:0 0 20px;">No additional details on file.</p>'}
     </div>
 
-    <!-- Contact footer -->
-    <div class="contact-footer">
-      <p style="font-size:12px;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.5);margin-bottom:4px;">Questions? Text us anytime</p>
-      <div class="phone">707-706-3137</div>
-      <p>choicepropertygroup@hotmail.com</p>
-      <p style="margin-top:6px;">2265 Livernois, Suite 500 · Troy, MI 48083</p>
+    <!-- Contact footer kept for JS DOM queries — visually hidden via CSS -->
+    <div class="contact-footer"></div>
+  </div>
+
+  <!-- Contact card — professional replacement for the old dark footer -->
+  <div class="contact-card">
+    <div class="contact-card-header">
+      <div class="contact-card-icon"><i class="fas fa-headset"></i></div>
+      <div>
+        <div class="contact-card-title">Questions? We're here to help.</div>
+        <div class="contact-card-sub">Choice Properties · Troy, MI</div>
+      </div>
+    </div>
+    <div class="contact-card-body">
+      <a href="tel:7077063137" class="contact-row" aria-label="Call or text 707-706-3137">
+        <div class="contact-row-icon phone"><i class="fas fa-phone"></i></div>
+        <div class="contact-row-text">
+          <div class="contact-row-label">Call or Text</div>
+          <div class="contact-row-value">707-706-3137</div>
+        </div>
+        <div class="contact-row-arrow"><i class="fas fa-chevron-right"></i></div>
+      </a>
+      <a href="mailto:choicepropertygroup@hotmail.com" class="contact-row" aria-label="Email choicepropertygroup@hotmail.com">
+        <div class="contact-row-icon email"><i class="fas fa-envelope"></i></div>
+        <div class="contact-row-text">
+          <div class="contact-row-label">Email</div>
+          <div class="contact-row-value">choicepropertygroup@hotmail.com</div>
+        </div>
+        <div class="contact-row-arrow"><i class="fas fa-chevron-right"></i></div>
+      </a>
+      <div class="contact-row" style="cursor:default;">
+        <div class="contact-row-icon address"><i class="fas fa-location-dot"></i></div>
+        <div class="contact-row-text">
+          <div class="contact-row-label">Office</div>
+          <div class="contact-row-value">2265 Livernois, Suite 500 · Troy, MI 48083</div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <a href="?path=login" class="back-link">← Check Another Application</a>
+  <a href="?path=login" class="back-link" aria-label="Check another application status">
+    <i class="fas fa-arrow-left"></i> Check Another Application
+  </a>
 
 </div>
 
@@ -3692,10 +3802,12 @@ function renderApplicantDashboard(appId) {
     if (isHidden) {
       d.style.display = 'block';
       d.classList.add('animate-in');
-      btn.innerHTML = '<span>▾</span> Hide Full Application Details';
+      btn.setAttribute('aria-expanded', 'true');
+      btn.innerHTML = '<i class="fas fa-chevron-down" id="toggleIcon"></i> Hide Full Application Details';
     } else {
       d.style.display = 'none';
-      btn.innerHTML = '<span>▸</span> Show Full Application Details';
+      btn.setAttribute('aria-expanded', 'false');
+      btn.innerHTML = '<i class="fas fa-chevron-right" id="toggleIcon"></i> Show Full Application Details';
     }
   }
 
@@ -3744,7 +3856,7 @@ function renderAdminPanel(authToken) {
 
   const baseUrl = ScriptApp.getService().getUrl();
   const initialCardsHtml = applications.length === 0
-    ? '<div style="text-align:center;padding:60px 20px;color:#94a3b8;"><div style="font-size:48px;margin-bottom:12px;">📭</div><p style="font-size:16px;font-weight:600;">No applications yet</p></div>'
+    ? '<div style="text-align:center;padding:60px 20px;color:#94a3b8;"><div style="font-size:48px;margin-bottom:12px;"><i class="fas fa-inbox" style="font-size:48px;color:#cbd5e1;"></i></div><p style="font-size:16px;font-weight:600;">No applications yet</p></div>'
     : applications.map(app => buildAdminCard(app, baseUrl)).join('');
 
   return HtmlService.createHtmlOutput(`
@@ -3754,16 +3866,21 @@ function renderAdminPanel(authToken) {
   <meta charset="UTF-8">
   <title>Admin Dashboard — Choice Properties</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { font-size: 16px; }
+    html { font-size: 16px; -webkit-tap-highlight-color: transparent; }
     body {
       font-family: 'Inter', -apple-system, sans-serif;
       background: #f1f5f9;
       color: #1e293b;
       min-height: 100vh;
     }
+    body.modal-open { overflow: hidden; }
 
     /* ── Sidebar + layout ── */
     .layout { display: flex; min-height: 100vh; }
@@ -3776,28 +3893,30 @@ function renderAdminPanel(authToken) {
       z-index: 100;
       display: flex;
       flex-direction: column;
+      overflow-y: auto;
     }
     .sidebar-brand {
-      padding: 0 20px 24px;
+      padding: 0 20px 20px;
       border-bottom: 1px solid rgba(255,255,255,.07);
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
     .sidebar-logo {
-      width: 48px; height: 48px;
-      background: linear-gradient(135deg,#2563eb,#3b82f6);
-      border-radius: 14px;
+      width: 46px; height: 46px;
+      background: linear-gradient(135deg, #1B3A5C, #2A6FAD);
+      border-radius: 13px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 22px;
+      font-size: 14px; font-weight: 800; color: white; letter-spacing: -.5px;
       margin-bottom: 12px;
-      box-shadow: 0 4px 14px rgba(37,99,235,.4);
+      box-shadow: 0 4px 14px rgba(42,111,173,.4);
+      border: 1.5px solid rgba(255,255,255,.15);
     }
-    .sidebar-title { color: white; font-weight: 700; font-size: 16px; }
-    .sidebar-sub { color: rgba(255,255,255,.4); font-size: 12px; margin-top: 2px; }
-    .sidebar-user {
-      padding: 12px 20px;
-      margin-bottom: 8px;
-    }
+    .sidebar-title { color: white; font-weight: 700; font-size: 15px; }
+    .sidebar-sub { color: rgba(255,255,255,.4); font-size: 11px; margin-top: 3px; }
+    .sidebar-user { padding: 10px 20px; margin-bottom: 6px; }
     .user-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       background: rgba(255,255,255,.08);
       border: 1px solid rgba(255,255,255,.1);
       border-radius: 20px;
@@ -3813,7 +3932,7 @@ function renderAdminPanel(authToken) {
       text-transform: uppercase;
       letter-spacing: 1.5px;
       color: rgba(255,255,255,.3);
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
     .nav-item {
       display: flex;
@@ -3831,30 +3950,34 @@ function renderAdminPanel(authToken) {
       text-align: left;
       font-family: inherit;
       border-left: 3px solid transparent;
+      touch-action: manipulation;
     }
+    .nav-item i { width: 16px; text-align: center; font-size: 13px; opacity: .8; flex-shrink: 0; }
     .nav-item:hover { background: rgba(255,255,255,.05); color: white; }
     .nav-item.active { background: rgba(59,130,246,.15); color: #93c5fd; border-left-color: #3b82f6; }
+    .nav-item.active i { opacity: 1; }
     .nav-item .badge-mini {
       margin-left: auto;
-      background: rgba(59,130,246,.3);
+      background: rgba(59,130,246,.25);
       color: #93c5fd;
       border-radius: 20px;
       padding: 2px 8px;
       font-size: 11px;
       font-weight: 700;
+      flex-shrink: 0;
     }
     .sidebar-footer {
       margin-top: auto;
-      padding: 16px 20px;
+      padding: 14px 20px;
       border-top: 1px solid rgba(255,255,255,.07);
     }
-    .sidebar-footer p { color: rgba(255,255,255,.35); font-size: 11px; text-align: center; }
+    .sidebar-footer p { color: rgba(255,255,255,.3); font-size: 11px; text-align: center; line-height: 1.6; }
 
     /* ── Main content ── */
-    .main { margin-left: 240px; padding: 0; flex: 1; }
+    .main { margin-left: 240px; padding: 0; flex: 1; min-width: 0; }
     .topbar {
       background: white;
-      padding: 16px 28px;
+      padding: 14px 24px;
       border-bottom: 1px solid #e2e8f0;
       display: flex;
       align-items: center;
@@ -3863,11 +3986,14 @@ function renderAdminPanel(authToken) {
       top: 0;
       z-index: 50;
       box-shadow: 0 1px 4px rgba(0,0,0,.06);
+      gap: 12px;
     }
-    .topbar-title { font-size: 18px; font-weight: 700; color: #1e293b; }
-    .topbar-actions { display: flex; align-items: center; gap: 10px; }
+    .topbar-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+    .topbar-title { font-size: 17px; font-weight: 700; color: #1e293b; white-space: nowrap; }
+    .topbar-subtitle { font-size: 13px; font-weight: 400; color: #94a3b8; margin-left: 4px; }
+    .topbar-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
     .btn-refresh {
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 6px;
       background: #f8fafc;
@@ -3880,18 +4006,27 @@ function renderAdminPanel(authToken) {
       cursor: pointer;
       transition: all .2s;
       font-family: inherit;
+      touch-action: manipulation;
     }
     .btn-refresh:hover { background: #f1f5f9; border-color: #cbd5e1; }
     .spinning { animation: spin .8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Stats row ── */
-    .page-content { padding: 24px 28px; }
+    /* ── Stats row — horizontally scrollable on mobile ── */
+    .page-content { padding: 20px 24px 80px; }
+    .stats-scroll-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-bottom: 20px;
+      padding-bottom: 4px;
+    }
+    .stats-scroll-wrap::-webkit-scrollbar { height: 4px; }
+    .stats-scroll-wrap::-webkit-scrollbar-track { background: transparent; }
+    .stats-scroll-wrap::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 4px; }
     .stats-row {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-      gap: 14px;
-      margin-bottom: 24px;
+      display: flex;
+      gap: 12px;
+      min-width: max-content;
     }
     .stat-card {
       background: white;
@@ -3903,6 +4038,8 @@ function renderAdminPanel(authToken) {
       box-shadow: 0 1px 4px rgba(0,0,0,.04);
       position: relative;
       overflow: hidden;
+      min-width: 130px;
+      flex-shrink: 0;
     }
     .stat-card::before {
       content: '';
@@ -3910,38 +4047,32 @@ function renderAdminPanel(authToken) {
       top: 0; left: 0; right: 0;
       height: 3px;
     }
-    .stat-card.s-pending::before { background: linear-gradient(to right,#f59e0b,#fbbf24); }
-    .stat-card.s-review::before  { background: linear-gradient(to right,#6366f1,#8b5cf6); }
-    .stat-card.s-approved::before{ background: linear-gradient(to right,#10b981,#34d399); }
-    .stat-card.s-lease-sent::before { background: linear-gradient(to right,#3b82f6,#60a5fa); }
+    .stat-card.s-pending::before  { background: linear-gradient(to right,#f59e0b,#fbbf24); }
+    .stat-card.s-review::before   { background: linear-gradient(to right,#6366f1,#8b5cf6); }
+    .stat-card.s-approved::before { background: linear-gradient(to right,#10b981,#34d399); }
+    .stat-card.s-lease-sent::before   { background: linear-gradient(to right,#3b82f6,#60a5fa); }
     .stat-card.s-lease-signed::before { background: linear-gradient(to right,#059669,#10b981); }
     .stat-card.s-denied::before  { background: linear-gradient(to right,#ef4444,#f87171); }
     .stat-card.s-total::before   { background: linear-gradient(to right,#0ea5e9,#38bdf8); }
     .stat-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,.08); transform: translateY(-2px); }
     .stat-card.active { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.2); }
     .stat-num { font-size: 28px; font-weight: 800; color: #0f172a; line-height: 1; }
-    .stat-label { font-size: 12px; font-weight: 600; color: #94a3b8; margin-top: 6px; text-transform: uppercase; letter-spacing: .5px; }
+    .stat-label { font-size: 11px; font-weight: 600; color: #94a3b8; margin-top: 6px; text-transform: uppercase; letter-spacing: .4px; }
 
     /* ── Search + filters ── */
-    .controls-bar {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 20px;
-    }
-    .search-wrap {
-      position: relative;
-    }
+    .controls-bar { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+    .search-wrap { position: relative; }
     .search-icon {
       position: absolute;
-      left: 14px; top: 50%;
+      left: 13px; top: 50%;
       transform: translateY(-50%);
-      font-size: 16px;
+      color: #94a3b8;
+      font-size: 14px;
       pointer-events: none;
     }
     #searchInput {
       width: 100%;
-      padding: 12px 14px 12px 40px;
+      padding: 12px 14px 12px 38px;
       border: 1.5px solid #e2e8f0;
       border-radius: 12px;
       font-size: 14px;
@@ -3953,15 +4084,11 @@ function renderAdminPanel(authToken) {
     }
     #searchInput:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,.1); }
     #searchInput::placeholder { color: #94a3b8; }
-    .filter-pills {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
+    .filter-pills { display: flex; flex-wrap: wrap; gap: 7px; }
     .filter-pill {
-      padding: 7px 16px;
+      padding: 7px 15px;
       border-radius: 20px;
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       cursor: pointer;
       border: 1.5px solid #e2e8f0;
@@ -3969,12 +4096,13 @@ function renderAdminPanel(authToken) {
       color: #64748b;
       transition: all .2s;
       font-family: inherit;
+      touch-action: manipulation;
     }
     .filter-pill:hover { border-color: #94a3b8; color: #1e293b; }
     .filter-pill.active { background: #1e293b; color: white; border-color: #1e293b; }
 
     /* ── Application cards ── */
-    #applicationsContainer { display: flex; flex-direction: column; gap: 14px; }
+    #applicationsContainer { display: flex; flex-direction: column; gap: 12px; }
     .app-card {
       background: white;
       border-radius: 18px;
@@ -3984,24 +4112,22 @@ function renderAdminPanel(authToken) {
       transition: all .2s;
     }
     .app-card:hover { box-shadow: 0 8px 24px rgba(0,0,0,.09); transform: translateY(-1px); }
-    .card-accent {
-      height: 4px;
-    }
-    .accent-pending  { background: linear-gradient(to right,#f59e0b,#fbbf24); }
-    .accent-review   { background: linear-gradient(to right,#6366f1,#8b5cf6); }
-    .accent-approved { background: linear-gradient(to right,#10b981,#34d399); }
-    .accent-denied   { background: linear-gradient(to right,#ef4444,#f87171); }
+    .card-accent { height: 4px; }
+    .accent-pending      { background: linear-gradient(to right,#f59e0b,#fbbf24); }
+    .accent-review       { background: linear-gradient(to right,#6366f1,#8b5cf6); }
+    .accent-approved     { background: linear-gradient(to right,#10b981,#34d399); }
+    .accent-denied       { background: linear-gradient(to right,#ef4444,#f87171); }
     .accent-lease-sent   { background: linear-gradient(to right,#3b82f6,#60a5fa); }
     .accent-lease-signed { background: linear-gradient(to right,#059669,#10b981); }
-    .card-body { padding: 18px 20px; }
+    .card-body { padding: 16px 18px; }
     .card-top {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      gap: 12px;
+      gap: 10px;
       margin-bottom: 12px;
     }
-    .card-name { font-size: 17px; font-weight: 700; color: #0f172a; margin-bottom: 4px; }
+    .card-name { font-size: 16px; font-weight: 700; color: #0f172a; margin-bottom: 3px; }
     .card-meta { font-size: 12px; color: #94a3b8; font-weight: 500; }
     .status-badge {
       display: inline-flex;
@@ -4009,24 +4135,22 @@ function renderAdminPanel(authToken) {
       gap: 5px;
       padding: 5px 12px;
       border-radius: 20px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 700;
       white-space: nowrap;
       flex-shrink: 0;
     }
-    .badge-pending  { background:#fef3c7; color:#92400e; }
-    .badge-review   { background:#ede9fe; color:#5b21b6; }
-    .badge-approved { background:#d1fae5; color:#065f46; }
-    .badge-denied   { background:#fee2e2; color:#991b1b; }
+    .badge-pending      { background:#fef3c7; color:#92400e; }
+    .badge-review       { background:#ede9fe; color:#5b21b6; }
+    .badge-approved     { background:#d1fae5; color:#065f46; }
+    .badge-denied       { background:#fee2e2; color:#991b1b; }
     .badge-lease-sent   { background:#dbeafe; color:#1e40af; }
     .badge-lease-signed { background:#d1fae5; color:#065f46; }
-    .card-info-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-bottom: 10px;
-    }
+    .card-info-row { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
     .info-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
       background: #f8fafc;
       border: 1px solid #e2e8f0;
       border-radius: 8px;
@@ -4034,7 +4158,10 @@ function renderAdminPanel(authToken) {
       font-size: 12px;
       font-weight: 500;
       color: #475569;
+      text-decoration: none;
+      transition: all .15s;
     }
+    a.info-chip:hover { background: #f1f5f9; border-color: #cbd5e1; color: #1e293b; }
     .pay-prefs {
       background: #fffbeb;
       border: 1px solid #fcd34d;
@@ -4042,34 +4169,39 @@ function renderAdminPanel(authToken) {
       padding: 10px 14px;
       font-size: 13px;
       color: #78350f;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
     .pay-prefs strong { font-weight: 700; }
-    /* ── Action buttons ── */
+
+    /* ── Action buttons — larger for touch ── */
     .card-actions {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 14px;
-      padding-top: 14px;
+      gap: 7px;
+      margin-top: 12px;
+      padding-top: 12px;
       border-top: 1px solid #f1f5f9;
     }
     .act-btn {
       display: inline-flex;
       align-items: center;
-      gap: 5px;
-      padding: 8px 14px;
+      gap: 6px;
+      padding: 9px 14px;
       border-radius: 10px;
-      font-size: 13px;
-      font-weight: 600;
+      font-size: 12px;
+      font-weight: 700;
       cursor: pointer;
       border: none;
       font-family: inherit;
       transition: all .2s;
       text-decoration: none;
+      touch-action: manipulation;
+      min-height: 38px;
+      white-space: nowrap;
     }
-    .act-btn:disabled { opacity: .4; cursor: not-allowed; transform: none !important; }
+    .act-btn:disabled { opacity: .35; cursor: not-allowed; transform: none !important; pointer-events: none; }
     .act-btn:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.12); }
+    .act-btn:not(:disabled):active { transform: translateY(0); }
     .btn-pay   { background:#fef3c7; color:#92400e; border: 1.5px solid #fcd34d; }
     .btn-appr  { background:#d1fae5; color:#065f46; border: 1.5px solid #6ee7b7; }
     .btn-deny  { background:#fee2e2; color:#991b1b; border: 1.5px solid #fca5a5; }
@@ -4082,12 +4214,12 @@ function renderAdminPanel(authToken) {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(15,23,42,.6);
+      background: rgba(15,23,42,.65);
       z-index: 1000;
       align-items: center;
       justify-content: center;
       padding: 20px;
-      backdrop-filter: blur(4px);
+      backdrop-filter: blur(5px);
     }
     .modal-overlay.open { display: flex; }
     .modal-box {
@@ -4097,16 +4229,15 @@ function renderAdminPanel(authToken) {
       width: 100%;
       overflow: hidden;
       box-shadow: 0 24px 60px rgba(0,0,0,.3);
-      animation: modalPop .2s ease;
+      animation: modalPop .22s ease;
+      max-height: 90vh;
+      overflow-y: auto;
     }
     @keyframes modalPop {
-      from { opacity:0; transform: scale(.96) translateY(10px); }
-      to   { opacity:1; transform: scale(1)  translateY(0); }
+      from { opacity:0; transform: scale(.95) translateY(12px); }
+      to   { opacity:1; transform: scale(1)   translateY(0); }
     }
-    .modal-header {
-      padding: 22px 24px 16px;
-      border-bottom: 1px solid #f1f5f9;
-    }
+    .modal-header { padding: 22px 24px 16px; border-bottom: 1px solid #f1f5f9; }
     .modal-header h5 { font-size: 17px; font-weight: 700; color: #0f172a; }
     .modal-header p  { font-size: 13px; color: #64748b; margin-top: 4px; }
     .modal-body { padding: 20px 24px; }
@@ -4118,7 +4249,7 @@ function renderAdminPanel(authToken) {
       gap: 10px;
     }
     .modal-btn {
-      padding: 10px 22px;
+      padding: 11px 22px;
       border-radius: 10px;
       font-size: 14px;
       font-weight: 600;
@@ -4126,18 +4257,13 @@ function renderAdminPanel(authToken) {
       border: none;
       font-family: inherit;
       transition: all .15s;
+      touch-action: manipulation;
     }
     .modal-btn:hover { opacity: .85; }
     .btn-cancel { background: #f1f5f9; color: #475569; }
     .btn-confirm-action { background: #1e293b; color: white; }
     .btn-send-lease { background: linear-gradient(to right,#059669,#10b981); color: white; }
-    .form-label {
-      display: block;
-      font-size: 13px;
-      font-weight: 600;
-      color: #374151;
-      margin-bottom: 6px;
-    }
+    .form-label { display: block; font-size: 13px; font-weight: 600; color: #374151; margin-bottom: 6px; }
     .form-control {
       width: 100%;
       padding: 10px 14px;
@@ -4170,10 +4296,10 @@ function renderAdminPanel(authToken) {
       color: #1e40af;
     }
     .alert { padding: 12px 14px; border-radius: 10px; font-size: 13px; margin-bottom: 12px; }
-    .alert-danger { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+    .alert-danger  { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
     .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
 
-    /* ── Loading ── */
+    /* ── Loading spinner ── */
     .spinner-wrap { text-align: center; padding: 40px; display: none; }
     .spinner-ring {
       display: inline-block;
@@ -4185,13 +4311,51 @@ function renderAdminPanel(authToken) {
     }
 
     /* ── Empty state ── */
-    .empty-state {
-      text-align: center;
-      padding: 60px 20px;
-      color: #94a3b8;
-    }
+    .empty-state { text-align: center; padding: 60px 20px; color: #94a3b8; }
     .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
     .empty-state p { font-size: 15px; font-weight: 600; }
+
+    /* ── Mobile bottom nav (replaces hidden sidebar) ── */
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: #0f172a;
+      border-top: 1px solid rgba(255,255,255,.1);
+      z-index: 200;
+      padding: 0;
+      box-shadow: 0 -4px 20px rgba(0,0,0,.3);
+    }
+    .mobile-nav-inner {
+      display: flex;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .mobile-nav-inner::-webkit-scrollbar { display: none; }
+    .mobile-nav-item {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      padding: 10px 14px;
+      background: none;
+      border: none;
+      color: rgba(255,255,255,.45);
+      font-size: 10px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      transition: color .15s;
+      touch-action: manipulation;
+      border-top: 2px solid transparent;
+      white-space: nowrap;
+    }
+    .mobile-nav-item i { font-size: 17px; }
+    .mobile-nav-item.active { color: #3b82f6; border-top-color: #3b82f6; }
+    .mobile-nav-item:hover { color: rgba(255,255,255,.8); }
 
     /* ── Responsive ── */
     @media (max-width: 900px) {
@@ -4201,8 +4365,16 @@ function renderAdminPanel(authToken) {
     @media (max-width: 640px) {
       .sidebar { display: none; }
       .main { margin-left: 0; }
-      .stats-row { grid-template-columns: repeat(2, 1fr); }
-      .page-content { padding: 16px; }
+      .mobile-nav { display: block; }
+      .page-content { padding: 14px 14px 80px; }
+      .topbar { padding: 12px 16px; }
+      .topbar-title { font-size: 15px; }
+      .card-body { padding: 14px 14px; }
+      .act-btn { padding: 9px 12px; font-size: 11px; }
+    }
+    @media (max-width: 400px) {
+      .filter-pills { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 4px; }
+      .filter-pill { flex-shrink: 0; }
     }
   </style>
 </head>
@@ -4212,21 +4384,21 @@ function renderAdminPanel(authToken) {
   <!-- ── Sidebar ── -->
   <aside class="sidebar">
     <div class="sidebar-brand">
-      <div class="sidebar-logo">🏢</div>
+      <div class="sidebar-logo">CP</div>
       <div class="sidebar-title">Choice Properties</div>
       <div class="sidebar-sub">Admin Panel</div>
     </div>
     <div class="sidebar-user">
-      <div class="user-pill">👤 ${userEmail}</div>
+      <div class="user-pill"><i class="fas fa-user-circle" style="opacity:.6;"></i> ${userEmail}</div>
     </div>
     <div class="nav-label">Filters</div>
-    <button class="nav-item active" id="navAll"      onclick="filterApps('all',this)">📊 All Applications <span class="badge-mini" id="sNavTotal">${total}</span></button>
-    <button class="nav-item"        id="navPending"  onclick="filterApps('pending',this)">⏳ Pending Payment <span class="badge-mini" id="sNavPend">${pendingPayment}</span></button>
-    <button class="nav-item"        id="navReview"   onclick="filterApps('paid',this)">🔍 Under Review <span class="badge-mini" id="sNavReview">${underReview}</span></button>
-    <button class="nav-item"        id="navApproved" onclick="filterApps('approved',this)">✅ Approved <span class="badge-mini" id="sNavAppr">${approved}</span></button>
-    <button class="nav-item"        id="navLeaseSent"   onclick="filterApps('lease_sent',this)">📜 Lease Sent <span class="badge-mini" id="sNavLSent">${leaseSent}</span></button>
-    <button class="nav-item"        id="navLeaseSigned" onclick="filterApps('lease_signed',this)">🏠 Lease Signed <span class="badge-mini" id="sNavLSign">${leaseSigned}</span></button>
-    <button class="nav-item"        id="navDenied"   onclick="filterApps('denied',this)">❌ Denied <span class="badge-mini" id="sNavDenied">${denied}</span></button>
+    <button class="nav-item active" id="navAll"         onclick="filterApps('all',this)"><i class="fas fa-table-list"></i> All Applications <span class="badge-mini" id="sNavTotal">${total}</span></button>
+    <button class="nav-item"        id="navPending"      onclick="filterApps('pending',this)"><i class="fas fa-clock"></i> Pending Payment <span class="badge-mini" id="sNavPend">${pendingPayment}</span></button>
+    <button class="nav-item"        id="navReview"       onclick="filterApps('paid',this)"><i class="fas fa-magnifying-glass"></i> Under Review <span class="badge-mini" id="sNavReview">${underReview}</span></button>
+    <button class="nav-item"        id="navApproved"     onclick="filterApps('approved',this)"><i class="fas fa-circle-check"></i> Approved <span class="badge-mini" id="sNavAppr">${approved}</span></button>
+    <button class="nav-item"        id="navLeaseSent"    onclick="filterApps('lease_sent',this)"><i class="fas fa-file-signature"></i> Lease Sent <span class="badge-mini" id="sNavLSent">${leaseSent}</span></button>
+    <button class="nav-item"        id="navLeaseSigned"  onclick="filterApps('lease_signed',this)"><i class="fas fa-house-circle-check"></i> Lease Signed <span class="badge-mini" id="sNavLSign">${leaseSigned}</span></button>
+    <button class="nav-item"        id="navDenied"       onclick="filterApps('denied',this)"><i class="fas fa-circle-xmark"></i> Denied <span class="badge-mini" id="sNavDenied">${denied}</span></button>
     <div class="sidebar-footer">
       <p>Choice Properties<br>2265 Livernois, Suite 500<br>Troy, MI 48083</p>
     </div>
@@ -4237,62 +4409,66 @@ function renderAdminPanel(authToken) {
 
     <!-- Topbar -->
     <div class="topbar">
-      <div class="topbar-title">Applications <span style="color:#94a3b8;font-weight:400;font-size:15px;">(${total} total)</span></div>
+      <div class="topbar-left">
+        <div class="topbar-title">Applications <span class="topbar-subtitle">(${total} total)</span></div>
+      </div>
       <div class="topbar-actions">
-        <button class="btn-refresh" onclick="refreshApplications()" id="refreshBtn">
-          <span id="refreshIcon">↻</span> Refresh
+        <button class="btn-refresh" onclick="refreshApplications()" id="refreshBtn" aria-label="Refresh applications">
+          <i class="fas fa-rotate-right" id="refreshIcon"></i> Refresh
         </button>
       </div>
     </div>
 
     <div class="page-content">
 
-      <!-- Stats row -->
-      <div class="stats-row">
-        <div class="stat-card s-pending"  onclick="filterApps('pending',null)">
-          <div class="stat-num" id="statPending">${pendingPayment}</div>
-          <div class="stat-label">Pending Payment</div>
-        </div>
-        <div class="stat-card s-review"   onclick="filterApps('paid',null)">
-          <div class="stat-num" id="statPaid">${underReview}</div>
-          <div class="stat-label">Under Review</div>
-        </div>
-        <div class="stat-card s-approved" onclick="filterApps('approved',null)">
-          <div class="stat-num" id="statApproved">${approved}</div>
-          <div class="stat-label">Approved</div>
-        </div>
-        <div class="stat-card s-lease-sent" onclick="filterApps('lease_sent',null)">
-          <div class="stat-num" id="statLeaseSent">${leaseSent}</div>
-          <div class="stat-label">Lease Sent</div>
-        </div>
-        <div class="stat-card s-lease-signed" onclick="filterApps('lease_signed',null)">
-          <div class="stat-num" id="statLeaseSigned">${leaseSigned}</div>
-          <div class="stat-label">Lease Signed</div>
-        </div>
-        <div class="stat-card s-denied"   onclick="filterApps('denied',null)">
-          <div class="stat-num" id="statDenied">${denied}</div>
-          <div class="stat-label">Denied</div>
-        </div>
-        <div class="stat-card s-total"    onclick="filterApps('all',null)">
-          <div class="stat-num" id="statTotal">${total}</div>
-          <div class="stat-label">Total</div>
+      <!-- Stats row — horizontally scrollable on mobile -->
+      <div class="stats-scroll-wrap">
+        <div class="stats-row">
+          <div class="stat-card s-pending"      onclick="filterApps('pending',null)"     aria-label="Filter: Pending Payment">
+            <div class="stat-num" id="statPending">${pendingPayment}</div>
+            <div class="stat-label">Pending</div>
+          </div>
+          <div class="stat-card s-review"       onclick="filterApps('paid',null)"        aria-label="Filter: Under Review">
+            <div class="stat-num" id="statPaid">${underReview}</div>
+            <div class="stat-label">Under Review</div>
+          </div>
+          <div class="stat-card s-approved"     onclick="filterApps('approved',null)"    aria-label="Filter: Approved">
+            <div class="stat-num" id="statApproved">${approved}</div>
+            <div class="stat-label">Approved</div>
+          </div>
+          <div class="stat-card s-lease-sent"   onclick="filterApps('lease_sent',null)"  aria-label="Filter: Lease Sent">
+            <div class="stat-num" id="statLeaseSent">${leaseSent}</div>
+            <div class="stat-label">Lease Sent</div>
+          </div>
+          <div class="stat-card s-lease-signed" onclick="filterApps('lease_signed',null)" aria-label="Filter: Lease Signed">
+            <div class="stat-num" id="statLeaseSigned">${leaseSigned}</div>
+            <div class="stat-label">Lease Signed</div>
+          </div>
+          <div class="stat-card s-denied"       onclick="filterApps('denied',null)"      aria-label="Filter: Denied">
+            <div class="stat-num" id="statDenied">${denied}</div>
+            <div class="stat-label">Denied</div>
+          </div>
+          <div class="stat-card s-total"        onclick="filterApps('all',null)"         aria-label="Filter: All">
+            <div class="stat-num" id="statTotal">${total}</div>
+            <div class="stat-label">Total</div>
+          </div>
         </div>
       </div>
 
       <!-- Search + filter pills -->
       <div class="controls-bar">
         <div class="search-wrap">
-          <span class="search-icon">🔍</span>
+          <span class="search-icon"><i class="fas fa-magnifying-glass"></i></span>
           <input type="text" id="searchInput" placeholder="Search by name, email, ID, or property...">
         </div>
         <div class="filter-pills">
           <button class="filter-pill active" onclick="filterApps('all',this)">All</button>
-          <button class="filter-pill" onclick="filterApps('pending',this)">⏳ Pending</button>
-          <button class="filter-pill" onclick="filterApps('paid',this)">🔍 Review</button>
-          <button class="filter-pill" onclick="filterApps('approved',this)">✅ Approved</button>
-          <button class="filter-pill" onclick="filterApps('lease_sent',this)">📜 Lease Sent</button>
-          <button class="filter-pill" onclick="filterApps('lease_signed',this)">🏠 Lease Signed</button>
-          <button class="filter-pill" onclick="filterApps('denied',this)">❌ Denied</button>
+          <button class="filter-pill" onclick="filterApps('pending',this)"><i class="fas fa-clock"></i> Pending</button>
+          <button class="filter-pill" onclick="filterApps('paid',this)"><i class="fas fa-magnifying-glass"></i> Review</button>
+          <button class="filter-pill" onclick="filterApps('approved',this)"><i class="fas fa-circle-check"></i> Approved</button>
+          <button class="filter-pill" onclick="filterApps('lease_sent',this)"><i class="fas fa-file-signature"></i> Lease Sent</button>
+          <button class="filter-pill" onclick="filterApps('lease_signed',this)"><i class="fas fa-house-circle-check"></i> Lease Signed</button>
+          <button class="filter-pill" onclick="filterApps('denied',this)"><i class="fas fa-circle-xmark"></i> Denied</button>
         </div>
       </div>
 
@@ -4305,9 +4481,23 @@ function renderAdminPanel(authToken) {
         <p style="color:#94a3b8;font-size:14px;margin-top:12px;">Loading applications...</p>
       </div>
 
+    </div><!-- end .page-content -->
+  </div><!-- end .main -->
+
+  <!-- Mobile bottom nav — visible on ≤ 640px, replaces the hidden sidebar -->
+  <nav class="mobile-nav" aria-label="Application filter navigation">
+    <div class="mobile-nav-inner">
+      <button class="mobile-nav-item active" id="mNavAll"         onclick="filterApps('all',this)"><i class="fas fa-table-list"></i>All</button>
+      <button class="mobile-nav-item"        id="mNavPending"     onclick="filterApps('pending',this)"><i class="fas fa-clock"></i>Pending</button>
+      <button class="mobile-nav-item"        id="mNavReview"      onclick="filterApps('paid',this)"><i class="fas fa-magnifying-glass"></i>Review</button>
+      <button class="mobile-nav-item"        id="mNavApproved"    onclick="filterApps('approved',this)"><i class="fas fa-circle-check"></i>Approved</button>
+      <button class="mobile-nav-item"        id="mNavLeaseSent"   onclick="filterApps('lease_sent',this)"><i class="fas fa-file-signature"></i>Lease</button>
+      <button class="mobile-nav-item"        id="mNavLeaseSigned" onclick="filterApps('lease_signed',this)"><i class="fas fa-house-circle-check"></i>Signed</button>
+      <button class="mobile-nav-item"        id="mNavDenied"      onclick="filterApps('denied',this)"><i class="fas fa-circle-xmark"></i>Denied</button>
     </div>
-  </div>
-</div>
+  </nav>
+
+</div><!-- end .layout -->
 
 <!-- ── Action Confirmation Modal ── -->
 <div class="modal-overlay" id="confirmModal">
@@ -4362,7 +4552,7 @@ function renderAdminPanel(authToken) {
     </div>
     <div class="modal-footer">
       <button class="modal-btn btn-cancel" onclick="closeLeaseModal()">Cancel</button>
-      <button class="modal-btn btn-send-lease" id="leaseSendBtn" onclick="submitLease()">📧 Send Lease to Tenant</button>
+      <button class="modal-btn btn-send-lease" id="leaseSendBtn" onclick="submitLease()"><i class="fas fa-paper-plane"></i> Send Lease to Tenant</button>
     </div>
   </div>
 </div>
@@ -4572,9 +4762,11 @@ function renderAdminPanel(authToken) {
     document.getElementById('leaseAlertArea').innerHTML = '';
     document.getElementById('moveInPreview').textContent = 'Enter rent and deposit above';
     document.getElementById('leaseModal').classList.add('open');
+    document.body.classList.add('modal-open');
   }
   function closeLeaseModal() {
     document.getElementById('leaseModal').classList.remove('open');
+    document.body.classList.remove('modal-open');
     resumePolling();
   }
   function submitLease() {
@@ -4588,13 +4780,13 @@ function renderAdminPanel(authToken) {
       return;
     }
     const btn = document.getElementById('leaseSendBtn');
-    btn.disabled = true; btn.textContent = '⏳ Sending...';
+    btn.disabled = true; btn.textContent = 'Sending...';
     alertArea.innerHTML = '';
     _actionInProgress = true;
     google.script.run
       .withSuccessHandler(function(result) {
         _actionInProgress = false;
-        btn.disabled = false; btn.textContent = '📧 Send Lease to Tenant';
+        btn.disabled = false; btn.textContent = 'Send Lease to Tenant';
         if (result.success) {
           closeLeaseModal();
           showToast('✅ Lease sent! The tenant has been emailed a signing link.', 'success');
@@ -4606,7 +4798,7 @@ function renderAdminPanel(authToken) {
       })
       .withFailureHandler(function(err) {
         _actionInProgress = false;
-        btn.disabled = false; btn.textContent = '📧 Send Lease to Tenant';
+        btn.disabled = false; btn.textContent = 'Send Lease to Tenant';
         alertArea.innerHTML = '<div class="alert alert-danger">Server error: ' + err + '</div>';
       })
       .generateAndSendLease(currentAppId, rent, deposit, startDate, notes);
@@ -4617,9 +4809,9 @@ function renderAdminPanel(authToken) {
     currentAction = action; currentAppId = appId;
     pausePolling();
     const config = {
-      markPaid : { title: '💰 Mark as Paid',         sub: 'A payment confirmation email will be sent to the applicant.', btn: 'Confirm Payment', notes: false },
-      approve  : { title: '✅ Approve Application',   sub: 'An approval email will be sent to the applicant.',            btn: 'Approve',         notes: false },
-      deny     : { title: '❌ Deny Application',       sub: 'The applicant will be notified by email.',                    btn: 'Deny Application', notes: true }
+      markPaid : { title: 'Mark as Paid',         sub: 'A payment confirmation email will be sent to the applicant.', btn: 'Confirm Payment',  notes: false },
+      approve  : { title: 'Approve Application',   sub: 'An approval email will be sent to the applicant.',            btn: 'Approve',          notes: false },
+      deny     : { title: 'Deny Application',       sub: 'The applicant will be notified by email.',                    btn: 'Deny Application', notes: true }
     };
     const c = config[action];
     document.getElementById('modalTitle').textContent    = c.title;
@@ -4629,15 +4821,17 @@ function renderAdminPanel(authToken) {
     document.getElementById('actionNotes').value        = '';
     document.getElementById('modalConfirmBtn').textContent = c.btn;
     document.getElementById('confirmModal').classList.add('open');
+    document.body.classList.add('modal-open');
   }
   function closeModal() {
     document.getElementById('confirmModal').classList.remove('open');
+    document.body.classList.remove('modal-open');
     resumePolling();
   }
   document.getElementById('modalConfirmBtn').onclick = function() {
     const notes = document.getElementById('actionNotes').value;
     const btn = this;
-    btn.disabled = true; btn.textContent = '⏳ Processing...';
+    btn.disabled = true; btn.textContent = 'Processing...';
     _actionInProgress = true;
     const onSuccess = (result) => {
       _actionInProgress = false;
@@ -4665,6 +4859,7 @@ function renderAdminPanel(authToken) {
     document.getElementById(id).addEventListener('click', function(e) {
       if (e.target === this) {
         this.classList.remove('open');
+        document.body.classList.remove('modal-open');
         if (id === 'confirmModal') { document.getElementById('modalConfirmBtn').disabled = false; }
         resumePolling();
       }
@@ -4674,11 +4869,12 @@ function renderAdminPanel(authToken) {
   // ── Toast notifications ──
   function showToast(msg, type) {
     const t = document.createElement('div');
-    t.style.cssText = 'position:fixed;bottom:28px;right:28px;z-index:9999;background:' +
+    const isMobile = window.innerWidth <= 640;
+    t.style.cssText = 'position:fixed;bottom:' + (isMobile ? '80px' : '28px') + ';right:' + (isMobile ? '12px' : '28px') + ';z-index:9999;background:' +
       (type === 'success' ? '#059669' : '#dc2626') +
-      ';color:white;padding:14px 22px;border-radius:14px;font-size:14px;font-weight:600;' +
+      ';color:white;padding:12px 20px;border-radius:14px;font-size:13px;font-weight:600;' +
       'font-family:Inter,sans-serif;box-shadow:0 8px 24px rgba(0,0,0,.2);' +
-      'animation:slideUp .3s ease;max-width:340px;';
+      'animation:slideUp .3s ease;max-width:calc(100vw - 24px);';
     t.textContent = msg;
     const style = document.createElement('style');
     style.textContent = '@keyframes slideUp{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}';
@@ -4687,15 +4883,15 @@ function renderAdminPanel(authToken) {
     setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),350); }, 4000);
   }
 
-  // ── Build client-side card HTML ──
+  // ── Build client-side card HTML (live-update version, mirrors buildAdminCard) ──
   function buildCardHtml(app) {
     const leaseStatus = app['Lease Status'] || 'none';
-    let accentClass = 'accent-pending', badgeClass = 'badge-pending', statusText = '⏳ Pending Payment';
-    if      (leaseStatus === 'signed' || leaseStatus === 'active') { accentClass='accent-lease-signed'; badgeClass='badge-lease-signed'; statusText='🏠 Lease Signed'; }
-    else if (leaseStatus === 'sent')   { accentClass='accent-lease-sent';   badgeClass='badge-lease-sent';   statusText='📜 Lease Sent'; }
-    else if (app['Status'] === 'approved') { accentClass='accent-approved'; badgeClass='badge-approved'; statusText='✅ Approved'; }
-    else if (app['Status'] === 'denied')   { accentClass='accent-denied';   badgeClass='badge-denied';   statusText='❌ Denied'; }
-    else if (app['Payment Status'] === 'paid') { accentClass='accent-review'; badgeClass='badge-review'; statusText='🔍 Under Review'; }
+    let accentClass = 'accent-pending', badgeClass = 'badge-pending', statusText = '<i class="fas fa-clock"></i> Pending';
+    if      (leaseStatus === 'signed' || leaseStatus === 'active') { accentClass='accent-lease-signed'; badgeClass='badge-lease-signed'; statusText='<i class="fas fa-house-circle-check"></i> Lease Signed'; }
+    else if (leaseStatus === 'sent')   { accentClass='accent-lease-sent';   badgeClass='badge-lease-sent';   statusText='<i class="fas fa-file-signature"></i> Lease Sent'; }
+    else if (app['Status'] === 'approved') { accentClass='accent-approved'; badgeClass='badge-approved'; statusText='<i class="fas fa-circle-check"></i> Approved'; }
+    else if (app['Status'] === 'denied')   { accentClass='accent-denied';   badgeClass='badge-denied';   statusText='<i class="fas fa-circle-xmark"></i> Denied'; }
+    else if (app['Payment Status'] === 'paid') { accentClass='accent-review'; badgeClass='badge-review'; statusText='<i class="fas fa-magnifying-glass"></i> Under Review'; }
 
     const dataStatus = (leaseStatus==='signed'||leaseStatus==='active') ? 'lease_signed'
       : leaseStatus==='sent' ? 'lease_sent'
@@ -4703,21 +4899,26 @@ function renderAdminPanel(authToken) {
       : app['Status']==='approved' ? 'approved'
       : app['Status']==='denied' ? 'denied' : 'paid';
 
-    const searchTerms = (app['First Name']+' '+app['Last Name']+' '+app['Email']+' '+app['App ID']+' '+(app['Property Address']||'')).toLowerCase();
+    const searchTerms   = (app['First Name']+' '+app['Last Name']+' '+app['Email']+' '+app['App ID']+' '+(app['Property Address']||'')).toLowerCase();
     const contactMethod = app['Preferred Contact Method'] || 'Not specified';
     const contactTimes  = app['Preferred Time']            || 'Any';
+    // Escape single quotes to prevent onclick breakage on names like O'Brien
+    const safeName    = (app['First Name'] + ' ' + app['Last Name']).replace(/'/g, "\\\\'");
+    const safeContact = contactMethod.replace(/'/g, "\\\\'");
+    const safeTimes   = contactTimes.replace(/'/g, "\\\\'");
     const canMarkPaid  = app['Payment Status'] === 'unpaid';
     const canApprove   = app['Payment Status'] === 'paid' && app['Status'] === 'pending';
     const canDeny      = canApprove;
     const canSendLease = app['Status'] === 'approved' && leaseStatus !== 'signed' && leaseStatus !== 'active';
     const dateStr      = app['Timestamp'] ? new Date(app['Timestamp']).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+    const phoneClean   = (app['Phone'] || '').replace(/\\D/g, '');
 
     let payPrefsHtml = '';
     if (app['Payment Status'] === 'unpaid') {
       const prefs = [];
-      if (app['Primary Payment Method']) prefs.push('🥇 ' + (app['Primary Payment Method']==='Other'&&app['Primary Payment Method Other'] ? app['Primary Payment Method Other'] : app['Primary Payment Method']));
-      if (app['Alternative Payment Method']) prefs.push('🥈 ' + (app['Alternative Payment Method']==='Other'&&app['Alternative Payment Method Other'] ? app['Alternative Payment Method Other'] : app['Alternative Payment Method']));
-      if (prefs.length) payPrefsHtml = \`<div class="pay-prefs"><strong>💰 Payment Prefs:</strong> \${prefs.join('  ·  ')}</div>\`;
+      if (app['Primary Payment Method'])     prefs.push('<i class="fas fa-medal" style="color:#f59e0b;"></i> ' + (app['Primary Payment Method']==='Other'&&app['Primary Payment Method Other'] ? app['Primary Payment Method Other'] : app['Primary Payment Method']));
+      if (app['Alternative Payment Method']) prefs.push('<i class="fas fa-award" style="color:#94a3b8;"></i> ' + (app['Alternative Payment Method']==='Other'&&app['Alternative Payment Method Other'] ? app['Alternative Payment Method Other'] : app['Alternative Payment Method']));
+      if (prefs.length) payPrefsHtml = \`<div class="pay-prefs"><strong><i class="fas fa-coins" style="color:#f59e0b;margin-right:4px;"></i>Payment Prefs:</strong> \${prefs.join('  &middot;  ')}</div>\`;
     }
 
     return \`
@@ -4727,25 +4928,25 @@ function renderAdminPanel(authToken) {
           <div class="card-top">
             <div>
               <div class="card-name">\${app['First Name']} \${app['Last Name']}</div>
-              <div class="card-meta">\${app['App ID']} · \${dateStr}</div>
+              <div class="card-meta"><i class="fas fa-hashtag" style="font-size:10px;opacity:.5;"></i> \${app['App ID']} &middot; \${dateStr}</div>
             </div>
             <span class="status-badge \${badgeClass}">\${statusText}</span>
           </div>
           <div class="card-info-row">
-            <span class="info-chip">📧 \${app['Email']}</span>
-            <span class="info-chip">📱 \${app['Phone']}</span>
-            <span class="info-chip">🏠 \${app['Property Address']||'No property'}</span>
-            <span class="info-chip">📲 \${contactMethod}</span>
-            <span class="info-chip">🕒 \${contactTimes}</span>
+            <a href="mailto:\${app['Email']}" class="info-chip" aria-label="Email \${app['Email']}"><i class="fas fa-envelope" style="opacity:.6;"></i> \${app['Email']}</a>
+            <a href="tel:\${phoneClean}" class="info-chip" aria-label="Call \${app['Phone']}"><i class="fas fa-phone" style="opacity:.6;"></i> \${app['Phone']}</a>
+            <span class="info-chip"><i class="fas fa-house" style="opacity:.6;"></i> \${app['Property Address']||'No property'}</span>
+            <span class="info-chip"><i class="fas fa-mobile-screen-button" style="opacity:.6;"></i> \${contactMethod}</span>
+            <span class="info-chip"><i class="fas fa-clock" style="opacity:.6;"></i> \${contactTimes}</span>
           </div>
           \${payPrefsHtml}
           <div class="card-actions">
-            <button class="act-btn btn-pay"  onclick="showConfirmModal('markPaid','\${app['App ID']}','\${app['First Name']} \${app['Last Name']}','\${contactMethod}','\${contactTimes}')" \${canMarkPaid?'':'disabled'}>💰 Mark Paid</button>
-            <button class="act-btn btn-appr" onclick="showConfirmModal('approve','\${app['App ID']}','\${app['First Name']} \${app['Last Name']}','\${contactMethod}','\${contactTimes}')" \${canApprove?'':'disabled'}>✅ Approve</button>
-            <button class="act-btn btn-deny" onclick="showConfirmModal('deny','\${app['App ID']}','\${app['First Name']} \${app['Last Name']}','\${contactMethod}','\${contactTimes}')" \${canDeny?'':'disabled'}>❌ Deny</button>
-            <button class="act-btn btn-lease" onclick="showLeaseModal('\${app['App ID']}','\${app['First Name']} \${app['Last Name']}','\${contactMethod}','\${contactTimes}')" \${canSendLease?'':'disabled'}>📜 Send Lease</button>
-            <a href="\${baseUrl}?path=dashboard&id=\${app['App ID']}" target="_blank" class="act-btn btn-view">👁 View</a>
-            <a href="sms:7077063137?body=Hi%20\${app['First Name']}%2C%20Choice%20Properties%20re%20\${app['App ID']}" class="act-btn btn-text">📱 Text</a>
+            <button class="act-btn btn-pay"   onclick="showConfirmModal('markPaid','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canMarkPaid?'':'disabled'} aria-label="Mark as paid"><i class="fas fa-coins"></i> Mark Paid</button>
+            <button class="act-btn btn-appr"  onclick="showConfirmModal('approve','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canApprove?'':'disabled'} aria-label="Approve"><i class="fas fa-circle-check"></i> Approve</button>
+            <button class="act-btn btn-deny"  onclick="showConfirmModal('deny','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canDeny?'':'disabled'} aria-label="Deny"><i class="fas fa-circle-xmark"></i> Deny</button>
+            <button class="act-btn btn-lease" onclick="showLeaseModal('\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canSendLease?'':'disabled'} aria-label="Send lease"><i class="fas fa-file-signature"></i> Send Lease</button>
+            <a href="?path=dashboard&id=\${app['App ID']}" target="_blank" class="act-btn btn-view" aria-label="View dashboard"><i class="fas fa-eye"></i> View</a>
+            <a href="sms:7077063137?body=Hi%20\${encodeURIComponent(app['First Name']||'')}%2C%20this%20is%20Choice%20Properties%20re%20app%20\${app['App ID']}" class="act-btn btn-text" aria-label="Text applicant"><i class="fas fa-comment-sms"></i> Text</a>
           </div>
         </div>
       </div>\`;
@@ -4754,7 +4955,7 @@ function renderAdminPanel(authToken) {
   function renderApplications(applications) {
     const container = document.getElementById('applicationsContainer');
     if (!applications || applications.length === 0) {
-      container.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No applications found</p></div>';
+      container.innerHTML = '<div class="empty-state"><div class="icon"><i class="fas fa-inbox" style="font-size:48px;color:#cbd5e1;"></i></div><p>No applications found</p></div>';
       updateStats([]);
       return;
     }
@@ -4809,14 +5010,19 @@ function renderAdminPanel(authToken) {
   }
 
   function filterApps(status, btn) {
-    // Update pills
+    // Update filter pills
     document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('active'));
     if (btn && btn.classList && btn.classList.contains('filter-pill')) btn.classList.add('active');
-    // Update nav items
+    // Update sidebar nav items
     document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
     const navMap = { all:'navAll', pending:'navPending', paid:'navReview', approved:'navApproved', lease_sent:'navLeaseSent', lease_signed:'navLeaseSigned', denied:'navDenied' };
     const navEl = document.getElementById(navMap[status]);
     if (navEl) navEl.classList.add('active');
+    // Update mobile bottom nav
+    document.querySelectorAll('.mobile-nav-item').forEach(b => b.classList.remove('active'));
+    const mNavMap = { all:'mNavAll', pending:'mNavPending', paid:'mNavReview', approved:'mNavApproved', lease_sent:'mNavLeaseSent', lease_signed:'mNavLeaseSigned', denied:'mNavDenied' };
+    const mNavEl = document.getElementById(mNavMap[status]);
+    if (mNavEl) { mNavEl.classList.add('active'); mNavEl.scrollIntoView({ inline: 'nearest', behavior: 'smooth' }); }
     currentFilter = status;
     applyFilterAndSearch();
   }
@@ -4850,12 +5056,12 @@ function renderAdminPanel(authToken) {
 // ── Helper: build admin card server-side (initial render, enhanced) ──
 function buildAdminCard(app, baseUrl) {
   const leaseStatus = app['Lease Status'] || 'none';
-  let accentClass = 'accent-pending', badgeClass = 'badge-pending', statusText = '⏳ Pending Payment';
-  if      (leaseStatus === 'signed' || leaseStatus === 'active') { accentClass='accent-lease-signed'; badgeClass='badge-lease-signed'; statusText='🏠 Lease Signed'; }
-  else if (leaseStatus === 'sent')       { accentClass='accent-lease-sent';   badgeClass='badge-lease-sent';   statusText='📜 Lease Sent'; }
-  else if (app['Status'] === 'approved') { accentClass='accent-approved';     badgeClass='badge-approved';     statusText='✅ Approved'; }
-  else if (app['Status'] === 'denied')   { accentClass='accent-denied';       badgeClass='badge-denied';       statusText='❌ Denied'; }
-  else if (app['Payment Status'] === 'paid') { accentClass='accent-review';   badgeClass='badge-review';       statusText='🔍 Under Review'; }
+  let accentClass = 'accent-pending', badgeClass = 'badge-pending', statusText = '<i class="fas fa-clock"></i> Pending';
+  if      (leaseStatus === 'signed' || leaseStatus === 'active') { accentClass='accent-lease-signed'; badgeClass='badge-lease-signed'; statusText='<i class="fas fa-house-circle-check"></i> Lease Signed'; }
+  else if (leaseStatus === 'sent')       { accentClass='accent-lease-sent';   badgeClass='badge-lease-sent';   statusText='<i class="fas fa-file-signature"></i> Lease Sent'; }
+  else if (app['Status'] === 'approved') { accentClass='accent-approved';     badgeClass='badge-approved';     statusText='<i class="fas fa-circle-check"></i> Approved'; }
+  else if (app['Status'] === 'denied')   { accentClass='accent-denied';       badgeClass='badge-denied';       statusText='<i class="fas fa-circle-xmark"></i> Denied'; }
+  else if (app['Payment Status'] === 'paid') { accentClass='accent-review';   badgeClass='badge-review';       statusText='<i class="fas fa-magnifying-glass"></i> Under Review'; }
 
   const dataStatus = (leaseStatus==='signed'||leaseStatus==='active') ? 'lease_signed'
     : leaseStatus==='sent' ? 'lease_sent'
@@ -4866,6 +5072,10 @@ function buildAdminCard(app, baseUrl) {
   const searchTerms   = (app['First Name']+' '+app['Last Name']+' '+app['Email']+' '+app['App ID']+' '+(app['Property Address']||'')).toLowerCase();
   const contactMethod = app['Preferred Contact Method'] || 'Not specified';
   const contactTimes  = app['Preferred Time']            || 'Any';
+  // Escape single quotes so names like O'Brien don't break onclick JS string literals
+  const safeName    = (app['First Name'] + ' ' + app['Last Name']).replace(/'/g, "\\'");
+  const safeContact = contactMethod.replace(/'/g, "\\'");
+  const safeTimes   = contactTimes.replace(/'/g, "\\'");
   const canMarkPaid   = app['Payment Status'] === 'unpaid';
   const canApprove    = app['Payment Status'] === 'paid' && app['Status'] === 'pending';
   const canDeny       = canApprove;
@@ -4875,9 +5085,9 @@ function buildAdminCard(app, baseUrl) {
   let payPrefsHtml = '';
   if (app['Payment Status'] === 'unpaid') {
     const prefs = [];
-    if (app['Primary Payment Method']) prefs.push('🥇 ' + (app['Primary Payment Method']==='Other'&&app['Primary Payment Method Other'] ? app['Primary Payment Method Other'] : app['Primary Payment Method']));
-    if (app['Alternative Payment Method']) prefs.push('🥈 ' + (app['Alternative Payment Method']==='Other'&&app['Alternative Payment Method Other'] ? app['Alternative Payment Method Other'] : app['Alternative Payment Method']));
-    if (prefs.length) payPrefsHtml = `<div class="pay-prefs"><strong>💰 Payment Prefs:</strong> ${prefs.join('  ·  ')}</div>`;
+    if (app['Primary Payment Method'])     prefs.push('<i class="fas fa-medal" style="color:#f59e0b;"></i> ' + (app['Primary Payment Method']==='Other'&&app['Primary Payment Method Other'] ? app['Primary Payment Method Other'] : app['Primary Payment Method']));
+    if (app['Alternative Payment Method']) prefs.push('<i class="fas fa-award" style="color:#94a3b8;"></i> ' + (app['Alternative Payment Method']==='Other'&&app['Alternative Payment Method Other'] ? app['Alternative Payment Method Other'] : app['Alternative Payment Method']));
+    if (prefs.length) payPrefsHtml = `<div class="pay-prefs"><strong><i class="fas fa-coins" style="color:#f59e0b;margin-right:4px;"></i>Payment Prefs:</strong> ${prefs.join('  &middot;  ')}</div>`;
   }
 
   return `
@@ -4887,25 +5097,25 @@ function buildAdminCard(app, baseUrl) {
         <div class="card-top">
           <div>
             <div class="card-name">${app['First Name']} ${app['Last Name']}</div>
-            <div class="card-meta">${app['App ID']} · ${dateStr}</div>
+            <div class="card-meta"><i class="fas fa-hashtag" style="font-size:10px;opacity:.5;"></i> ${app['App ID']} &middot; ${dateStr}</div>
           </div>
           <span class="status-badge ${badgeClass}">${statusText}</span>
         </div>
         <div class="card-info-row">
-          <span class="info-chip">📧 ${app['Email']}</span>
-          <span class="info-chip">📱 ${app['Phone']}</span>
-          <span class="info-chip">🏠 ${app['Property Address']||'No property'}</span>
-          <span class="info-chip">📲 ${contactMethod}</span>
-          <span class="info-chip">🕒 ${contactTimes}</span>
+          <a href="mailto:${app['Email']}" class="info-chip" aria-label="Email ${app['Email']}"><i class="fas fa-envelope" style="opacity:.6;"></i> ${app['Email']}</a>
+          <a href="tel:${(app['Phone']||'').replace(/\D/g,'')}" class="info-chip" aria-label="Call ${app['Phone']}"><i class="fas fa-phone" style="opacity:.6;"></i> ${app['Phone']}</a>
+          <span class="info-chip"><i class="fas fa-house" style="opacity:.6;"></i> ${app['Property Address']||'No property'}</span>
+          <span class="info-chip"><i class="fas fa-mobile-screen-button" style="opacity:.6;"></i> ${contactMethod}</span>
+          <span class="info-chip"><i class="fas fa-clock" style="opacity:.6;"></i> ${contactTimes}</span>
         </div>
         ${payPrefsHtml}
         <div class="card-actions">
-          <button class="act-btn btn-pay"  onclick="showConfirmModal('markPaid','${app['App ID']}','${app['First Name']} ${app['Last Name']}','${contactMethod}','${contactTimes}')" ${canMarkPaid?'':'disabled'}>💰 Mark Paid</button>
-          <button class="act-btn btn-appr" onclick="showConfirmModal('approve','${app['App ID']}','${app['First Name']} ${app['Last Name']}','${contactMethod}','${contactTimes}')" ${canApprove?'':'disabled'}>✅ Approve</button>
-          <button class="act-btn btn-deny" onclick="showConfirmModal('deny','${app['App ID']}','${app['First Name']} ${app['Last Name']}','${contactMethod}','${contactTimes}')" ${canDeny?'':'disabled'}>❌ Deny</button>
-          <button class="act-btn btn-lease" onclick="showLeaseModal('${app['App ID']}','${app['First Name']} ${app['Last Name']}','${contactMethod}','${contactTimes}')" ${canSendLease?'':'disabled'}>📜 Send Lease</button>
-          <a href="${baseUrl}?path=dashboard&id=${app['App ID']}" target="_blank" class="act-btn btn-view">👁 View</a>
-          <a href="sms:7077063137?body=Hi%20${app['First Name']}%2C%20Choice%20Properties%20re%20${app['App ID']}" class="act-btn btn-text">📱 Text</a>
+          <button class="act-btn btn-pay"   onclick="showConfirmModal('markPaid','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canMarkPaid?'':'disabled'} aria-label="Mark as paid"><i class="fas fa-coins"></i> Mark Paid</button>
+          <button class="act-btn btn-appr"  onclick="showConfirmModal('approve','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canApprove?'':'disabled'} aria-label="Approve"><i class="fas fa-circle-check"></i> Approve</button>
+          <button class="act-btn btn-deny"  onclick="showConfirmModal('deny','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canDeny?'':'disabled'} aria-label="Deny"><i class="fas fa-circle-xmark"></i> Deny</button>
+          <button class="act-btn btn-lease" onclick="showLeaseModal('${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canSendLease?'':'disabled'} aria-label="Send lease"><i class="fas fa-file-signature"></i> Send Lease</button>
+          <a href="${baseUrl}?path=dashboard&id=${app['App ID']}" target="_blank" class="act-btn btn-view" aria-label="View dashboard"><i class="fas fa-eye"></i> View</a>
+          <a href="sms:7077063137?body=Hi%20${encodeURIComponent(app['First Name']||'')}%2C%20this%20is%20Choice%20Properties%20re%20app%20${app['App ID']}" class="act-btn btn-text" aria-label="Text applicant"><i class="fas fa-comment-sms"></i> Text</a>
         </div>
       </div>
     </div>`;
