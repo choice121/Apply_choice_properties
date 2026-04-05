@@ -3881,20 +3881,53 @@ function renderAdminPanel(authToken) {
       min-height: 100vh;
     }
     body.modal-open { overflow: hidden; }
+    body.sidebar-lock { overflow: hidden; }
 
     /* ── Sidebar + layout ── */
     .layout { display: flex; min-height: 100vh; }
     .sidebar {
-      width: 240px;
+      width: 270px;
       background: linear-gradient(180deg,#0f172a 0%,#1e293b 100%);
-      padding: 24px 0;
+      padding: 24px 0 24px;
       position: fixed;
       top: 0; left: 0; bottom: 0;
-      z-index: 100;
+      z-index: 400;
       display: flex;
       flex-direction: column;
       overflow-y: auto;
+      transform: translateX(-100%);
+      transition: transform .28s cubic-bezier(.4,0,.2,1);
+      box-shadow: 6px 0 32px rgba(0,0,0,.35);
     }
+    .sidebar.open { transform: translateX(0); }
+    .sidebar-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10,18,35,.55);
+      z-index: 399;
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      animation: fadeIn .2s ease;
+    }
+    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+    .sidebar-backdrop.visible { display: block; }
+    .sidebar-close {
+      position: absolute;
+      top: 14px; right: 14px;
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 9px;
+      color: rgba(255,255,255,.65);
+      width: 34px; height: 34px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      font-size: 15px;
+      transition: background .15s, color .15s;
+      touch-action: manipulation;
+      flex-shrink: 0;
+    }
+    .sidebar-close:hover { background: rgba(255,255,255,.2); color: white; }
     .sidebar-brand {
       padding: 0 20px 20px;
       border-bottom: 1px solid rgba(255,255,255,.07);
@@ -3974,7 +4007,23 @@ function renderAdminPanel(authToken) {
     .sidebar-footer p { color: rgba(255,255,255,.3); font-size: 11px; text-align: center; line-height: 1.6; }
 
     /* ── Main content ── */
-    .main { margin-left: 240px; padding: 0; flex: 1; min-width: 0; }
+    .main { margin-left: 0; padding: 0; flex: 1; min-width: 0; }
+    .btn-sidebar-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 38px; height: 38px;
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      color: #475569;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background .2s, color .2s, border-color .2s;
+      flex-shrink: 0;
+      touch-action: manipulation;
+    }
+    .btn-sidebar-toggle:hover { background: #1e293b; color: white; border-color: #1e293b; }
     .topbar {
       background: white;
       padding: 14px 24px;
@@ -4358,13 +4407,7 @@ function renderAdminPanel(authToken) {
     .mobile-nav-item:hover { color: rgba(255,255,255,.8); }
 
     /* ── Responsive ── */
-    @media (max-width: 900px) {
-      .sidebar { width: 200px; }
-      .main { margin-left: 200px; }
-    }
     @media (max-width: 640px) {
-      .sidebar { display: none; }
-      .main { margin-left: 0; }
       .mobile-nav { display: block; }
       .page-content { padding: 14px 14px 80px; }
       .topbar { padding: 12px 16px; }
@@ -4379,10 +4422,14 @@ function renderAdminPanel(authToken) {
   </style>
 </head>
 <body>
+<!-- Sidebar backdrop -->
+<div class="sidebar-backdrop" id="sidebarBackdrop" onclick="closeSidebar()"></div>
+
 <div class="layout">
 
   <!-- ── Sidebar ── -->
-  <aside class="sidebar">
+  <aside class="sidebar" id="sidebar">
+    <button class="sidebar-close" onclick="closeSidebar()" aria-label="Close sidebar"><i class="fas fa-xmark"></i></button>
     <div class="sidebar-brand">
       <div class="sidebar-logo">CP</div>
       <div class="sidebar-title">Choice Properties</div>
@@ -4410,6 +4457,9 @@ function renderAdminPanel(authToken) {
     <!-- Topbar -->
     <div class="topbar">
       <div class="topbar-left">
+        <button class="btn-sidebar-toggle" onclick="toggleSidebar()" id="sidebarToggleBtn" aria-label="Toggle sidebar" title="Toggle filters sidebar">
+          <i class="fas fa-bars"></i>
+        </button>
         <div class="topbar-title">Applications <span class="topbar-subtitle">(${total} total)</span></div>
       </div>
       <div class="topbar-actions">
@@ -5034,6 +5084,31 @@ function renderAdminPanel(authToken) {
       card.style.display = (matchFilter && matchSearch) ? 'block' : 'none';
     });
   }
+
+  function toggleSidebar() {
+    const sidebar  = document.getElementById('sidebar');
+    const backdrop = document.getElementById('sidebarBackdrop');
+    if (sidebar.classList.contains('open')) {
+      closeSidebar();
+    } else {
+      sidebar.classList.add('open');
+      backdrop.classList.add('visible');
+      document.body.classList.add('sidebar-lock');
+    }
+  }
+
+  function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('sidebarBackdrop').classList.remove('visible');
+    document.body.classList.remove('sidebar-lock');
+  }
+
+  // Also close sidebar when a nav-item filter is clicked on mobile
+  document.querySelectorAll('.nav-item').forEach(function(item) {
+    item.addEventListener('click', function() {
+      if (window.innerWidth < 900) closeSidebar();
+    });
+  });
 
   document.getElementById('searchInput').addEventListener('input', function() {
     currentSearch = this.value.toLowerCase().trim();
