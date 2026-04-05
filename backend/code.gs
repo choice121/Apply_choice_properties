@@ -427,38 +427,62 @@ function renderAdminLoginPage(errorMsg) {
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; }
-    .card { background: white; border-radius: 24px; padding: 40px; max-width: 460px; width: 100%; box-shadow: 0 30px 80px rgba(0,0,0,.5); }
-    .logo { text-align: center; margin-bottom: 32px; }
-    .logo-icon { font-size: 44px; margin-bottom: 10px; }
-    .logo h1 { font-size: 22px; font-weight: 700; color: #1e293b; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      min-height: 100vh; display: flex; align-items: center;
+      justify-content: center; padding: 16px;
+    }
+    .card {
+      background: white; border-radius: 20px; padding: 36px 32px;
+      max-width: 440px; width: 100%; box-shadow: 0 24px 64px rgba(0,0,0,.45);
+    }
+    @media (max-width: 480px) {
+      .card { padding: 28px 20px; border-radius: 16px; }
+    }
+    .logo { text-align: center; margin-bottom: 28px; }
+    .logo-icon { font-size: 40px; margin-bottom: 8px; }
+    .logo h1 { font-size: 20px; font-weight: 700; color: #1e293b; }
     .logo p { font-size: 13px; color: #94a3b8; margin-top: 4px; }
-    .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #94a3b8; margin-bottom: 14px; }
+    .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: #94a3b8; margin-bottom: 12px; }
     label { display: block; font-size: 13px; font-weight: 500; color: #374151; margin-bottom: 5px; }
     input[type=text], input[type=email], input[type=password] {
-      width: 100%; padding: 11px 14px; border: 1.5px solid #e2e8f0;
-      border-radius: 10px; font-size: 14px; font-family: 'Inter', sans-serif;
+      width: 100%; padding: 12px 14px; border: 1.5px solid #e2e8f0;
+      border-radius: 10px; font-size: 15px; font-family: 'Inter', sans-serif;
       outline: none; transition: border-color .2s; margin-bottom: 12px;
+      -webkit-appearance: none;
     }
     input:focus { border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.1); }
-    .btn { width: 100%; padding: 12px; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all .2s; font-family: 'Inter', sans-serif; }
+    .btn {
+      width: 100%; padding: 13px; border: none; border-radius: 10px;
+      font-size: 15px; font-weight: 600; cursor: pointer; transition: all .2s;
+      font-family: 'Inter', sans-serif; touch-action: manipulation;
+    }
     .btn-primary { background: #4f46e5; color: white; }
     .btn-primary:hover { background: #4338ca; }
     .btn-outline { background: #f8fafc; color: #1e293b; border: 1.5px solid #e2e8f0; }
     .btn-outline:hover { background: #f1f5f9; }
     .btn:disabled { opacity: .55; cursor: not-allowed; }
-    .divider { display: flex; align-items: center; gap: 12px; margin: 28px 0; color: #94a3b8; font-size: 12px; font-weight: 500; }
+    .divider { display: flex; align-items: center; gap: 12px; margin: 24px 0; color: #94a3b8; font-size: 12px; font-weight: 500; }
     .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #e2e8f0; }
-    .alert { padding: 12px 14px; border-radius: 10px; font-size: 13px; margin-bottom: 20px; }
+    .alert { padding: 12px 14px; border-radius: 10px; font-size: 13px; margin-bottom: 18px; }
     .alert-error { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
     .otp-row { display: flex; gap: 8px; align-items: flex-start; margin-bottom: 12px; }
     .otp-row input { flex: 1; margin-bottom: 0; }
-    .otp-row .btn-outline { flex-shrink: 0; width: auto; padding: 11px 16px; font-size: 13px; }
+    .otp-row .btn-outline { flex-shrink: 0; width: auto; padding: 12px 14px; font-size: 14px; white-space: nowrap; }
     #otpCodeSection { display: none; }
     .msg { font-size: 13px; margin-top: 6px; min-height: 18px; line-height: 1.4; }
     .msg.error { color: #dc2626; }
     .msg.success { color: #16a34a; }
     .msg.info { color: #4f46e5; }
+    .pass-wrap { position: relative; margin-bottom: 12px; }
+    .pass-wrap input { margin-bottom: 0; padding-right: 44px; }
+    .pass-toggle {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; padding: 4px;
+      color: #94a3b8; font-size: 18px; line-height: 1; touch-action: manipulation;
+    }
+    .pass-toggle:hover { color: #4f46e5; }
   </style>
 </head>
 <body>
@@ -474,7 +498,7 @@ function renderAdminLoginPage(errorMsg) {
   <div class="section-title">Sign in with authorized email</div>
   <label for="otpEmail">Email Address</label>
   <div class="otp-row">
-    <input type="email" id="otpEmail" placeholder="choiceproperties404@gmail.com" autocomplete="email">
+    <input type="email" id="otpEmail" placeholder="your@email.com" autocomplete="email">
     <button class="btn btn-outline" id="otpSendBtn" onclick="requestOTP()">Send Code</button>
   </div>
   <div id="otpCodeSection">
@@ -491,7 +515,10 @@ function renderAdminLoginPage(errorMsg) {
   <label for="upUser">Username</label>
   <input type="text" id="upUser" placeholder="Username" autocomplete="username">
   <label for="upPass">Password</label>
-  <input type="password" id="upPass" placeholder="••••••••" autocomplete="current-password">
+  <div class="pass-wrap">
+    <input type="password" id="upPass" placeholder="••••••••" autocomplete="current-password">
+    <button class="pass-toggle" type="button" onclick="togglePass()" id="passToggleBtn" aria-label="Show password">👁</button>
+  </div>
   <button class="btn btn-primary" onclick="passwordLogin()">Sign In</button>
   <div class="msg" id="upMsg"></div>
   ` : `
@@ -500,21 +527,19 @@ function renderAdminLoginPage(errorMsg) {
 </div>
 
 <script>
-  const GAS_URL = window.location.href.split('?')[0];
-
-  function post(body) {
-    return fetch(GAS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: body,
-      redirect: 'follow'
-    }).then(r => r.json());
-  }
-
   function setMsg(id, text, type) {
     const el = document.getElementById(id);
+    if (!el) return;
     el.innerHTML = text;
     el.className = 'msg ' + (type || '');
+  }
+
+  function togglePass() {
+    const inp = document.getElementById('upPass');
+    const btn = document.getElementById('passToggleBtn');
+    if (!inp) return;
+    inp.type = inp.type === 'password' ? 'text' : 'password';
+    btn.textContent = inp.type === 'password' ? '👁' : '🙈';
   }
 
   function requestOTP() {
@@ -522,9 +547,9 @@ function renderAdminLoginPage(errorMsg) {
     if (!email) { setMsg('otpMsg', 'Please enter your email address.', 'error'); return; }
     const btn = document.getElementById('otpSendBtn');
     btn.disabled = true; btn.textContent = 'Sending...';
-    setMsg('otpMsg', '', '');
-    post('_action=adminSendOTP&email=' + encodeURIComponent(email))
-      .then(function(data) {
+    setMsg('otpMsg', 'Sending code…', 'info');
+    google.script.run
+      .withSuccessHandler(function(data) {
         if (data.success) {
           document.getElementById('otpCodeSection').style.display = 'block';
           setMsg('otpMsg', '✅ Code sent! Check your inbox (and spam folder).', 'success');
@@ -534,41 +559,53 @@ function renderAdminLoginPage(errorMsg) {
           btn.textContent = 'Send Code'; btn.disabled = false;
         }
       })
-      .catch(function() { setMsg('otpMsg', 'Network error. Please try again.', 'error'); btn.textContent = 'Send Code'; btn.disabled = false; });
+      .withFailureHandler(function() {
+        setMsg('otpMsg', 'Something went wrong. Please try again.', 'error');
+        btn.textContent = 'Send Code'; btn.disabled = false;
+      })
+      .sendAdminOTP(email);
   }
 
   function verifyOTP() {
     const email = document.getElementById('otpEmail').value.trim();
     const otp   = document.getElementById('otpCode').value.trim();
     if (!otp) { setMsg('otpMsg', 'Please enter the verification code.', 'error'); return; }
-    setMsg('otpMsg', 'Verifying...', 'info');
-    post('_action=adminVerifyOTP&email=' + encodeURIComponent(email) + '&otp=' + encodeURIComponent(otp))
-      .then(function(data) {
+    setMsg('otpMsg', 'Verifying…', 'info');
+    google.script.run
+      .withSuccessHandler(function(data) {
         if (data.success) {
-          setMsg('otpMsg', '✅ Verified! Redirecting to admin panel...', 'success');
-          window.location.href = GAS_URL + '?path=admin&token=' + encodeURIComponent(data.token);
+          setMsg('otpMsg', '✅ Verified! Redirecting…', 'success');
+          var base = window.location.href.split('?')[0];
+          window.location.href = base + '?path=admin&token=' + encodeURIComponent(data.token);
         } else {
           setMsg('otpMsg', data.error || 'Invalid code.', 'error');
         }
       })
-      .catch(function() { setMsg('otpMsg', 'Network error. Please try again.', 'error'); });
+      .withFailureHandler(function() {
+        setMsg('otpMsg', 'Something went wrong. Please try again.', 'error');
+      })
+      .verifyAdminOTP(email, otp);
   }
 
   function passwordLogin() {
     const user = document.getElementById('upUser').value.trim();
     const pass = document.getElementById('upPass').value;
     if (!user || !pass) { setMsg('upMsg', 'Please enter both username and password.', 'error'); return; }
-    setMsg('upMsg', 'Signing in...', 'info');
-    post('_action=adminPasswordLogin&username=' + encodeURIComponent(user) + '&password=' + encodeURIComponent(pass))
-      .then(function(data) {
+    setMsg('upMsg', 'Signing in…', 'info');
+    google.script.run
+      .withSuccessHandler(function(data) {
         if (data.success) {
-          setMsg('upMsg', '✅ Success! Redirecting...', 'success');
-          window.location.href = GAS_URL + '?path=admin&token=' + encodeURIComponent(data.token);
+          setMsg('upMsg', '✅ Success! Redirecting…', 'success');
+          var base = window.location.href.split('?')[0];
+          window.location.href = base + '?path=admin&token=' + encodeURIComponent(data.token);
         } else {
           setMsg('upMsg', data.error || 'Invalid credentials.', 'error');
         }
       })
-      .catch(function() { setMsg('upMsg', 'Network error. Please try again.', 'error'); });
+      .withFailureHandler(function() {
+        setMsg('upMsg', 'Something went wrong. Please try again.', 'error');
+      })
+      .validateAdminPassword(user, pass);
   }
 
   document.addEventListener('keydown', function(e) {
