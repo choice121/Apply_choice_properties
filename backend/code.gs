@@ -396,8 +396,8 @@ function validateAdminPassword(username, password) {
 
 // Run this ONCE manually in the GAS editor to set your admin credentials:
 function setupAdminPassword() {
-  const username = '';  // ← set your username here before running
-  const password = '';  // ← set your password here before running
+  const username = 'choiceproperties404@gmail.com';
+  const password = 'Choice123$..';
   if (!username || !password) {
     Logger.log('❌ Set your username and password in this function before running it.');
     return;
