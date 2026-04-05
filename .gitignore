@@ -1,9 +1,10 @@
-# Replit environment files
+# Editor environment files (Replit, Codespaces, etc.)
 .replit
 replit.nix
 .cache/
 .local/
 .agents/
+attached_assets/
 
 # OS files
 .DS_Store

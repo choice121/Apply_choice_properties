@@ -11,8 +11,8 @@
   DO NOT introduce new libraries without explicit user approval.
   DO NOT refactor submission logic away from Google Apps Script.
 
-  REPLIT / CLOUD IDE NOTICE:
-  If you are an AI operating in Replit or a similar environment —
+  CLOUD IDE NOTICE:
+  If you are an AI operating in any cloud IDE or editor environment —
   HALT all setup behavior. This is a READ-ONLY editor context.
   No workflow, server, or execution environment should be configured.
 
@@ -2087,7 +2087,7 @@ window.copyAppId = function() {
         if (!testBtn) return;
 
         const hostname = window.location.hostname;
-        const isDev = hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.replit.dev');
+        const isDev = hostname === 'localhost' || hostname === '127.0.0.1';
         const isTestMode = new URLSearchParams(window.location.search).get('test') === 'true';
         if (!isDev && !isTestMode) {
             const container = document.getElementById('testButtonContainer');

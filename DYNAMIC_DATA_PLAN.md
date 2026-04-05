@@ -463,7 +463,7 @@ After D-017 adds `Included Utilities` as a formal field, update Article IX
 **Title:** No machine-readable session handoff exists — AI must re-analyze code each session
 
 **Root cause:**
-The project has `replit.md` and `PROJECT_RULES.md` but neither contains
+The project has `README.md` and `PROJECT_RULES.md` but neither contains
 structured issue tracking, fix progress, or implementation status that an AI
 can read and act on without manual prompt context from the user.
 
@@ -473,24 +473,24 @@ Additionally, the AI completing each session must:
 1. Update STATUS fields from `OPEN` to `DONE` for each fixed issue.
 2. Add a row to the SESSION LOG table at the bottom of this file.
 3. Update the PHASE STATUS table.
-4. Update `replit.md` Change History with a one-line summary.
+4. Update `README.md` Change History with a one-line summary.
 
-**Files:** `DYNAMIC_DATA_PLAN.md` (this file), `replit.md`
+**Files:** `DYNAMIC_DATA_PLAN.md` (this file), `README.md`
 
 ---
 
 **D-021** | STATUS: `DONE` | Fixed in Session 036
-**Title:** `replit.md` change history doesn't document the dynamic data gaps
+**Title:** `README.md` change history doesn't document the dynamic data gaps
 
 **Root cause:**
 Session 030's change history entry is accurate but doesn't flag any known
 limitations or pending architectural concerns for the next session.
 
 **Fix:**
-After each phase is completed, add a structured entry to `replit.md`
+After each phase is completed, add a structured entry to `README.md`
 Change History that includes: session number, issues fixed, issues deferred.
 
-**Files:** `replit.md`
+**Files:** `README.md`
 
 ---
 
@@ -530,7 +530,7 @@ Every AI assistant that opens this project must follow this exact sequence:
 ### On session end:
 9. Update the PHASE STATUS table.
 10. Add a SESSION LOG entry (see below).
-11. Update `replit.md` Change History.
+11. Update `README.md` Change History.
 12. Produce the updated project ZIP.
 
 ---
@@ -542,7 +542,7 @@ Every AI assistant that opens this project must follow this exact sequence:
 | 031     | Plan created    | D-020 (partial — file created, not yet marked DONE) | Initial audit and plan authored |
 | 032     | Phase 1         | D-001, D-002, D-003, D-004 | Property context (city/state/rent/id/name) now appended to FormData and written to 5 new sheet columns. JURISDICTION_MAP built for 20 states + DEFAULT. getJurisdiction() and getESignText() helpers added. Lease header badge, Article IV, XIV, XV, XXIII, e-sign legal notice, agreeBinding checkbox, leaseSent and leaseSignedTenant email step lists all dynamic. |
 | 035     | Phase 5 | D-017, D-018, D-019 | D-017: `Unit Type`, `Bedrooms`, `Bathrooms`, `Parking Space`, `Included Utilities` fields added to Send Lease modal and written to 5 new sheet columns; Article II table conditionally renders these rows when non-empty. D-018: `Pet Deposit Amount` and `Monthly Pet Rent` fields added to modal and sheet; Article IV pet clause now inlines deposit and pet-rent amounts when non-zero. D-019: `utilitiesNote` now dynamic — reads `Included Utilities` from sheet and lists them explicitly, or falls back to standard "Tenant responsible" language. All 3 Phase 5 issues resolved. |
-| 036     | Phase 6 | D-020, D-021 | D-020: Formally closed — `DYNAMIC_DATA_PLAN.md` maintained with STATUS updates, SESSION LOG entries, and PHASE STATUS updates across every session since 031. Protocol proven. D-021: `replit.md` Change History now has complete structured entries for all sessions (031–036). Missing Session 033 entry backfilled. **All 21 issues across all 6 phases are now DONE.** |
+| 036     | Phase 6 | D-020, D-021 | D-020: Formally closed — `DYNAMIC_DATA_PLAN.md` maintained with STATUS updates, SESSION LOG entries, and PHASE STATUS updates across every session since 031. Protocol proven. D-021: `README.md` Change History now has complete structured entries for all sessions (031–036). Missing Session 033 entry backfilled. **All 21 issues across all 6 phases are now DONE.** |
 | 037     | Feature: Holding Fee | N/A (new feature, not a plan issue) | Holding fee system added to `code.gs` only. 4 new sheet columns: `Holding Fee Amount`, `Holding Fee Status`, `Holding Fee Date`, `Holding Fee Notes`. 3 new GAS functions: `requestHoldingFee()`, `markHoldingFeePaid()`, `sendHoldingFeeRequestEmail()`. Lease generation updated: `holdingFeeAmt` and `holdingFeeStatus` read from sheet row; `moveInCost` auto-subtracts paid holding fee; Article III table gains credit row; move-in highlight box and agreeFinancial checkbox label update dynamically. Admin dashboard `buildAdminCard()` gains holding fee badge (green=paid, yellow=pending) and contextual action buttons (Request Hold Fee / Hold Fee Received). Client-side `buildCardHtml()` JS mirror updated to match. Holding fee modal added with amount input. `showConfirmModal()` extended to handle `markHoldingFeePaid` action. Tenant status page: approved section gains a holding fee step when fee is requested or paid. Session 037 is **IN PROGRESS** — Areas 4b/4c (client-side card + modal) and Area 5 (tenant status page) still pending. |
 
 ---
