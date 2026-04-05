@@ -417,6 +417,7 @@ function setupAdminPassword() {
 function renderAdminLoginPage(errorMsg) {
   const props             = PropertiesService.getScriptProperties();
   const passwordConfigured = !!(props.getProperty('ADMIN_USERNAME') && props.getProperty('ADMIN_PASSWORD_HASH'));
+  const gasUrl            = ScriptApp.getService().getUrl();
   return HtmlService.createHtmlOutput(`
 <!DOCTYPE html>
 <html lang="en">
@@ -566,6 +567,8 @@ function renderAdminLoginPage(errorMsg) {
       .sendAdminOTP(email);
   }
 
+  var GAS_BASE = '${gasUrl}';
+
   function verifyOTP() {
     const email = document.getElementById('otpEmail').value.trim();
     const otp   = document.getElementById('otpCode').value.trim();
@@ -575,8 +578,7 @@ function renderAdminLoginPage(errorMsg) {
       .withSuccessHandler(function(data) {
         if (data.success) {
           setMsg('otpMsg', '✅ Verified! Redirecting…', 'success');
-          var base = window.location.href.split('?')[0];
-          window.location.href = base + '?path=admin&token=' + encodeURIComponent(data.token);
+          window.top.location.href = GAS_BASE + '?path=admin&token=' + encodeURIComponent(data.token);
         } else {
           setMsg('otpMsg', data.error || 'Invalid code.', 'error');
         }
@@ -596,8 +598,7 @@ function renderAdminLoginPage(errorMsg) {
       .withSuccessHandler(function(data) {
         if (data.success) {
           setMsg('upMsg', '✅ Success! Redirecting…', 'success');
-          var base = window.location.href.split('?')[0];
-          window.location.href = base + '?path=admin&token=' + encodeURIComponent(data.token);
+          window.top.location.href = GAS_BASE + '?path=admin&token=' + encodeURIComponent(data.token);
         } else {
           setMsg('upMsg', data.error || 'Invalid credentials.', 'error');
         }
@@ -4837,9 +4838,6 @@ function renderAdminPanel(authToken) {
   });
 
   window.onload = function() {
-    if (window.history && window.history.replaceState) {
-      window.history.replaceState(null, '', window.location.pathname + '?path=admin');
-    }
     currentFilter = 'all';
     currentSearch = '';
     applyFilterAndSearch();
