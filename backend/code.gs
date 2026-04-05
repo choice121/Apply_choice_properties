@@ -3505,8 +3505,8 @@ function renderApplicantDashboard(appId) {
       refreshBtn.title = 'Status updates automatically — no refresh needed';
     }
 
-    // Start polling every 15 seconds
-    _watchTimer = setInterval(checkForStatusChange, 15000);
+    // Check every 5 seconds — catches admin changes within moments
+    _watchTimer = setInterval(checkForStatusChange, 5000);
   }
 
   function checkForStatusChange() {
@@ -4400,7 +4400,7 @@ function renderAdminPanel(authToken) {
         '<span id="liveDot" style="width:8px;height:8px;background:#22c55e;' +
         'border-radius:50%;animation:livePulse 2s ease-in-out infinite;' +
         'flex-shrink:0;"></span>' +
-        '<span id="liveLabel">Live</span>';
+        '<span id="liveLabel">Ready</span>';
       topbarActions.prepend(_liveIndicator);
 
       // Inject pulse keyframe
@@ -4413,9 +4413,8 @@ function renderAdminPanel(authToken) {
       document.head.appendChild(s);
     }
 
-    // Kick off first poll immediately, then every 20 seconds
-    pollForChanges();
-    _pollTimer = setInterval(pollForChanges, 20000);
+    // Load data immediately on first open — no recurring timer
+    fetchAndRenderAll('');
   }
 
   function pausePolling()  { _pollPaused = true; }
@@ -4430,7 +4429,7 @@ function renderAdminPanel(authToken) {
       _liveIndicator.style.borderColor = '#86efac';
       _liveIndicator.style.color = '#15803d';
       dot.style.background = '#22c55e'; dot.style.animation = 'livePulse 2s ease-in-out infinite';
-      label.textContent = 'Live';
+      label.textContent = 'Ready';
     } else if (state === 'checking') {
       _liveIndicator.style.background = '#eff6ff';
       _liveIndicator.style.borderColor = '#93c5fd';
@@ -4599,9 +4598,8 @@ function renderAdminPanel(authToken) {
         if (result.success) {
           closeLeaseModal();
           showToast('✅ Lease sent! The tenant has been emailed a signing link.', 'success');
-          // Invalidate fingerprint so next poll forces a full refresh
-          _lastFingerprint = '';
-          pollForChanges();
+          // Immediately fetch fresh data and update dashboard
+          fetchAndRenderAll('');
         } else {
           alertArea.innerHTML = '<div class="alert alert-danger">Error: ' + result.error + '</div>';
         }
@@ -4649,9 +4647,8 @@ function renderAdminPanel(authToken) {
         showToast('Error: ' + (result.error || 'Unknown error'), 'error');
         return;
       }
-      // Immediately force a refresh after admin action
-      _lastFingerprint = '';
-      pollForChanges();
+      // Immediately fetch fresh data and update dashboard
+      fetchAndRenderAll('');
     };
     const onFail = err => {
       _actionInProgress = false;
