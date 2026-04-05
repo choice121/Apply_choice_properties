@@ -40,6 +40,12 @@ This is the **external application system** for Choice Properties.
 
 The main listing platform (`choice-properties-site.pages.dev`) is a **separate system** used only for browsing properties. When a user clicks "Apply" on any listing, they are redirected here. From that point, **everything happens in this system exclusively**.
 
+> **Integration status (April 2026 — active):** The main platform has been fully updated.
+> All "Apply Now" buttons redirect here. All "Track My Application" links on the main
+> platform (nav, footer, FAQ, property pages) point to this system’s applicant dashboard
+> at `https://apply-choice-properties.pages.dev/?path=dashboard`. No changes to this
+> repository were required — the URL parameter contract was already complete.
+
 ### Rules of separation:
 - This system does NOT connect to Supabase.
 - This system does NOT call any API on the main platform.
@@ -47,8 +53,8 @@ The main listing platform (`choice-properties-site.pages.dev`) is a **separate s
 - The main platform does NOT read or display data from this system.
 - These two systems share ONLY a one-way redirect link and optional display-only URL params.
 
-### URL parameter contract (display-only, Session 028):
-The main platform may pass these query parameters when redirecting here:
+### URL parameter contract (active — Session 028, confirmed live Session 039):
+The main platform passes these query parameters when redirecting here:
 
 | Param  | Meaning                     | Used for                              |
 |--------|-----------------------------|---------------------------------------|
@@ -58,6 +64,10 @@ The main platform may pass these query parameters when redirecting here:
 | `city` | City                        | Property context banner               |
 | `state`| State (2-letter)            | Property context banner               |
 | `rent` | Monthly rent                | Income-to-rent ratio display (Step 3) |
+| `beds` | Bedrooms                    | Property context display              |
+| `baths`| Bathrooms                   | Property context display              |
+| `pets` | Pet policy string           | Property context display              |
+| `term` | Lease term string           | Property context display              |
 
 **These params are NEVER sent to GAS or used in any backend decision.**
 The applicant can edit the pre-filled address field at any time.

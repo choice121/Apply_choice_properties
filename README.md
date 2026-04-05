@@ -6,8 +6,15 @@ application — no build tools, package managers, or server-side runtime require
 
 This is the **sole application processing system** for Choice Properties. The main listing
 platform (`choice-properties-site.pages.dev`) handles property browsing only. When a user
-clicks Apply on any listing they are redirected here. All application processing, lease
-generation, payment tracking, and email communication happen exclusively in this system.
+clicks Apply on any listing they are redirected here with property context pre-loaded via
+URL parameters. All application processing, lease generation, payment tracking, and email
+communication happen exclusively in this system.
+
+> **Integration status (April 2026 — active):** The main listing platform has been fully
+> updated to redirect all "Apply Now" buttons here. All "Track My Application" links
+> across the main platform (nav, footer, FAQ, property pages) now point to this system's
+> applicant dashboard. No changes to this repository were required — the URL parameter
+> contract established in Session 028 was already complete.
 
 ## Architecture
 
@@ -152,7 +159,8 @@ It is self-contained and requires no manual prompt context from the user.
 ## Change History
 
 | Session | Changes |
-|---------|---------|
+|---------|---------| 
+| 039 | **Integration activated — no code changes.** The main listing platform (`choice-properties-site.pages.dev`) was updated to redirect all "Apply Now" buttons to this system using the URL parameter contract established in Session 028. All "Track My Application" links on the main platform (nav, footer, FAQ, property detail pages) now point to `https://apply-choice-properties.pages.dev/?path=dashboard`. The `buildApplyURL()` function on the main platform passes: `id`, `pn`, `addr`, `city`, `state`, `rent`, `beds`, `baths`, `pets`, `term`. This system required zero changes — the integration was already fully implemented and ready. Documentation updated to reflect active integration status. |
 | 038 | **Bug fixes — 9 issues resolved across `code.gs`, `index.html`, `js/script.js`.** (1) **Critical — `signLease()` crash:** `app` variable was undefined when building the `sendLeaseSignedTenantEmail` payload, causing a `ReferenceError` that silently swallowed tenant and admin confirmation emails on every lease signing. Fixed by reading `Property State` directly from the sheet row. (2) **Critical — `statusUpdate` email crash:** `EmailTemplates.statusUpdate` referenced `leaseData.propertyState` but `leaseData` was never passed to this template. Crashed every approval and denial email. Fixed by adding `propertyState` parameter to both the template signature and `sendStatusUpdateEmail()` call site. (3) **`requestHoldingFee()` guard:** function had no check that the application was approved and payment confirmed before requesting a holding fee. Added explicit `appStatus !== 'approved'` and `paymentStatus !== 'paid'` guards. (4) **Progress bar flash:** `index.html` hard-coded `step1` as `completed` and `step2` as `active` before JS ran, causing a brief wrong-step flash on load. Fixed to `step1 active`, all others plain. (5) **Broken static success card:** `#successState` was rendered in DOM with all placeholder content visible and a broken track link (`?path=dashboard` with no app ID). Fixed by adding `display:none` — JS always replaces innerHTML before showing the card anyway. (6) **Duplicate `copyAppId`:** defined in both `index.html` inline `<script>` and `window.copyAppId` in `script.js`. Removed the `index.html` copy; consolidated to one robust definition in `script.js` with visual feedback and clipboard fallback. (7) **Applicant dashboard quota risk:** `setInterval(checkForStatusChange, 5000)` polled GAS every 5 seconds — would exhaust the free-tier 6 min/day execution quota with a handful of concurrent viewers. Changed to 45 seconds. (8) **`restoreSavedProgress()` skip set:** cleaned up the sensitive-key guard from a loose `if` to a `Set`-based check, also skipping `_last_updated` and `Application ID` which were previously missed. |
 | 037 | **Holding Fee system complete.** New feature across `code.gs` only. (1) **Sheet columns:** 4 new columns: `Holding Fee Amount`, `Holding Fee Status` (`none`/`requested`/`paid`), `Holding Fee Date`, `Holding Fee Notes`. (2) **GAS functions:** `requestHoldingFee()`, `markHoldingFeePaid()`, `sendHoldingFeeRequestEmail()`. (3) **Lease generation:** credit row, move-in cost subtraction, checkbox label. (4) **Admin dashboard:** holding fee badge + “Request Hold Fee” / “Hold Fee Received” buttons on both `buildAdminCard()` (server) and `buildCardHtml()` (client); `holdingFeeModal` with amount input; `showHoldingFeeModal()`; `showConfirmModal()` extended with `holdFeePaid`; all 3 modals in backdrop listener. CSS: `.btn-hold-req`, `.btn-hold-paid`, `.badge-hold-req`, `.badge-hold-paid`. (5) **Tenant dashboard:** holding fee info card on approved apps — amber urgency notice (pending) or green confirmation (paid). |
 | 036 | **Phase 6 complete — AI Continuity Infrastructure (D-020–D-021).** D-020: Formally closed — `DYNAMIC_DATA_PLAN.md` maintained with STATUS updates, SESSION LOG entries, and PHASE STATUS table updates across every session since 031. Protocol proven self-sustaining. D-021: `README.md` Change History now has complete structured entries for all sessions 031–036; missing Session 033 entry backfilled. Active-phase line updated to reflect full plan completion. **All 21 issues across all 6 phases are now DONE.** |
