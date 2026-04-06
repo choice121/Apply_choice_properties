@@ -234,9 +234,9 @@ class RentalApplication {
                 ? streetParts.join(', ')
                 : name; // fallback: use property name if no address parts
 
-            // Pre-fill the property address field (Step 1) — only if empty
+            // Pre-fill the property address field (Step 1) — URL params always take priority
             const addrField = document.getElementById('propertyAddress');
-            if (addrField && formattedAddr && !addrField.value) {
+            if (addrField && formattedAddr) {
                 addrField.value = formattedAddr;
                 addrField.dispatchEvent(new Event('input', { bubbles: true }));
             }
