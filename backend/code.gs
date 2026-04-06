@@ -159,7 +159,11 @@ function initializeSheets() {
       'Pet Deposit Amount', 'Monthly Pet Rent',
       'Tenant Signature', 'Signature Timestamp', 'Lease IP Address',
       // ── NEW: Holding Fee columns (Session 037) ──
-      'Holding Fee Amount', 'Holding Fee Status', 'Holding Fee Date', 'Holding Fee Notes'
+      'Holding Fee Amount', 'Holding Fee Status', 'Holding Fee Date', 'Holding Fee Notes',
+      // ── ISSUE-002 fix: extended property context columns ──
+      'Property Zip', 'Application Fee', 'Available Date', 'Lease Terms',
+      'Min Lease Months', 'Pets Allowed', 'Pet Types Allowed', 'Pet Weight Limit',
+      'Pet Deposit', 'Smoking Allowed', 'Utilities Included', 'Parking', 'Parking Fee'
     ];
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
     sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold').setBackground('#1a5276').setFontColor('#ffffff');
