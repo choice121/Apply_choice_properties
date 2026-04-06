@@ -317,7 +317,7 @@ class RentalApplication {
                 '<div class="pcb-right">' +
                     '<div class="pcb-managed">' +
                         '<i class="fas fa-shield-alt"></i>' +
-                        '<span>Managed by <strong>Choice Properties</strong></span>' +
+                        '<span><span data-i18n="managedBy">Managed by</span> <strong>Choice Properties</strong></span>' +
                     '</div>' +
                 '</div>' +
             '</div>';
@@ -342,12 +342,13 @@ class RentalApplication {
         banner.className = 'no-context-banner';
         banner.setAttribute('role', 'note');
         banner.setAttribute('aria-label', 'Property address required');
+        const tNc = this.getTranslations();
         banner.innerHTML =
             '<div class="ncb-inner">' +
                 '<div class="ncb-icon"><i class="fas fa-map-marker-alt"></i></div>' +
                 '<div class="ncb-text">' +
-                    '<div class="ncb-title">Which property are you applying for?</div>' +
-                    '<div class="ncb-sub">Please enter the full property address in Step 1 below so we can match your application to the correct listing.</div>' +
+                    '<div class="ncb-title" data-i18n="noContextTitle">' + tNc.noContextTitle + '</div>' +
+                    '<div class="ncb-sub" data-i18n="noContextSub">' + tNc.noContextSub + '</div>' +
                 '</div>' +
             '</div>';
 
@@ -400,16 +401,17 @@ class RentalApplication {
             const ratio = total / monthlyRent;
             const ratioText = ratio.toFixed(1) + 'x';
 
+            const tRatio = this.getTranslations();
             let color, label;
             if (ratio >= 2.5) {
                 color = '#27ae60';
-                label = 'Qualifies';
+                label = tRatio.ratioQualifies;
             } else if (ratio >= 2.0) {
                 color = '#f39c12';
-                label = 'Borderline';
+                label = tRatio.ratioBorderline;
             } else {
                 color = '#e74c3c';
-                label = 'Low';
+                label = tRatio.ratioLow;
             }
 
             ratioDisplay.textContent = ratioText;
@@ -417,7 +419,7 @@ class RentalApplication {
 
             const labelEl = ratioResult.querySelector('.income-ratio-label');
             if (labelEl) {
-                labelEl.textContent = 'Income-to-Rent Ratio: ' + label;
+                labelEl.textContent = tRatio.incomeRatioLabel + ' ' + label;
                 labelEl.style.color = color;
             }
 
@@ -946,19 +948,19 @@ class RentalApplication {
             modal.setAttribute('aria-label', 'Save progress and resume later');
             modal.innerHTML = `
                 <div class="save-resume-card">
-                    <h3><i class="fas fa-bookmark" style="color:var(--secondary);margin-right:8px;"></i>Save & Resume Later</h3>
-                    <p>Enter your email and we'll send you a link to resume your application exactly where you left off.</p>
+                    <h3><i class="fas fa-bookmark" style="color:var(--secondary);margin-right:8px;"></i><span data-i18n="saveResumeLater">Save &amp; Resume Later</span></h3>
+                    <p data-i18n="saveResumeDesc">Enter your email and we'll send you a link to resume your application exactly where you left off.</p>
                     <div class="form-group">
                         <input type="email" id="resumeEmailInput" placeholder="your@email.com" autocomplete="email" />
                     </div>
                     <div class="save-resume-actions">
                         <button class="btn-send-link" id="sendResumeLinkBtn">
-                            <i class="fas fa-paper-plane"></i> Send Link
+                            <i class="fas fa-paper-plane"></i> <span data-i18n="sendLink">Send Link</span>
                         </button>
-                        <button class="btn-cancel-resume" id="cancelResumeBtn">Cancel</button>
+                        <button class="btn-cancel-resume" id="cancelResumeBtn" data-i18n="cancel">Cancel</button>
                     </div>
                     <div class="save-resume-success" id="saveResumeSuccess">
-                        <i class="fas fa-check-circle"></i> Link sent! Check your inbox.
+                        <i class="fas fa-check-circle"></i> <span data-i18n="linkSent">Link sent! Check your inbox.</span>
                     </div>
                 </div>`;
             document.body.appendChild(modal);
@@ -970,7 +972,7 @@ class RentalApplication {
             const bar = document.createElement('div');
             bar.className = 'save-resume-bar';
             bar.innerHTML = `<button type="button" class="btn-save-resume save-resume-trigger">
-                <i class="fas fa-bookmark"></i> Save & Resume Later
+                <i class="fas fa-bookmark"></i> <span data-i18n="saveResumeLater">Save &amp; Resume Later</span>
             </button>`;
             section.appendChild(bar);
         });
@@ -1042,7 +1044,8 @@ class RentalApplication {
             const updateCounter = () => {
                 const len = textarea.value.length;
                 const max = textarea.getAttribute('maxlength') || 500;
-                counter.textContent = `${len}/${max} characters`;
+                const tC = this.getTranslations();
+                counter.textContent = `${len}/${max} ${tC.charCount}`;
             };
             textarea.addEventListener('input', updateCounter);
             updateCounter();
@@ -1361,7 +1364,38 @@ class RentalApplication {
                 notSelected: 'Not selected',
                 retry: 'Retry',
                 offlineError: 'You are offline. Please check your internet connection and try again.',
-                submissionFailed: 'Submission failed. Please try again.'
+                submissionFailed: 'Submission failed. Please try again.',
+                backgroundQuestions: 'Background Questions',
+                ref1RelationshipLabel: 'Relationship to Reference 1',
+                ref1RelationshipPlaceholder: 'e.g., Former Landlord, Employer, Coworker, Friend',
+                ref2RelationshipLabel: 'Relationship to Reference 2 (Optional)',
+                ref2RelationshipPlaceholder: 'e.g., Former Landlord, Employer, Coworker, Friend',
+                saveResumeLater: 'Save & Resume Later',
+                saveResumeDesc: "Enter your email and we'll send you a link to resume your application exactly where you left off.",
+                sendLink: 'Send Link',
+                cancel: 'Cancel',
+                linkSent: 'Link sent! Check your inbox.',
+                ratioQualifies: 'Qualifies',
+                ratioBorderline: 'Borderline',
+                ratioLow: 'Low',
+                noContextTitle: 'Which property are you applying for?',
+                noContextSub: 'Please enter the full property address in Step 1 below so we can match your application to the correct listing.',
+                managedBy: 'Managed by',
+                charCount: 'characters',
+                summaryPropertyApplicant: 'Property & Applicant',
+                summaryCoApplicant: 'Co-Applicant',
+                summaryResidency: 'Residency',
+                summaryOccupancy: 'Occupancy & Vehicles',
+                summaryEmployment: 'Employment & Income',
+                summaryFinancial: 'Financial & References',
+                summaryPayment: 'Payment Preferences',
+                retryIn: 'in',
+                retryAttempt: 'attempt',
+                pleaseAgreeDeclarations: 'Please agree to all legal declarations before submitting.',
+                networkError: 'Unable to reach our servers. Please check your connection and try again.',
+                serverError: 'Our system is temporarily unavailable. Please try again in a few minutes, or contact us at 707-706-3137.',
+                copied: 'Copied!',
+                pageTitle: 'Rental Application — Choice Properties'
             },
             es: {
                 langText: 'English',
@@ -1591,7 +1625,38 @@ class RentalApplication {
                 notSelected: 'No seleccionado',
                 retry: 'Reintentar',
                 offlineError: 'Estás sin conexión. Por favor verifica tu conexión a internet e intenta de nuevo.',
-                submissionFailed: 'Error al enviar. Por favor intenta de nuevo.'
+                submissionFailed: 'Error al enviar. Por favor intenta de nuevo.',
+                backgroundQuestions: 'Preguntas de Antecedentes',
+                ref1RelationshipLabel: 'Relación con Referencia 1',
+                ref1RelationshipPlaceholder: 'ej., Propietario anterior, Empleador, Compañero, Amigo',
+                ref2RelationshipLabel: 'Relación con Referencia 2 (Opcional)',
+                ref2RelationshipPlaceholder: 'ej., Propietario anterior, Empleador, Compañero, Amigo',
+                saveResumeLater: 'Guardar y Continuar Después',
+                saveResumeDesc: 'Ingrese su correo y le enviaremos un enlace para continuar su solicitud exactamente donde la dejó.',
+                sendLink: 'Enviar Enlace',
+                cancel: 'Cancelar',
+                linkSent: '¡Enlace enviado! Revise su bandeja de entrada.',
+                ratioQualifies: 'Califica',
+                ratioBorderline: 'Límite',
+                ratioLow: 'Bajo',
+                noContextTitle: '¿Para qué propiedad está solicitando?',
+                noContextSub: 'Por favor ingrese la dirección completa de la propiedad en el Paso 1 para que podamos vincular su solicitud con el listado correcto.',
+                managedBy: 'Administrado por',
+                charCount: 'caracteres',
+                summaryPropertyApplicant: 'Propiedad y Solicitante',
+                summaryCoApplicant: 'Co-Solicitante',
+                summaryResidency: 'Residencia',
+                summaryOccupancy: 'Ocupantes y Vehículos',
+                summaryEmployment: 'Empleo e Ingresos',
+                summaryFinancial: 'Finanzas y Referencias',
+                summaryPayment: 'Preferencias de Pago',
+                retryIn: 'en',
+                retryAttempt: 'intento',
+                pleaseAgreeDeclarations: 'Por favor acepte todas las declaraciones legales antes de enviar.',
+                networkError: 'No es posible conectarse con nuestros servidores. Por favor verifique su conexión e intente de nuevo.',
+                serverError: 'Nuestro sistema está temporalmente no disponible. Por favor intente de nuevo en unos minutos, o contáctenos al 707-706-3137.',
+                copied: '¡Copiado!',
+                pageTitle: 'Solicitud de Arrendamiento — Choice Properties'
             }
         };
 
@@ -1606,18 +1671,23 @@ class RentalApplication {
                 const t = translations[this.state.language];
                 text.textContent = t.langText;
                 
+                const HTML_KEYS = new Set(['spamWarning']);
                 document.querySelectorAll('[data-i18n]').forEach(el => {
                     const key = el.getAttribute('data-i18n');
-                    if (t[key]) {
+                    if (t[key] !== undefined) {
                         if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
                             if (el.placeholder !== undefined) el.placeholder = t[key];
                         } else if (el.tagName === 'OPTION') {
                             el.textContent = t[key];
+                        } else if (HTML_KEYS.has(key)) {
+                            el.innerHTML = t[key];
                         } else {
                             el.textContent = t[key];
                         }
                     }
                 });
+                document.documentElement.setAttribute('lang', this.state.language);
+                document.title = t.pageTitle;
 
                 document.querySelectorAll('.btn-next').forEach(b => {
                     const icon = b.querySelector('i');
@@ -1651,13 +1721,16 @@ class RentalApplication {
 
     // ---------- NEW: Distinguish error types ----------
     isTransientError(error) {
+        if (error.isTransient) return true;
         const msg = error.message || error.toString();
         return msg.includes('network') || 
                msg.includes('timeout') || 
                msg.includes('Failed to fetch') ||
                msg.includes('ECONNREFUSED') ||
                msg.includes('Internet') ||
-               msg.includes('offline');
+               msg.includes('offline') ||
+               msg.includes('conexión') ||
+               msg.includes('conexion');
     }
 
     // ---------- MODIFIED: showSubmissionError with auto-retry ----------
@@ -1681,7 +1754,7 @@ class RentalApplication {
             const delay = Math.pow(2, this.retryCount) * 1000; // 2,4,8 seconds
             this.retryCount++;
             
-            msgEl.innerHTML = `${errorMessage} – ${t.retry} in ${delay/1000}s (attempt ${this.retryCount}/${this.maxRetries})`;
+            msgEl.innerHTML = `${errorMessage} – ${t.retry} ${t.retryIn} ${delay/1000}s (${t.retryAttempt} ${this.retryCount}/${this.maxRetries})`;
             statusArea.classList.add('error');
             if (spinner) {
                 spinner.className = 'fas fa-spinner fa-pulse';
@@ -1793,6 +1866,7 @@ class RentalApplication {
     // ---------- MODIFIED: handleFormSubmit with retry reset ----------
     async handleFormSubmit(e) {
         e.preventDefault();
+        const t = this.getTranslations();
 
         // ── Duplicate submission guard ──────────────────────────────
         // Block if already mid-submission
@@ -1829,7 +1903,7 @@ class RentalApplication {
         const authorize = document.getElementById('authorizeVerify');
         const terms = document.getElementById('termsAgree');
         if (!certify.checked || !authorize.checked || !terms.checked) {
-            alert('Please agree to all legal declarations before submitting.');
+            alert(t.pleaseAgreeDeclarations);
             const submitBtn = document.getElementById('mainSubmitBtn');
             if (submitBtn) {
                 submitBtn.classList.remove('loading');
@@ -1857,7 +1931,6 @@ class RentalApplication {
         this.showSubmissionProgress();
 
         try {
-            const t = this.getTranslations();
             this.updateSubmissionProgress(1, t.processing);
 
             const form = document.getElementById('rentalApplication');
@@ -1875,7 +1948,9 @@ class RentalApplication {
                     body: formData
                 });
             } catch (networkErr) {
-                throw new Error('Unable to reach our servers. Please check your connection and try again.');
+                const netErr = new Error(t.networkError);
+                netErr.isTransient = true;
+                throw netErr;
             }
 
             // GAS can return HTML error pages (quota exceeded, script error, etc.)
@@ -1883,12 +1958,12 @@ class RentalApplication {
             let result;
             const contentType = response.headers.get('content-type') || '';
             if (!response.ok || !contentType.includes('application/json')) {
-                throw new Error('Our system is temporarily unavailable. Please try again in a few minutes, or contact us at 707-706-3137.');
+                throw new Error(t.serverError);
             }
             try {
                 result = await response.json();
             } catch (parseErr) {
-                throw new Error('Our system is temporarily unavailable. Please try again in a few minutes, or contact us at 707-706-3137.');
+                throw new Error(t.serverError);
             }
 
             if (result.success) {
@@ -2148,11 +2223,11 @@ class RentalApplication {
         const t = this.getTranslations();
 
         const groups = [
-            { id: 1, name: 'Property & Applicant', fields: [
+            { id: 1, name: t.summaryPropertyApplicant, fields: [
                 'Property Address', 'Requested Move-in Date', 'Desired Lease Term',
                 'First Name', 'Last Name', 'Email', 'Phone', 'DOB', 'SSN'
             ]},
-            { id: 1, name: 'Co-Applicant', fields: [
+            { id: 1, name: t.summaryCoApplicant, fields: [
                 'Has Co-Applicant', 'Additional Person Role',
                 'Co-Applicant First Name', 'Co-Applicant Last Name',
                 'Co-Applicant Email', 'Co-Applicant Phone',
@@ -2161,23 +2236,23 @@ class RentalApplication {
                 'Co-Applicant Monthly Income', 'Co-Applicant Employment Duration',
                 'Co-Applicant Consent'
             ]},
-            { id: 2, name: 'Residency', fields: [
+            { id: 2, name: t.summaryResidency, fields: [
                 'Current Address', 'Residency Duration', 'Current Rent Amount',
                 'Reason for leaving', 'Current Landlord Name', 'Landlord Phone'
             ]},
-            { id: 2, name: 'Occupancy & Vehicles', fields: [
+            { id: 2, name: t.summaryOccupancy, fields: [
                 'Total Occupants', 'Additional Occupants', 'Has Pets', 'Pet Details',
                 'Has Vehicle', 'Vehicle Make', 'Vehicle Model', 'Vehicle Year', 'Vehicle License Plate'
             ]},
-            { id: 3, name: 'Employment & Income', fields: [
+            { id: 3, name: t.summaryEmployment, fields: [
                 'Employment Status', 'Employer', 'Job Title', 'Employment Duration',
                 'Supervisor Name', 'Supervisor Phone', 'Monthly Income', 'Other Income'
             ]},
-            { id: 4, name: 'Financial & References', fields: [
+            { id: 4, name: t.summaryFinancial, fields: [
                 'Emergency Contact Name', 'Emergency Contact Phone', 'Emergency Contact Relationship',
                 'Reference 1 Name', 'Reference 1 Phone', 'Reference 2 Name', 'Reference 2 Phone'
             ]},
-            { id: 5, name: 'Payment Preferences', fields: [
+            { id: 5, name: t.summaryPayment, fields: [
                 'Primary Payment Method', 'Primary Payment Method Other',
                 'Alternative Payment Method', 'Alternative Payment Method Other',
                 'Third Choice Payment Method', 'Third Choice Payment Method Other'
@@ -2247,7 +2322,8 @@ window.copyAppId = function() {
             const btn = document.querySelector('.copy-btn');
             if (btn) {
                 const original = btn.innerHTML;
-                btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+                const tCopy = (window.app && window.app.getTranslations) ? window.app.getTranslations() : {};
+                btn.innerHTML = `<i class="fas fa-check"></i> ${tCopy.copied || 'Copied!'}`;
                 setTimeout(() => { btn.innerHTML = original; }, 2000);
             }
         }).catch(() => {
