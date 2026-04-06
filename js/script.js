@@ -177,8 +177,8 @@ class RentalApplication {
             const state = p.get('state') || '';
             const rent  = p.get('rent') || '';
 
-            // Nothing useful in the URL — silent return
-            if (!id && !name && !addr && !city) return;
+            // Nothing useful in the URL — show manual-entry prompt and return
+            if (!id && !name && !addr && !city) { this._showNoContextPrompt(); return; }
 
             // Store context on instance for later use (income ratio, success page, etc.)
             this.state.propertyContext = { id, name, addr, city, state, rent };
@@ -302,6 +302,46 @@ class RentalApplication {
         } else {
             const container = document.querySelector('.container');
             if (container) container.insertBefore(banner, container.firstChild);
+        }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // NO-CONTEXT PROMPT — shown when the form is opened without URL params.
+    // Guides the applicant to manually enter the property address on Step 1.
+    // ─────────────────────────────────────────────────────────────────────
+    _showNoContextPrompt() {
+        const banner = document.createElement('div');
+        banner.id = 'noContextBanner';
+        banner.className = 'no-context-banner';
+        banner.setAttribute('role', 'note');
+        banner.setAttribute('aria-label', 'Property address required');
+        banner.innerHTML =
+            '<div class="ncb-inner">' +
+                '<div class="ncb-icon"><i class="fas fa-map-marker-alt"></i></div>' +
+                '<div class="ncb-text">' +
+                    '<div class="ncb-title">Which property are you applying for?</div>' +
+                    '<div class="ncb-sub">Please enter the full property address in Step 1 below so we can match your application to the correct listing.</div>' +
+                '</div>' +
+            '</div>';
+
+        const progressContainer = document.querySelector('.progress-container');
+        if (progressContainer && progressContainer.parentNode) {
+            progressContainer.parentNode.insertBefore(banner, progressContainer);
+        } else {
+            const container = document.querySelector('.container');
+            if (container) container.insertBefore(banner, container.firstChild);
+        }
+
+        // Softly highlight the property address field when it is visible
+        const addrField = document.getElementById('propertyAddress');
+        if (addrField) {
+            addrField.style.borderColor = '#c9a04a';
+            addrField.style.boxShadow   = '0 0 0 3px rgba(201,160,74,0.18)';
+            addrField.addEventListener('input', function onInput() {
+                addrField.style.borderColor = '';
+                addrField.style.boxShadow   = '';
+                addrField.removeEventListener('input', onInput);
+            }, { once: true });
         }
     }
 
