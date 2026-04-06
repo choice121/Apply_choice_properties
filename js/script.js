@@ -152,6 +152,9 @@ class RentalApplication {
 
         this._autoSaveTimer = setInterval(() => this.saveProgress(), this.config.AUTO_SAVE_INTERVAL);
 
+        // Initialise fields-remaining hint for the first section
+        setTimeout(() => this.updateFieldsRemainingHint(1), 50);
+
         // ── Read URL params from listing site and pre-fill form ──
         this._prefillFromURL();
         
@@ -547,9 +550,19 @@ class RentalApplication {
         if (!form) return;
         const inputs = form.querySelectorAll('input, select, textarea');
         inputs.forEach(input => {
-            input.addEventListener('input', () => this.validateField(input));
-            input.addEventListener('change', () => this.validateField(input));
-            input.addEventListener('blur', () => this.validateField(input));
+            const refresh = () => {
+                // Only validate if the field has been touched (has a value or is losing focus)
+                if (input.value.trim() || input.checked) this.validateField(input);
+                const activeSection = this.getCurrentSection();
+                this.updateFieldsRemainingHint(activeSection);
+            };
+            input.addEventListener('input', refresh);
+            input.addEventListener('change', refresh);
+            input.addEventListener('blur', () => {
+                this.validateField(input);
+                const activeSection = this.getCurrentSection();
+                this.updateFieldsRemainingHint(activeSection);
+            });
         });
     }
 
@@ -675,6 +688,7 @@ class RentalApplication {
     nextSection(currentSection) {
         if (!this.validateStep(currentSection)) return;
         this.hideSection(currentSection);
+        this._slideDir = 'forward';
         this.showSection(currentSection + 1);
         this.updateProgressBar();
         if (currentSection + 1 === 6) this.generateApplicationSummary();
@@ -683,6 +697,7 @@ class RentalApplication {
     previousSection(currentSection) {
         if (currentSection > 1) {
             this.hideSection(currentSection);
+            this._slideDir = 'back';
             this.showSection(currentSection - 1);
             this.updateProgressBar();
         }
@@ -690,14 +705,53 @@ class RentalApplication {
 
     hideSection(sectionNumber) {
         const section = document.getElementById(`section${sectionNumber}`);
-        if (section) section.classList.remove('active');
+        if (section) section.classList.remove('active', 'slide-back');
     }
 
     showSection(sectionNumber) {
         const section = document.getElementById(`section${sectionNumber}`);
         if (section) {
+            section.classList.remove('slide-back');
+            if (this._slideDir === 'back') section.classList.add('slide-back');
+            this._slideDir = null;
             section.classList.add('active');
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            this.updateFieldsRemainingHint(sectionNumber);
+        }
+    }
+
+    // ---------- Fields-remaining hint on Next button ----------
+    updateFieldsRemainingHint(sectionNumber) {
+        const section = document.getElementById(`section${sectionNumber}`);
+        if (!section) return;
+        const nextBtn = section.querySelector('.btn-next');
+        if (!nextBtn) return;
+
+        let hint = nextBtn.parentElement.querySelector('.btn-hint');
+        if (!hint) {
+            hint = document.createElement('span');
+            hint.className = 'btn-hint';
+            nextBtn.parentElement.appendChild(hint);
+        }
+
+        const inputs = section.querySelectorAll('input[required], select[required], textarea[required]');
+        let emptyCount = 0;
+        inputs.forEach(input => {
+            if (input.type === 'checkbox') {
+                if (!input.checked) emptyCount++;
+            } else if (!input.value.trim()) {
+                emptyCount++;
+            }
+        });
+
+        if (emptyCount > 0) {
+            hint.textContent = emptyCount === 1
+                ? '1 required field still needs to be filled'
+                : `${emptyCount} required fields still need to be filled`;
+            hint.classList.add('has-remaining');
+        } else {
+            hint.textContent = '';
+            hint.classList.remove('has-remaining');
         }
     }
 

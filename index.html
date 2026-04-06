@@ -502,80 +502,6 @@
                 </div>
                 <!-- ===== END CO-APPLICANT SECTION ===== -->
 
-                <!-- Contact Preferences -->
-                <div class="contact-preferences">
-                    <h4><i class="fas fa-phone-alt"></i> <span data-i18n="contactPrefsHeader">Contact Preferences (For Follow-up After Payment)</span></h4>
-
-                    <div class="form-group">
-                        <label class="required" data-i18n="prefContactMethod">Preferred Contact Method</label>
-                        <div class="checkbox-group">
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="contactMethodText" name="Preferred Contact Method" value="Text Message">
-                                <label for="contactMethodText" data-i18n="contactMethodText">Text Message</label>
-                            </div>
-                            <div class="checkbox-item">
-                                <input type="checkbox" id="contactMethodEmail" name="Preferred Contact Method" value="Email">
-                                <label for="contactMethodEmail" data-i18n="contactMethodEmail">Email</label>
-                            </div>
-                        </div>
-                        <div class="field-hint" data-i18n="contactMethodHint">You can select both methods</div>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="required" data-i18n="availabilityLabel">Availability for Follow-up (After Payment)</label>
-                        <div class="time-categories">
-                            <div class="time-category">
-                                <h5 data-i18n="weekdays">Weekdays</h5>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="timeMorning" name="Preferred Time" value="Morning (8am-11am)">
-                                    <label for="timeMorning" data-i18n="timeMorning">Morning (8am-11am)</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="timeMidday" name="Preferred Time" value="Midday (11am-2pm)">
-                                    <label for="timeMidday" data-i18n="timeMidday">Midday (11am-2pm)</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="timeAfternoon" name="Preferred Time" value="Afternoon (2pm-5pm)">
-                                    <label for="timeAfternoon" data-i18n="timeAfternoon">Afternoon (2pm-5pm)</label>
-                                </div>
-                            </div>
-                            <div class="time-category">
-                                <h5 data-i18n="eveningsWeekends">Evenings & Weekends</h5>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="timeEarlyEvening" name="Preferred Time" value="Early Evening (5pm-8pm)">
-                                    <label for="timeEarlyEvening" data-i18n="timeEarlyEvening">Early Evening (5pm-8pm)</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="timeLateEvening" name="Preferred Time" value="Late Evening (8pm-10pm)">
-                                    <label for="timeLateEvening" data-i18n="timeLateEvening">Late Evening (8pm-10pm)</label>
-                                </div>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="timeWeekend" name="Preferred Time" value="Weekend">
-                                    <label for="timeWeekend" data-i18n="timeWeekend">Weekend</label>
-                                </div>
-                            </div>
-                            <div class="time-category">
-                                <h5 data-i18n="flexible">Flexible</h5>
-                                <div class="checkbox-item">
-                                    <input type="checkbox" id="timeAnytime" name="Preferred Time" value="Anytime">
-                                    <label for="timeAnytime" data-i18n="timeAnytime">Anytime — I'm flexible</label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="contactTimeSpecific" data-i18n="additionalNotesLabel">Additional Notes (Optional)</label>
-                        <input type="text" id="contactTimeSpecific" name="Preferred Time Specific"
-                               placeholder="e.g., Best after 7pm, avoid Wednesdays" data-i18n="additionalNotesPlaceholder">
-                    </div>
-
-                    <div class="note">
-                        <i class="fas fa-info-circle"></i>
-                        <span data-i18n="preferencesNote">These preferences are for non-urgent follow-up after your payment is complete.</span>
-                    </div>
-                </div>
-
                 <div class="btn-container">
                     <div></div>
                     <button type="button" class="btn-next"><span data-i18n="nextStep">Next Step</span> <i class="fas fa-arrow-right"></i></button>
@@ -711,6 +637,35 @@
                     </div>
                 </div>
 
+                <h3 data-i18n="backgroundQuestions">Background Questions</h3>
+                <div class="form-group">
+                    <label data-i18n="evictedLabel">Have you ever been evicted?</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="radio" id="evictedYes" name="Ever Evicted" value="Yes">
+                            <label for="evictedYes" data-i18n="yes">Yes</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="radio" id="evictedNo" name="Ever Evicted" value="No" checked>
+                            <label for="evictedNo" data-i18n="no">No</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label data-i18n="smokerLabel">Do you smoke?</label>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="radio" id="smokeYes" name="Smoker" value="Yes">
+                            <label for="smokeYes" data-i18n="yes">Yes</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="radio" id="smokeNo" name="Smoker" value="No" checked>
+                            <label for="smokeNo" data-i18n="no">No</label>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="btn-container">
                     <button type="button" class="btn-prev"><i class="fas fa-arrow-left"></i> <span data-i18n="prevStep">Previous</span></button>
                     <button type="button" class="btn-next"><span data-i18n="nextStep">Next Step</span> <i class="fas fa-arrow-right"></i></button>
@@ -835,6 +790,11 @@
                     </div>
                 </div>
 
+                <div class="form-group">
+                    <label for="ref1Relationship" data-i18n="ref1RelationshipLabel">Relationship to Reference 1</label>
+                    <input type="text" id="ref1Relationship" name="Reference 1 Relationship" placeholder="e.g., Former Landlord, Employer, Coworker, Friend" data-i18n="ref1RelationshipPlaceholder">
+                </div>
+
                 <div class="form-row">
                     <div class="form-col">
                         <div class="form-group">
@@ -848,6 +808,11 @@
                             <input type="tel" id="ref2Phone" name="Reference 2 Phone">
                         </div>
                     </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="ref2Relationship" data-i18n="ref2RelationshipLabel">Relationship to Reference 2 (Optional)</label>
+                    <input type="text" id="ref2Relationship" name="Reference 2 Relationship" placeholder="e.g., Former Landlord, Employer, Coworker, Friend" data-i18n="ref2RelationshipPlaceholder">
                 </div>
 
                 <h3 data-i18n="emergencyInfo">Emergency Contact</h3>
@@ -872,35 +837,6 @@
                 <div class="form-group">
                     <label for="emergencyRelationship" data-i18n="emergencyRelationshipLabel">Relationship to you</label>
                     <input type="text" id="emergencyRelationship" name="Emergency Contact Relationship" placeholder="e.g., Spouse, Parent, Friend" data-i18n="emergencyRelationshipPlaceholder">
-                </div>
-
-                <h3 data-i18n="additionalInfo">Additional Information</h3>
-                <div class="form-group">
-                    <label data-i18n="evictedLabel">Have you ever been evicted?</label>
-                    <div class="checkbox-group">
-                        <div class="checkbox-item">
-                            <input type="radio" id="evictedYes" name="Ever Evicted" value="Yes">
-                            <label for="evictedYes" data-i18n="yes">Yes</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="radio" id="evictedNo" name="Ever Evicted" value="No" checked>
-                            <label for="evictedNo" data-i18n="no">No</label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label data-i18n="smokerLabel">Do you smoke?</label>
-                    <div class="checkbox-group">
-                        <div class="checkbox-item">
-                            <input type="radio" id="smokeYes" name="Smoker" value="Yes">
-                            <label for="smokeYes" data-i18n="yes">Yes</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="radio" id="smokeNo" name="Smoker" value="No" checked>
-                            <label for="smokeNo" data-i18n="no">No</label>
-                        </div>
-                    </div>
                 </div>
 
                 <div class="btn-container">
@@ -990,6 +926,80 @@
                     <i class="fas fa-exclamation-circle"></i> Please select different payment methods for each choice.
                 </div>
 
+                <!-- Contact Preferences -->
+                <div class="contact-preferences">
+                    <h4><i class="fas fa-phone-alt"></i> <span data-i18n="contactPrefsHeader">Contact Preferences (For Follow-up After Payment)</span></h4>
+
+                    <div class="form-group">
+                        <label class="required" data-i18n="prefContactMethod">Preferred Contact Method</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="contactMethodText" name="Preferred Contact Method" value="Text Message">
+                                <label for="contactMethodText" data-i18n="contactMethodText">Text Message</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="contactMethodEmail" name="Preferred Contact Method" value="Email">
+                                <label for="contactMethodEmail" data-i18n="contactMethodEmail">Email</label>
+                            </div>
+                        </div>
+                        <div class="field-hint" data-i18n="contactMethodHint">You can select both methods</div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="required" data-i18n="availabilityLabel">Availability for Follow-up (After Payment)</label>
+                        <div class="time-categories">
+                            <div class="time-category">
+                                <h5 data-i18n="weekdays">Weekdays</h5>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="timeMorning" name="Preferred Time" value="Morning (8am-11am)">
+                                    <label for="timeMorning" data-i18n="timeMorning">Morning (8am-11am)</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="timeMidday" name="Preferred Time" value="Midday (11am-2pm)">
+                                    <label for="timeMidday" data-i18n="timeMidday">Midday (11am-2pm)</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="timeAfternoon" name="Preferred Time" value="Afternoon (2pm-5pm)">
+                                    <label for="timeAfternoon" data-i18n="timeAfternoon">Afternoon (2pm-5pm)</label>
+                                </div>
+                            </div>
+                            <div class="time-category">
+                                <h5 data-i18n="eveningsWeekends">Evenings & Weekends</h5>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="timeEarlyEvening" name="Preferred Time" value="Early Evening (5pm-8pm)">
+                                    <label for="timeEarlyEvening" data-i18n="timeEarlyEvening">Early Evening (5pm-8pm)</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="timeLateEvening" name="Preferred Time" value="Late Evening (8pm-10pm)">
+                                    <label for="timeLateEvening" data-i18n="timeLateEvening">Late Evening (8pm-10pm)</label>
+                                </div>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="timeWeekend" name="Preferred Time" value="Weekend">
+                                    <label for="timeWeekend" data-i18n="timeWeekend">Weekend</label>
+                                </div>
+                            </div>
+                            <div class="time-category">
+                                <h5 data-i18n="flexible">Flexible</h5>
+                                <div class="checkbox-item">
+                                    <input type="checkbox" id="timeAnytime" name="Preferred Time" value="Anytime">
+                                    <label for="timeAnytime" data-i18n="timeAnytime">Anytime — I'm flexible</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contactTimeSpecific" data-i18n="additionalNotesLabel">Additional Notes (Optional)</label>
+                        <input type="text" id="contactTimeSpecific" name="Preferred Time Specific"
+                               placeholder="e.g., Best after 7pm, avoid Wednesdays" data-i18n="additionalNotesPlaceholder">
+                    </div>
+
+                    <div class="note">
+                        <i class="fas fa-info-circle"></i>
+                        <span data-i18n="preferencesNote">These preferences are for non-urgent follow-up after your payment is complete.</span>
+                    </div>
+                </div>
+
                 <div class="btn-container">
                     <button type="button" class="btn-prev"><i class="fas fa-arrow-left"></i> <span data-i18n="prevStep">Previous</span></button>
                     <button type="button" class="btn-next"><span data-i18n="nextStep">Next Step</span> <i class="fas fa-arrow-right"></i></button>
@@ -1011,22 +1021,6 @@
                 <div id="summaryContainer" class="summary-section">
                     <div class="summary-grid" id="applicationSummary">
                         <!-- Populated by JavaScript -->
-                    </div>
-                </div>
-
-                <div class="payment-reminder">
-                    <i class="fas fa-clock"></i>
-                    <div>
-                        <strong data-i18n="paymentReminderTitle">Payment Required Before Review</strong>
-                        <p data-i18n="paymentReminderDesc">Your application is not complete until the $50 fee has been paid. Our team will contact you shortly after submission to arrange this.</p>
-                    </div>
-                </div>
-
-                <div class="verification-reminder">
-                    <i class="fas fa-phone-alt"></i>
-                    <div>
-                        <strong data-i18n="verificationTitle">Verify Your Contact Information</strong>
-                        <p data-i18n="verificationDesc">Please confirm your email and phone number are correct. This is how our team will reach you about the $50 fee.</p>
                     </div>
                 </div>
 
