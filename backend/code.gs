@@ -1709,7 +1709,7 @@ function renderLeaseSigningPage(appId) {
 
       <li>
         <b>1. Rent Payment.</b>
-        Tenant agrees to pay $${rent.toLocaleString()}.00 per month, due on the ${rentDueStr}, payable to Choice Properties via the payment method agreed upon with Management. Partial payments are not accepted unless expressly agreed to in writing. Rent not received by the ${graceLateDay}${graceDateSfx} of the month is considered late and subject to the late fees outlined in Article III.
+        Tenant agrees to pay $${rent.toLocaleString()}.00 per month, due on the ${rentDueStr}, payable to ${landlordName} via the payment method agreed upon with Management. Partial payments are not accepted unless expressly agreed to in writing. Rent not received by the ${graceLateDay}${graceDateSfx} of the month is considered late and subject to the late fees outlined in Article III.
       </li>
 
       <li>
@@ -1920,7 +1920,7 @@ function renderLeaseSigningPage(appId) {
         </div>
         <div class="checkbox-row" id="row3" onclick="toggleCheck('agreeFinancial','row3')">
           <input type="checkbox" id="agreeFinancial" onchange="validateSignatureForm()">
-          <label for="agreeFinancial">I agree to pay the move-in total of <b>$${moveInCost.toLocaleString()}.00</b> prior to taking possession${holdingFeePaid ? ` (after holding fee credit of $${holdingFeeAmt.toLocaleString()}.00)` : ''}, and monthly rent of <b>$${rent.toLocaleString()}.00</b> on the 1st of each month as outlined in Article III.</label>
+          <label for="agreeFinancial">I agree to pay the move-in total of <b>$${moveInCost.toLocaleString()}.00</b> prior to taking possession${holdingFeePaid ? ` (after holding fee credit of $${holdingFeeAmt.toLocaleString()}.00)` : ''}, and monthly rent of <b>$${rent.toLocaleString()}.00</b> on the ${rentDueDay}${rentDueSuffix} of each month as outlined in Article III.</label>
         </div>
         <div class="checkbox-row" id="row4" onclick="toggleCheck('agreeOwnership','row4')">
           <input type="checkbox" id="agreeOwnership" onchange="validateSignatureForm()">
