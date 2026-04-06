@@ -385,10 +385,11 @@ function renderLoginPage(errorMsg) {
       </div>
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
       <script>
+        var _BASE = '${gasUrl}';
         function login(){
           const q=document.getElementById('query').value.trim();
           if(!q)return;
-          window.location.href='?path=dashboard&id='+encodeURIComponent(q);
+          window.location.href=_BASE+'?path=dashboard&id='+encodeURIComponent(q);
         }
       </script>
     </body>
@@ -1971,6 +1972,7 @@ function renderLeaseSigningPage(appId) {
 
 <script>
   const APP_ID   = '${appId}';
+  const BASE_URL = '${baseUrl}';
   let   capturedIP = '';
   let   allChecked = false;
 
@@ -2091,7 +2093,7 @@ function renderLeaseSigningPage(appId) {
             document.getElementById(id).className = 'sig-step done';
           });
           setTimeout(function() {
-            window.location.href = '?path=lease_confirm&id=' + APP_ID;
+            window.location.href = BASE_URL + '?path=lease_confirm&id=' + APP_ID;
           }, 1800);
         } else {
           document.getElementById('sigSpinner').style.display = 'none';
