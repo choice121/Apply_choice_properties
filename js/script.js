@@ -1035,6 +1035,17 @@ class RentalApplication {
         data._last_updated = new Date().toISOString();
         data._language = this.state.language || 'en';
         localStorage.setItem(this.config.LOCAL_STORAGE_KEY, JSON.stringify(data));
+        this._flashAutoSave();
+    }
+
+    _flashAutoSave() {
+        const indicator = document.getElementById('autoSaveIndicator');
+        if (!indicator) return;
+        clearTimeout(this._autoSaveFlashTimer);
+        indicator.classList.add('visible');
+        this._autoSaveFlashTimer = setTimeout(() => {
+            indicator.classList.remove('visible');
+        }, 2200);
     }
 
     getAllFormData() {

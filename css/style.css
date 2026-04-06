@@ -374,8 +374,22 @@ header::before {
 
 .progress-step.completed .step-number {
     background-color: var(--success);
-    color: white;
+    color: transparent;
     border-color: var(--success);
+    font-size: 0;
+    position: relative;
+}
+
+.progress-step.completed .step-number::before {
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    content: '\f00c';
+    font-size: 16px;
+    color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 /* ===== MOBILE PROGRESS INDICATOR – REFINED ===== */
@@ -664,6 +678,68 @@ input.error, select.error, textarea.error {
     outline: none;
     box-shadow: 0 0 0 2px rgba(42, 111, 173, 0.5);
     opacity: 1;
+}
+
+/* ===== COLLAPSIBLE PROCESS EXPLAINER ===== */
+.process-explainer-details {
+    margin-bottom: 24px;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+}
+
+.process-explainer-details[open] .process-explainer-chevron {
+    transform: rotate(180deg);
+}
+
+.process-explainer-summary {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    background: var(--light);
+    cursor: pointer;
+    user-select: none;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--primary);
+    list-style: none;
+    border-radius: 16px;
+    transition: background 0.2s;
+}
+
+.process-explainer-details[open] .process-explainer-summary {
+    border-radius: 16px 16px 0 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.process-explainer-summary::-webkit-details-marker {
+    display: none;
+}
+
+.process-explainer-summary i:first-child {
+    color: var(--secondary);
+    font-size: 14px;
+}
+
+.process-explainer-summary:hover {
+    background: #edf1f7;
+}
+
+.process-explainer-summary span {
+    flex: 1;
+}
+
+.process-explainer-chevron {
+    font-size: 12px;
+    color: var(--text-muted);
+    transition: transform 0.25s ease;
+}
+
+.process-explainer-details .process-explainer {
+    border-radius: 0 0 16px 16px;
+    margin-bottom: 0;
+    border: none;
 }
 
 /* ===== PROCESS EXPLAINER ===== */
@@ -2004,7 +2080,51 @@ footer {
 
 /* ===== AUTO-SAVE INDICATOR ===== */
 .auto-save-indicator {
-    display: none !important;
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background: rgba(30, 41, 59, 0.88);
+    color: #94a3b8;
+    padding: 8px 14px;
+    border-radius: 30px;
+    font-size: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    z-index: 1000;
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    pointer-events: none;
+}
+
+.auto-save-indicator.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.auto-save-indicator i {
+    color: var(--success);
+    font-size: 12px;
+}
+
+/* ===== REQUIRED LEGEND ===== */
+.required-legend {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin: -12px 0 20px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.required-legend span {
+    color: var(--danger);
+    font-weight: 600;
 }
 
 /* ===== TEST FILL BUTTON ===== */
@@ -2022,52 +2142,43 @@ footer {
 }
 
 .test-fill-btn {
-    background: linear-gradient(135deg, #8b5cf6, #6366f1);
-    color: white;
-    border: none;
-    border-radius: 60px;
-    padding: 16px 28px;
-    font-size: 16px;
-    font-weight: 600;
+    background: rgba(30, 41, 59, 0.85);
+    color: #94a3b8;
+    border: 1px solid rgba(148, 163, 184, 0.25);
+    border-radius: 30px;
+    padding: 9px 16px;
+    font-size: 12px;
+    font-weight: 500;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 12px;
-    box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.5), 0 0 0 2px rgba(255, 255, 255, 0.5);
+    gap: 7px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     transition: all 0.2s ease;
-    border: 2px solid white;
-    backdrop-filter: blur(4px);
-    letter-spacing: 0.3px;
+    backdrop-filter: blur(6px);
+    letter-spacing: 0.2px;
 }
 
 .test-fill-btn i {
-    font-size: 20px;
-    filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
+    font-size: 12px;
 }
 
 .test-fill-btn span {
-    text-shadow: 0 2px 2px rgba(0,0,0,0.2);
+    opacity: 0.85;
 }
 
 .test-fill-btn:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 20px 30px -5px rgba(139, 92, 246, 0.7), 0 0 0 3px rgba(255, 255, 255, 0.8);
-    background: linear-gradient(135deg, #7c3aed, #4f46e5);
+    background: rgba(30, 41, 59, 0.95);
+    color: #e2e8f0;
+    border-color: rgba(148, 163, 184, 0.5);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
 }
 
 .test-fill-btn:active {
-    transform: translateY(0) scale(0.98);
-    box-shadow: 0 5px 15px -3px rgba(139, 92, 246, 0.6);
-}
-
-.test-fill-btn {
-    animation: pulse-subtle 2s infinite;
-}
-
-@keyframes pulse-subtle {
-    0%, 100% { box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.5), 0 0 0 2px rgba(255, 255, 255, 0.5); }
-    50% { box-shadow: 0 15px 30px -3px rgba(139, 92, 246, 0.8), 0 0 0 4px rgba(255, 255, 255, 0.8); }
+    transform: translateY(0);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
 .test-fill-btn::after {
@@ -2094,22 +2205,22 @@ footer {
 
 @media (max-width: 768px) {
     .test-button-container {
-        bottom: 16px;
-        right: 16px;
+        bottom: 12px;
+        right: 12px;
     }
     .test-fill-btn {
-        padding: 14px 22px;
-        font-size: 14px;
-        gap: 8px;
+        padding: 8px 14px;
+        font-size: 11px;
+        gap: 6px;
     }
     .test-fill-btn i {
-        font-size: 18px;
+        font-size: 11px;
     }
 }
 
 @media (max-width: 480px) {
     .test-fill-btn {
-        padding: 12px 20px;
+        padding: 7px 12px;
     }
 }
 
@@ -2467,8 +2578,8 @@ footer {
    NO-CONTEXT PROMPT — shown when form is opened without URL params
    ===================================================================== */
 .no-context-banner {
-    background: linear-gradient(135deg, #2a1f00 0%, #3b2a00 100%);
-    border-bottom: 2px solid var(--accent);
+    background: linear-gradient(135deg, #0c3d6e 0%, #1a5496 100%);
+    border-bottom: 2px solid rgba(255,255,255,0.15);
     padding: 12px 24px;
 }
 

@@ -219,33 +219,41 @@
 
             <!-- ===== STEP 1: Property & Applicant Details ===== -->
             <div class="form-section active" id="section1">
-                <div class="process-explainer">
-                    <div class="explainer-card">
-                        <div class="explainer-icon">📋</div>
-                        <div class="explainer-content">
-                            <h4 data-i18n="step1YouSubmit">1. You Submit</h4>
-                            <p data-i18n="step1Desc">Fill out your application completely</p>
+                <details class="process-explainer-details" open>
+                    <summary class="process-explainer-summary">
+                        <i class="fas fa-info-circle"></i>
+                        <span>How this application works</span>
+                        <i class="fas fa-chevron-down process-explainer-chevron"></i>
+                    </summary>
+                    <div class="process-explainer">
+                        <div class="explainer-card">
+                            <div class="explainer-icon">📋</div>
+                            <div class="explainer-content">
+                                <h4 data-i18n="step1YouSubmit">1. You Submit</h4>
+                                <p data-i18n="step1Desc">Fill out your application completely</p>
+                            </div>
+                        </div>
+                        <div class="explainer-arrow">→</div>
+                        <div class="explainer-card">
+                            <div class="explainer-icon">💰</div>
+                            <div class="explainer-content">
+                                <h4 data-i18n="step2PaymentArranged">2. Payment Arranged</h4>
+                                <p data-i18n="step2Desc">We contact you for the $50 fee</p>
+                            </div>
+                        </div>
+                        <div class="explainer-arrow">→</div>
+                        <div class="explainer-card">
+                            <div class="explainer-icon">✅</div>
+                            <div class="explainer-content">
+                                <h4 data-i18n="step3ReviewBegins">3. Review Begins</h4>
+                                <p data-i18n="step3Desc">After payment, we review your application</p>
+                            </div>
                         </div>
                     </div>
-                    <div class="explainer-arrow">→</div>
-                    <div class="explainer-card">
-                        <div class="explainer-icon">💰</div>
-                        <div class="explainer-content">
-                            <h4 data-i18n="step2PaymentArranged">2. Payment Arranged</h4>
-                            <p data-i18n="step2Desc">We contact you for the $50 fee</p>
-                        </div>
-                    </div>
-                    <div class="explainer-arrow">→</div>
-                    <div class="explainer-card">
-                        <div class="explainer-icon">✅</div>
-                        <div class="explainer-content">
-                            <h4 data-i18n="step3ReviewBegins">3. Review Begins</h4>
-                            <p data-i18n="step3Desc">After payment, we review your application</p>
-                        </div>
-                    </div>
-                </div>
+                </details>
 
                 <h2><i class="fas fa-home"></i> <span data-i18n="propertyHeader">Property & Applicant Details</span></h2>
+                <p class="required-legend"><span>*</span> Required field &nbsp;·&nbsp; <i class="fas fa-shield-alt" style="color:var(--success);font-size:11px;"></i> &nbsp;Your progress is automatically saved</p>
 
                 <h3 data-i18n="propertyInfo">Property Information</h3>
                 <div class="form-group">
