@@ -259,8 +259,8 @@ class RentalApplication {
                 addrField.dispatchEvent(new Event('input', { bubbles: true }));
             }
 
-            // Show the property context banner
-            this._showPropertyBanner({ id, name, addr, city, state, rent });
+            // Show the property context banner (with extended listing details)
+            this._showPropertyBanner({ id, name, addr, city, state, rent, beds, baths, deposit, avail });
 
             // Wire up income ratio on Step 3 if rent was passed
             if (rent) {
@@ -277,7 +277,7 @@ class RentalApplication {
     // PROPERTY CONTEXT BANNER — shown between header and progress bar.
     // Lets applicants confirm they're applying for the right property.
     // ─────────────────────────────────────────────────────────────────────
-    _showPropertyBanner({ name, addr, city, state, rent }) {
+    _showPropertyBanner({ name, addr, city, state, rent, beds, baths, deposit, avail }) {
         if (!name && !addr && !city) return;
 
         const displayName = name || 'Selected Property';
@@ -289,6 +289,14 @@ class RentalApplication {
 
         const metaParts = [locationLine, rentLine].filter(Boolean);
         const metaLine = metaParts.join(' &nbsp;·&nbsp; ');
+
+        // Build listing detail chips (beds / baths / deposit / available)
+        const chips = [];
+        if (beds)    chips.push('<span class="pcb-chip"><i class="fas fa-bed"></i> ' + this._escHtml(beds) + ' Bed</span>');
+        if (baths)   chips.push('<span class="pcb-chip"><i class="fas fa-bath"></i> ' + this._escHtml(baths) + ' Bath</span>');
+        if (deposit) chips.push('<span class="pcb-chip"><i class="fas fa-dollar-sign"></i> $' + parseFloat(deposit).toLocaleString('en-US') + ' Deposit</span>');
+        if (avail)   chips.push('<span class="pcb-chip"><i class="fas fa-calendar-check"></i> Avail ' + this._escHtml(avail) + '</span>');
+        const chipsHtml = chips.length ? '<div class="pcb-chips">' + chips.join('') + '</div>' : '';
 
         const banner = document.createElement('div');
         banner.id = 'propertyContextBanner';
@@ -303,6 +311,7 @@ class RentalApplication {
                         '<div class="pcb-label">Applying for</div>' +
                         '<div class="pcb-name">' + this._escHtml(displayName) + '</div>' +
                         (metaLine ? '<div class="pcb-meta">' + metaLine + '</div>' : '') +
+                        chipsHtml +
                     '</div>' +
                 '</div>' +
                 '<div class="pcb-right">' +
@@ -1001,7 +1010,9 @@ class RentalApplication {
             this.saveProgress();
             // Build a resume URL with the saved data encoded as a param
             const savedKey = this.config.LOCAL_STORAGE_KEY;
-            const resumeUrl = window.location.origin + window.location.pathname + '?resume=1';
+            const currentParams = new URLSearchParams(window.location.search);
+            currentParams.set('resume', '1');
+            const resumeUrl = window.location.origin + window.location.pathname + '?' + currentParams.toString();
             // Send via GAS backend (fire-and-forget, no blocking)
             const payload = new FormData();
             payload.append('_action', 'sendResumeEmail');

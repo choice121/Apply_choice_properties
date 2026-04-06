@@ -135,7 +135,7 @@ function initializeSheets() {
       'Current Rent Amount', 'Reason for leaving', 'Current Landlord Name', 'Landlord Phone',
       'Employment Status', 'Employer', 'Job Title', 'Employment Duration',
       'Supervisor Name', 'Supervisor Phone', 'Monthly Income', 'Other Income',
-      'Reference 1 Name', 'Reference 1 Phone', 'Reference 2 Name', 'Reference 2 Phone',
+      'Reference 1 Name', 'Reference 1 Phone', 'Reference 1 Relationship', 'Reference 2 Name', 'Reference 2 Phone', 'Reference 2 Relationship',
       'Emergency Contact Name', 'Emergency Contact Phone', 'Primary Payment Method', 'Primary Payment Method Other',
       'Alternative Payment Method', 'Alternative Payment Method Other', 'Third Choice Payment Method', 'Third Choice Payment Method Other',
       'Has Pets', 'Pet Details', 'Total Occupants', 'Additional Occupants',
@@ -198,6 +198,8 @@ function initializeSheets() {
 // ── Add property context + lease columns to sheets that existed before this update ──
 function addMissingLeaseColumns(sheet) {
   const newColumns = [
+    // Reference relationship fields (missed in original schema)
+    'Reference 1 Relationship', 'Reference 2 Relationship',
     // D-001: property context columns
     'Property ID', 'Property Name', 'Property City', 'Property State', 'Listed Rent',
     // Original lease columns
@@ -343,6 +345,7 @@ function doGet(e) {
 // renderLoginPage()
 // ============================================================
 function renderLoginPage(errorMsg) {
+  const gasUrl = ScriptApp.getService().getUrl();
   return HtmlService.createHtmlOutput(`
     <!DOCTYPE html>
     <html>
@@ -2389,7 +2392,7 @@ const EmailTemplates = {
     <div class="section">
       <div class="section-label">Your Selected Payment Methods</div>
       <div class="callout amber">
-        <h4>Application Fee — $${APPLICATION_FEE}.00</h4>
+        <h4>Application Fee — $${(data['Application Fee'] || APPLICATION_FEE)}.00</h4>
         <p style="margin-bottom:12px;">You have indicated the following preferred payment methods. Our team will reach out to you at the contact information above within 24 hours to arrange collection of your application fee.</p>
         <div>${paymentMethods.map(m => `<span class="pay-pill">${m}</span>`).join('')}</div>
       </div>
@@ -2399,7 +2402,7 @@ const EmailTemplates = {
     <div class="section">
       <div class="section-label">What Happens Next</div>
       <ul class="steps-list">
-        <li><span class="step-num">1</span><span><strong>Payment Arrangement</strong> — A member of our leasing team will contact you within 24 hours via text at <strong>${data['Phone']}</strong> to coordinate your $${APPLICATION_FEE}.00 application fee.</span></li>
+        <li><span class="step-num">1</span><span><strong>Payment Arrangement</strong> — A member of our leasing team will contact you within 24 hours via text at <strong>${data['Phone']}</strong> to coordinate your $${(data['Application Fee'] || APPLICATION_FEE)}.00 application fee.</span></li>
         <li><span class="step-num">2</span><span><strong>Payment Confirmation</strong> — Once your fee is received and confirmed, you will receive an email notification and your application will advance to the review stage.</span></li>
         <li><span class="step-num">3</span><span><strong>Application Review</strong> — Our team will conduct a thorough review of your application within 2–3 business days of payment confirmation.</span></li>
         <li><span class="step-num">4</span><span><strong>Decision Notification</strong> — You will be notified of our decision via email. If approved, our leasing team will prepare your lease agreement for signature.</span></li>
@@ -2459,7 +2462,7 @@ const EmailTemplates = {
 
     <p class="intro-text">
       A new rental application has been submitted and requires your attention. The applicant is awaiting contact
-      to arrange payment of the $${APPLICATION_FEE}.00 application fee. Please reach out within 24 hours.
+      to arrange payment of the $${(data['Application Fee'] || APPLICATION_FEE)}.00 application fee. Please reach out within 24 hours.
     </p>
 
     <!-- Applicant at a Glance -->
@@ -2481,7 +2484,7 @@ const EmailTemplates = {
     <div class="section">
       <div class="section-label">Payment Preferences</div>
       <div class="callout amber">
-        <h4>Contact Applicant to Collect $${APPLICATION_FEE}.00 Fee</h4>
+        <h4>Contact Applicant to Collect $${(data['Application Fee'] || APPLICATION_FEE)}.00 Fee</h4>
         <p style="margin-bottom:12px;">The applicant has indicated the following preferred payment methods:</p>
         <div>${paymentMethods.map(m => `<span class="pay-pill">${m}</span>`).join('')}</div>
       </div>
@@ -2523,7 +2526,7 @@ const EmailTemplates = {
 `,
 
   // ── 3. Payment Confirmation ───────────────────────────────
-  paymentConfirmation: (appId, applicantName, phone, dashboardLink, propertyAddress, propertyName) => `
+  paymentConfirmation: (appId, applicantName, phone, dashboardLink, propertyAddress, propertyName, fee) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2546,7 +2549,7 @@ const EmailTemplates = {
     <p class="greeting">Dear ${applicantName.split(' ')[0]},</p>
 
     <p class="intro-text">
-      We are pleased to confirm that your $${APPLICATION_FEE}.00 application fee has been received and successfully recorded.
+      We are pleased to confirm that your $${fee || APPLICATION_FEE}.00 application fee has been received and successfully recorded.
       Your application is now active and has been placed in our review queue. Thank you for completing
       this step promptly.
     </p>
@@ -2559,7 +2562,7 @@ const EmailTemplates = {
         <div class="financial-row"><span class="f-label">Application ID</span><span class="f-value">${appId}</span></div>
         <div class="financial-row"><span class="f-label">Applicant</span><span class="f-value">${applicantName}</span></div>
         ${(propertyAddress || propertyName) ? `<div class="financial-row"><span class="f-label">Property</span><span class="f-value">${propertyName || propertyAddress}</span></div>` : ''}
-        <div class="financial-row"><span class="f-label">Amount Paid</span><span class="f-value">$${APPLICATION_FEE}.00</span></div>
+        <div class="financial-row"><span class="f-label">Amount Paid</span><span class="f-value">$${fee || APPLICATION_FEE}.00</span></div>
         <div class="financial-row"><span class="f-label">Payment Date</span><span class="f-value">${new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</span></div>
         <div class="financial-row"><span class="f-label">Status</span><span class="f-value" style="color:#059669;">Under Review</span></div>
       </div>
@@ -3067,11 +3070,13 @@ function sendPaymentConfirmation(appId, applicantEmail, applicantName, phone) {
     // D-011: fetch property context from sheet row
     let propertyAddress = '';
     let propertyName    = '';
+    let applicationFee  = APPLICATION_FEE;
     try {
       const result = getApplication(appId);
       if (result.success) {
         propertyAddress = result.application['Property Address'] || '';
         propertyName    = result.application['Property Name']    || '';
+        applicationFee  = parseFloat(result.application['Application Fee']) || APPLICATION_FEE;
       }
     } catch (e) {}
     const propertyLabel   = propertyName || propertyAddress;
@@ -3079,7 +3084,7 @@ function sendPaymentConfirmation(appId, applicantEmail, applicantName, phone) {
     MailApp.sendEmail({
       to: applicantEmail,
       subject: `✅ Payment Confirmed${propertySnippet} | Application ${appId}`,
-      htmlBody: EmailTemplates.paymentConfirmation(appId, applicantName, phone, dashboardLink, propertyAddress, propertyName),
+      htmlBody: EmailTemplates.paymentConfirmation(appId, applicantName, phone, dashboardLink, propertyAddress, propertyName, applicationFee),
       name: 'Choice Properties'
     });
     return true;
@@ -4136,7 +4141,7 @@ function renderApplicantDashboard(appId) {
     <!-- Payment pending card -->
     <div class="payment-alert" style="margin:20px 24px;">
       <h5>⏳ Payment Required</h5>
-      <p>Your application is on hold. Our team will text you at <strong>${app['Phone']}</strong> within 24 hours to collect your $${APPLICATION_FEE} application fee.</p>
+      <p>Your application is on hold. Our team will text you at <strong>${app['Phone']}</strong> within 24 hours to collect your $${app['Application Fee'] || APPLICATION_FEE} application fee.</p>
       <div>
         ${paymentMethods.map(m => `<span class="pay-method-pill">🎯 ${m.label}: ${m.value}</span>`).join('')}
       </div>
