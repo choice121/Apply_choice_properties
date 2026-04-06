@@ -188,6 +188,43 @@ class RentalApplication {
             setHidden('hiddenPropertyCity',  city);
             setHidden('hiddenPropertyState', state);
             setHidden('hiddenListedRent',    rent);
+              // D-015 extension: Additional property context params (ISSUE-002 fix)
+              const zip        = p.get('zip')         || '';
+              const deposit    = p.get('deposit')     || '';
+              const fee        = p.get('fee')         || '';
+              const beds       = p.get('beds')        || '';
+              const baths      = p.get('baths')       || '';
+              const avail      = p.get('avail')       || '';
+              const terms      = p.get('terms')       || '';
+              const minMonths  = p.get('min_months')  || '';
+              const pets       = p.get('pets')        || '';
+              const petTypes   = p.get('pet_types')   || '';
+              const petWeight  = p.get('pet_weight')  || '';
+              const petDeposit = p.get('pet_deposit') || '';
+              const petDetails = p.get('pet_details') || '';
+              const smoking    = p.get('smoking')     || '';
+              const utilities  = p.get('utilities')   || '';
+              const parking    = p.get('parking')     || '';
+              const parkingFee = p.get('parking_fee') || '';
+
+              setHidden('hiddenPropertyZip',     zip);
+              setHidden('hiddenPropertyAddress', addr);
+              setHidden('hiddenSecurityDeposit', deposit);
+              setHidden('hiddenApplicationFee',  fee);
+              setHidden('hiddenBedrooms',        beds);
+              setHidden('hiddenBathrooms',       baths);
+              setHidden('hiddenAvailableDate',   avail);
+              setHidden('hiddenLeaseTerms',      terms);
+              setHidden('hiddenMinLeaseMonths',  minMonths);
+              setHidden('hiddenPetsAllowed',     pets);
+              setHidden('hiddenPetTypes',        petTypes);
+              setHidden('hiddenPetWeightLimit',  petWeight);
+              setHidden('hiddenPetDeposit',      petDeposit);
+              setHidden('hiddenPetDetails',      petDetails);
+              setHidden('hiddenSmokingAllowed',  smoking);
+              setHidden('hiddenUtilities',       utilities);
+              setHidden('hiddenParking',         parking);
+              setHidden('hiddenParkingFee',      parkingFee);
 
             // Build a formatted address string for the property address field
             const streetParts = [addr, city, state].filter(Boolean);
