@@ -951,6 +951,25 @@ function processApplication(formData, fileBlob) {
         case 'Property City':         rowData.push(formData['Property City']  || ''); break;
         case 'Property State':        rowData.push(formData['Property State'] || ''); break;
         case 'Listed Rent':           rowData.push(formData['Listed Rent']    || ''); break;
+          // ── D-001 extension: Additional property context params (ISSUE-002 fix) ──
+          case 'Property Zip':        rowData.push(formData['Property Zip']        || ''); break;
+          case 'Property Address':    rowData.push(formData['Property Address']    || ''); break;
+          case 'Security Deposit':    rowData.push(formData['Security Deposit']    || ''); break;
+          case 'Application Fee':     rowData.push(formData['Application Fee']     || ''); break;
+          case 'Bedrooms':            rowData.push(formData['Bedrooms']            || ''); break;
+          case 'Bathrooms':           rowData.push(formData['Bathrooms']           || ''); break;
+          case 'Available Date':      rowData.push(formData['Available Date']      || ''); break;
+          case 'Lease Terms':         rowData.push(formData['Lease Terms']         || ''); break;
+          case 'Min Lease Months':    rowData.push(formData['Min Lease Months']    || ''); break;
+          case 'Pets Allowed':        rowData.push(formData['Pets Allowed']        || ''); break;
+          case 'Pet Types Allowed':   rowData.push(formData['Pet Types Allowed']   || ''); break;
+          case 'Pet Weight Limit':    rowData.push(formData['Pet Weight Limit']    || ''); break;
+          case 'Pet Deposit':         rowData.push(formData['Pet Deposit']         || ''); break;
+          case 'Pet Details':         rowData.push(formData['Pet Details']         || ''); break;
+          case 'Smoking Allowed':     rowData.push(formData['Smoking Allowed']     || ''); break;
+          case 'Utilities Included':  rowData.push(formData['Utilities Included']  || ''); break;
+          case 'Parking':             rowData.push(formData['Parking']             || ''); break;
+          case 'Parking Fee':         rowData.push(formData['Parking Fee']         || ''); break;
         // ── Ownership columns ──
         case 'Property Owner':        rowData.push(formData['Property Owner'] || 'Choice Properties'); break;
         case 'Managed By':            rowData.push('Choice Properties'); break;
