@@ -61,7 +61,9 @@ class RentalApplication {
             formData: {},
             language: 'en',
             // Property context passed from the listing site via URL params
-            propertyContext: null
+            propertyContext: null,
+            // Application fee — read from URL param, defaults to 50
+            applicationFee: 50
         };
         
         // Smart retry properties
@@ -144,6 +146,7 @@ class RentalApplication {
         this.restoreSavedProgress();
         this.setupGeoapify();
         this.setupInputFormatting();
+        this._readApplicationFee();
         this.setupLanguageToggle();
         this.setupSaveResume();
 
@@ -161,6 +164,18 @@ class RentalApplication {
         console.log('Rental Application Manager Initialized');
     }
 
+
+    // ─────────────────────────────────────────────────────────────────────
+    // APPLICATION FEE — read from URL param before translations are built.
+    // Falls back to 50 if not provided by the listing platform.
+    // ─────────────────────────────────────────────────────────────────────
+    _readApplicationFee() {
+        try {
+            const p   = new URLSearchParams(window.location.search);
+            const fee = parseFloat(p.get('fee'));
+            if (fee && fee > 0) this.state.applicationFee = fee;
+        } catch (e) {}
+    }
 
     // ─────────────────────────────────────────────────────────────────────
     // URL PRE-FILL — reads context passed by the main listing platform.
@@ -1040,6 +1055,7 @@ class RentalApplication {
 
     // ---------- Language toggle (unchanged, includes all keys) ----------
     setupLanguageToggle() {
+        const fee = this.state.applicationFee;
         const translations = {
             en: {
                 langText: 'Español',
@@ -1068,13 +1084,13 @@ class RentalApplication {
                 clickToCopy: 'Copy ID',
                 immediateNextSteps: 'Immediate Next Steps',
                 paymentRequiredTitle: 'Payment Required Before Review',
-                paymentRequiredDesc: 'Our team will contact you shortly at the phone number provided to arrange the $50 application fee.',
+                paymentRequiredDesc: `Our team will contact you shortly at the phone number provided to arrange the $${fee} application fee.`,
                 completePaymentTitle: 'Complete Payment',
-                completePaymentDesc: 'Your application is not complete until the $50 fee has been paid. We\'ll discuss payment options you\'re familiar with.',
+                completePaymentDesc: `Your application is not complete until the $${fee} fee has been paid. We'll discuss payment options you're familiar with.`,
                 reviewBeginsTitle: 'Review Begins',
                 reviewBeginsDesc: 'Once payment is confirmed, your application enters the formal review process. You can track status online with your ID.',
                 importantNote: 'Important:',
-                paymentUrgentText: 'Your application is not complete until the $50 fee has been paid. Please keep your phone nearby.',
+                paymentUrgentText: `Your application is not complete until the $${fee} fee has been paid. Please keep your phone nearby.`,
                 yourPreferences: 'Your Preferences (For Follow-up After Payment)',
                 contactMethod: 'Contact Method:',
                 bestTimes: 'Best Times:',
@@ -1090,7 +1106,7 @@ class RentalApplication {
                 step1YouSubmit: '1. You Submit',
                 step1Desc: 'Fill out your application completely',
                 step2PaymentArranged: '2. Payment Arranged',
-                step2Desc: 'We contact you for the $50 fee',
+                step2Desc: `We contact you for the $${fee} fee`,
                 step3ReviewBegins: '3. Review Begins',
                 step3Desc: 'After payment, we review your application',
                 propertyHeader: 'Property & Applicant Details',
@@ -1230,7 +1246,7 @@ class RentalApplication {
                 evictedLabel: 'Have you ever been evicted?',
                 smokerLabel: 'Do you smoke?',
                 paymentHeader: 'Payment Preferences',
-                paymentIntro: 'Tell us which payment services you use. When we contact you about the $50 application fee, we\'ll discuss options you\'re familiar with.',
+                paymentIntro: `Tell us which payment services you use. When we contact you about the $${fee} application fee, we'll discuss options you're familiar with.`,
                 paymentImportant: 'Payment must be completed before your application can be reviewed. Our team will contact you promptly after submission to arrange this.',
                 primaryPref: 'Primary Preference',
                 mainPaymentMethod: 'Your Main Payment Method',
@@ -1247,12 +1263,12 @@ class RentalApplication {
                 selectAnother: '— Select another (optional) —',
                 duplicateWarning: 'Please select different payment methods for each choice.',
                 reviewHeader: 'Review & Submit',
-                feeTitle: 'Application Fee: $50.00',
+                feeTitle: `Application Fee: $${fee}.00`,
                 feeDesc: 'This fee is required before review can begin. Our team will contact you immediately after submission to arrange payment.',
                 paymentReminderTitle: 'Payment Required Before Review',
-                paymentReminderDesc: 'Your application is not complete until the $50 fee has been paid. Our team will contact you shortly after submission to arrange this.',
+                paymentReminderDesc: `Your application is not complete until the $${fee} fee has been paid. Our team will contact you shortly after submission to arrange this.`,
                 verificationTitle: 'Verify Your Contact Information',
-                verificationDesc: 'Please confirm your email and phone number are correct. This is how our team will reach you about the $50 fee.',
+                verificationDesc: `Please confirm your email and phone number are correct. This is how our team will reach you about the $${fee} fee.`,
                 reapplicationPolicyTextShort: 'If denied, apply again within 30 days with no new fee. Screening results valid for 60 days.',
                 legalDeclaration: 'Legal Declaration',
                 legalCertify: 'I certify that the information provided in this application is true and correct to the best of my knowledge.',
@@ -1298,13 +1314,13 @@ class RentalApplication {
                 clickToCopy: 'Copiar ID',
                 immediateNextSteps: 'Próximos Pasos Inmediatos',
                 paymentRequiredTitle: 'Pago Requerido Antes de la Revisión',
-                paymentRequiredDesc: 'Nuestro equipo se comunicará con usted en breve al número proporcionado para coordinar el pago de $50.',
+                paymentRequiredDesc: `Nuestro equipo se comunicará con usted en breve al número proporcionado para coordinar el pago de $${fee}.`,
                 completePaymentTitle: 'Completar el Pago',
-                completePaymentDesc: 'Su solicitud no está completa hasta que se haya pagado la tarifa de $50. Discutiremos opciones de pago que conozca.',
+                completePaymentDesc: `Su solicitud no está completa hasta que se haya pagado la tarifa de $${fee}. Discutiremos opciones de pago que conozca.`,
                 reviewBeginsTitle: 'Comienza la Revisión',
                 reviewBeginsDesc: 'Una vez que se confirme el pago, su solicitud entra en el proceso de revisión formal. Puede seguir el estado en línea con su ID.',
                 importantNote: 'Importante:',
-                paymentUrgentText: 'Su solicitud no está completa hasta que se haya pagado la tarifa de $50. Por favor mantenga su teléfono cerca.',
+                paymentUrgentText: `Su solicitud no está completa hasta que se haya pagado la tarifa de $${fee}. Por favor mantenga su teléfono cerca.`,
                 yourPreferences: 'Sus Preferencias (Para Seguimiento Después del Pago)',
                 contactMethod: 'Método de Contacto:',
                 bestTimes: 'Mejores Horarios:',
@@ -1320,7 +1336,7 @@ class RentalApplication {
                 step1YouSubmit: '1. Usted Envía',
                 step1Desc: 'Complete su solicitud completamente',
                 step2PaymentArranged: '2. Pago Acordado',
-                step2Desc: 'Lo contactamos para la tarifa de $50',
+                step2Desc: `Lo contactamos para la tarifa de $${fee}`,
                 step3ReviewBegins: '3. Comienza la Revisión',
                 step3Desc: 'Después del pago, revisamos su solicitud',
                 propertyHeader: 'Detalles de la Propiedad y el Solicitante',
@@ -1460,7 +1476,7 @@ class RentalApplication {
                 evictedLabel: '¿Ha sido desalojado alguna vez?',
                 smokerLabel: '¿Fuma?',
                 paymentHeader: 'Preferencias de Pago',
-                paymentIntro: 'Díganos qué servicios de pago utiliza. Cuando lo contactemos acerca de la tarifa de solicitud de $50, discutiremos opciones con las que esté familiarizado.',
+                paymentIntro: `Díganos qué servicios de pago utiliza. Cuando lo contactemos acerca de la tarifa de solicitud de $${fee}, discutiremos opciones con las que esté familiarizado.`,
                 paymentImportant: 'El pago debe completarse antes de que su solicitud pueda ser revisada. Nuestro equipo lo contactará rápidamente después del envío para organizar esto.',
                 primaryPref: 'Preferencia Principal',
                 mainPaymentMethod: 'Su Método de Pago Principal',
@@ -1477,12 +1493,12 @@ class RentalApplication {
                 selectAnother: '— Seleccione otro (opcional) —',
                 duplicateWarning: 'Por favor seleccione diferentes métodos de pago para cada opción.',
                 reviewHeader: 'Revisar y Enviar',
-                feeTitle: 'Tarifa de Solicitud: $50.00',
+                feeTitle: `Tarifa de Solicitud: $${fee}.00`,
                 feeDesc: 'Esta tarifa es requerida antes de que la revisión pueda comenzar. Nuestro equipo lo contactará inmediatamente después del envío para organizar el pago.',
                 paymentReminderTitle: 'Pago Requerido Antes de la Revisión',
-                paymentReminderDesc: 'Su solicitud no está completa hasta que se haya pagado la tarifa de $50. Nuestro equipo lo contactará poco después del envío para organizar esto.',
+                paymentReminderDesc: `Su solicitud no está completa hasta que se haya pagado la tarifa de $${fee}. Nuestro equipo lo contactará poco después del envío para organizar esto.`,
                 verificationTitle: 'Verifique Su Información de Contacto',
-                verificationDesc: 'Por favor confirme que su correo electrónico y número de teléfono sean correctos. Así es como nuestro equipo lo contactará acerca de la tarifa de $50.',
+                verificationDesc: `Por favor confirme que su correo electrónico y número de teléfono sean correctos. Así es como nuestro equipo lo contactará acerca de la tarifa de $${fee}.`,
                 reapplicationPolicyTextShort: 'Si es denegado, puede aplicar nuevamente dentro de 30 días sin nueva tarifa. Resultados de evaluación válidos por 60 días.',
                 legalDeclaration: 'Declaración Legal',
                 legalCertify: 'Certifico que la información proporcionada en esta solicitud es verdadera y correcta a mi leal saber y entender.',
