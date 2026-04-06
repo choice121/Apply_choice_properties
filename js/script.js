@@ -147,6 +147,8 @@ class RentalApplication {
         this.setupLanguageToggle();
         this.setupSaveResume();
 
+        this._autoSaveTimer = setInterval(() => this.saveProgress(), this.config.AUTO_SAVE_INTERVAL);
+
         // ── Read URL params from listing site and pre-fill form ──
         this._prefillFromURL();
         
@@ -932,18 +934,24 @@ class RentalApplication {
         if (saved) {
             try {
                 const data = JSON.parse(saved);
-                // Sensitive keys are stripped from localStorage before saving (see saveProgress).
-                // The guard below is a belt-and-suspenders check in case a future change
-                // adds them back. Note: SSN fields use id="ssn"/"coSsn" but FormData key
-                // "SSN"/"Co-Applicant SSN" — getElementById would return null anyway,
-                // but we skip explicitly for clarity.
                 const SKIP = new Set(['SSN', 'Co-Applicant SSN', 'Application ID', '_last_updated', '_language']);
+                const form = document.getElementById('rentalApplication');
+                if (!form) return;
+
                 Object.keys(data).forEach(key => {
                     if (SKIP.has(key)) return;
-                    const el = document.getElementById(key);
-                    if (el) {
-                        if (el.type === 'checkbox') el.checked = data[key];
-                        else el.value = data[key];
+                    const value = data[key];
+                    if (value === undefined || value === null) return;
+                    const escaped = key.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+                    const els = form.querySelectorAll(`[name="${escaped}"]`);
+                    if (!els.length) return;
+                    const firstEl = els[0];
+                    if (firstEl.type === 'radio') {
+                        els.forEach(el => { if (el.value === value) el.checked = true; });
+                    } else if (firstEl.type === 'checkbox') {
+                        firstEl.checked = !!(value);
+                    } else {
+                        firstEl.value = value;
                     }
                 });
                 if (data._language) this.state.language = data._language;
@@ -1986,6 +1994,10 @@ class RentalApplication {
 
     clearSavedProgress() {
         localStorage.removeItem(this.config.LOCAL_STORAGE_KEY);
+        if (this._autoSaveTimer) {
+            clearInterval(this._autoSaveTimer);
+            this._autoSaveTimer = null;
+        }
     }
 
     generateApplicationSummary() {
