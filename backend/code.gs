@@ -5776,9 +5776,9 @@ function renderAdminPanel(authToken) {
     const canRequestHF  = app['Status'] === 'approved' && hfStatus === 'none';
     const canConfirmHF  = hfStatus === 'requested';
     const hfBadgeHtml   = hfStatus === 'paid'
-      ? \`<span class="status-badge badge-hold-paid" style="margin-left:6px;" title="Holding fee $${hfAmt} received"><i class="fas fa-hand-holding-dollar"></i> Hold Fee Paid</span>\`
+      ? \`<span class="status-badge badge-hold-paid" style="margin-left:6px;" title="Holding fee $\{hfAmt} received"><i class="fas fa-hand-holding-dollar"></i> Hold Fee Paid</span>\`
       : hfStatus === 'requested'
-      ? \`<span class="status-badge badge-hold-req" style="margin-left:6px;" title="Holding fee $${hfAmt} requested"><i class="fas fa-hourglass-half"></i> Hold Fee Pending</span>\`
+      ? \`<span class="status-badge badge-hold-req" style="margin-left:6px;" title="Holding fee $\{hfAmt} requested"><i class="fas fa-hourglass-half"></i> Hold Fee Pending</span>\`
       : '';
 
     let payPrefsHtml = '';
