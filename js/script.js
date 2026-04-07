@@ -33,7 +33,7 @@
     &addr=<street>     — street address
     &city=<city>       — city
     &state=<state>     — 2-letter state code
-    &rent=<amount>     — monthly rent (used for income ratio display)
+    &rent=<amount>     — monthly rent (stored for reference)
 
   These params pre-fill the Property Address field and show a context
   banner so applicants know which property they're applying for.
@@ -107,12 +107,6 @@ class RentalApplication {
 
     // ---------- Event listeners ----------
     setupEventListeners() {
-        const payBtn = document.getElementById('payNowBtn');
-        if (payBtn) {
-            payBtn.addEventListener('click', () => {
-                alert('Redirecting to secure payment checkout...');
-            });
-        }
         document.addEventListener('click', (e) => {
             if (e.target.matches('.btn-next') || e.target.closest('.btn-next')) {
                 const section = this.getCurrentSection();
@@ -268,11 +262,6 @@ class RentalApplication {
             // Show the property context banner (with extended listing details)
             this._showPropertyBanner({ id, name, addr, city, state, rent, beds, baths, deposit, avail, terms });
 
-            // Wire up income ratio on Step 3 if rent was passed
-            if (rent) {
-                this._setupIncomeRatio(parseFloat(rent));
-            }
-
         } catch (err) {
             // Silent — never break the form over a missing URL param
             console.warn('_prefillFromURL error (non-fatal):', err);
@@ -394,64 +383,6 @@ class RentalApplication {
                 addrField.removeEventListener('input', onInput);
             }, { once: true });
         }
-    }
-
-    // ─────────────────────────────────────────────────────────────────────
-    // INCOME RATIO — uses rent passed from URL to display ratio in Step 3.
-    // Green ≥2.5x (qualifies), amber 2–2.49x (borderline), red <2x (low).
-    // Standard rental threshold is 2.5–3x monthly rent.
-    // ─────────────────────────────────────────────────────────────────────
-    _setupIncomeRatio(monthlyRent) {
-        if (!monthlyRent || monthlyRent <= 0) return;
-
-        const incomeInput   = document.getElementById('monthlyIncome');
-        const otherInput    = document.getElementById('otherIncome');
-        const ratioResult   = document.getElementById('incomeRatioResult');
-        const ratioDisplay  = document.getElementById('ratioDisplay');
-
-        if (!incomeInput || !ratioResult || !ratioDisplay) return;
-
-        const updateRatio = () => {
-            const primary = parseFloat((incomeInput.value || '').replace(/[^0-9.]/g, '')) || 0;
-            const other   = parseFloat((otherInput ? otherInput.value || '' : '').replace(/[^0-9.]/g, '')) || 0;
-            const total   = primary + other;
-
-            if (total <= 0) {
-                ratioResult.style.display = 'none';
-                return;
-            }
-
-            const ratio = total / monthlyRent;
-            const ratioText = ratio.toFixed(1) + 'x';
-
-            const tRatio = this.getTranslations();
-            let color, label;
-            if (ratio >= 2.5) {
-                color = '#27ae60';
-                label = tRatio.ratioQualifies;
-            } else if (ratio >= 2.0) {
-                color = '#f39c12';
-                label = tRatio.ratioBorderline;
-            } else {
-                color = '#e74c3c';
-                label = tRatio.ratioLow;
-            }
-
-            ratioDisplay.textContent = ratioText;
-            ratioDisplay.style.color = color;
-
-            const labelEl = ratioResult.querySelector('.income-ratio-label');
-            if (labelEl) {
-                labelEl.textContent = tRatio.incomeRatioLabel + ' ' + label;
-                labelEl.style.color = color;
-            }
-
-            ratioResult.style.display = 'flex';
-        };
-
-        incomeInput.addEventListener('input', updateRatio);
-        if (otherInput) otherInput.addEventListener('input', updateRatio);
-        updateRatio();
     }
 
     // Simple HTML escaper used in the property banner
@@ -855,7 +786,7 @@ class RentalApplication {
                         }
                     } else if (input.type === 'checkbox') {
                         if (input.id === 'coConsent' && !input.checked) {
-                            this.showError(input, this.state.language === 'en' ? 'You must authorise verification' : 'Debe autorizar la verificación');
+                            this.showError(input, this.state.language === 'en' ? 'You must authorize verification' : 'Debe autorizar la verificación');
                             input.classList.add('is-invalid');
                             isStepValid = false;
                             if (!firstInvalidField) firstInvalidField = input;
@@ -1141,20 +1072,6 @@ class RentalApplication {
                     }
                 });
                 if (data._language) this.state.language = data._language;
-
-                // D-016: After restore, re-hydrate propertyContext from hidden inputs
-                // and set up income ratio widget if rent data is present but URL param was absent.
-                const rentEl = document.getElementById('hiddenListedRent');
-                const rentVal = rentEl && rentEl.value ? parseFloat(rentEl.value) : 0;
-                if (rentVal && (!this.state.propertyContext || !this.state.propertyContext.rent)) {
-                    if (!this.state.propertyContext) this.state.propertyContext = {};
-                    this.state.propertyContext.rent  = String(rentVal);
-                    this.state.propertyContext.id    = (document.getElementById('hiddenPropertyId')    || {}).value || '';
-                    this.state.propertyContext.name  = (document.getElementById('hiddenPropertyName')  || {}).value || '';
-                    this.state.propertyContext.city  = (document.getElementById('hiddenPropertyCity')  || {}).value || '';
-                    this.state.propertyContext.state = (document.getElementById('hiddenPropertyState') || {}).value || '';
-                    this._setupIncomeRatio(rentVal);
-                }
             } catch (e) {}
         }
     }
@@ -1209,7 +1126,7 @@ class RentalApplication {
                 step1Label: 'Property & Applicant',
                 step2Label: 'Residency & Occupancy',
                 step3Label: 'Employment & Income',
-                step4Label: 'Financial & References',
+                step4Label: 'References & Emergency Contact',
                 step5Label: 'Payment Preferences',
                 step6Label: 'Review & Submit',
                 stepPrefix: 'Step',
@@ -1233,7 +1150,7 @@ class RentalApplication {
                 reviewBeginsDesc: 'Once payment is confirmed, your application enters the formal review process. You can track status online with your ID.',
                 importantNote: 'Important:',
                 paymentUrgentText: `Your application is not complete until the $${fee} fee has been paid. Please keep your phone nearby.`,
-                yourPreferences: 'Your Preferences (For Follow-up After Payment)',
+                yourPreferences: 'Your Preferences',
                 contactMethod: 'Contact Method:',
                 bestTimes: 'Best Times:',
                 paymentPref: 'Payment Preferences:',
@@ -1281,7 +1198,7 @@ class RentalApplication {
                 ssnHint: 'Only last 4 digits required',
                 ssnPlaceholder: '1234',
                 coApplicantCheckbox: 'I have a co-applicant or guarantor',
-                coApplicantInfo: 'Additional Person Information',
+                coApplicantInfo: 'Co-Applicant / Guarantor Information',
                 coRoleLabel: 'Role (Select one)',
                 roleCoApplicant: 'Co-applicant (will live in the unit)',
                 roleGuarantor: 'Guarantor (financial backup only)',
@@ -1298,13 +1215,13 @@ class RentalApplication {
                 coMonthlyIncomePlaceholder: 'e.g., 4000',
                 coEmploymentDurationLabel: 'Length of Employment',
                 coEmploymentDurationPlaceholder: 'e.g., 2 years',
-                coConsentLabel: 'I authorise verification of the information provided for this additional person, including credit and background check.',
-                contactPrefsHeader: 'Contact Preferences (For Follow-up After Payment)',
+                coConsentLabel: 'I authorize verification of the information provided for this additional person, including credit and background check.',
+                contactPrefsHeader: 'Contact Preferences',
                 prefContactMethod: 'Preferred Contact Method',
                 contactMethodText: 'Text Message',
                 contactMethodEmail: 'Email',
                 contactMethodHint: 'You can select both methods',
-                availabilityLabel: 'Availability for Follow-up (After Payment)',
+                availabilityLabel: 'Availability',
                 weekdays: 'Weekdays',
                 timeMorning: 'Morning (8am-11am)',
                 timeMidday: 'Midday (11am-2pm)',
@@ -1470,7 +1387,7 @@ class RentalApplication {
                 step1Label: 'Propiedad y Solicitante',
                 step2Label: 'Residencia y Ocupación',
                 step3Label: 'Empleo e Ingresos',
-                step4Label: 'Finanzas y Referencias',
+                step4Label: 'Referencias y Contacto de Emergencia',
                 step5Label: 'Preferencias de Pago',
                 step6Label: 'Revisar y Enviar',
                 stepPrefix: 'Paso',
@@ -1494,7 +1411,7 @@ class RentalApplication {
                 reviewBeginsDesc: 'Una vez que se confirme el pago, su solicitud entra en el proceso de revisión formal. Puede seguir el estado en línea con su ID.',
                 importantNote: 'Importante:',
                 paymentUrgentText: `Su solicitud no está completa hasta que se haya pagado la tarifa de $${fee}. Por favor mantenga su teléfono cerca.`,
-                yourPreferences: 'Sus Preferencias (Para Seguimiento Después del Pago)',
+                yourPreferences: 'Sus Preferencias',
                 contactMethod: 'Método de Contacto:',
                 bestTimes: 'Mejores Horarios:',
                 paymentPref: 'Preferencias de Pago:',
@@ -1542,7 +1459,7 @@ class RentalApplication {
                 ssnHint: 'Solo últimos 4 dígitos requeridos',
                 ssnPlaceholder: '1234',
                 coApplicantCheckbox: 'Tengo un co-solicitante o fiador',
-                coApplicantInfo: 'Información de Persona Adicional',
+                coApplicantInfo: 'Información de Co-Solicitante / Garante',
                 coRoleLabel: 'Rol (Seleccione uno)',
                 roleCoApplicant: 'Co-solicitante (vivirá en la unidad)',
                 roleGuarantor: 'Fiador (solo respaldo financiero)',
@@ -1560,12 +1477,12 @@ class RentalApplication {
                 coEmploymentDurationLabel: 'Tiempo en el empleo',
                 coEmploymentDurationPlaceholder: 'ej., 2 años',
                 coConsentLabel: 'Autorizo la verificación de la información proporcionada para esta persona adicional, incluyendo verificación de crédito y antecedentes.',
-                contactPrefsHeader: 'Preferencias de Contacto (Para Seguimiento Después del Pago)',
+                contactPrefsHeader: 'Preferencias de Contacto',
                 prefContactMethod: 'Método de Contacto Preferido',
                 contactMethodText: 'Mensaje de Texto',
                 contactMethodEmail: 'Correo Electrónico',
                 contactMethodHint: 'Puede seleccionar ambos métodos',
-                availabilityLabel: 'Disponibilidad para Seguimiento (Después del Pago)',
+                availabilityLabel: 'Disponibilidad',
                 weekdays: 'Días de semana',
                 timeMorning: 'Mañana (8am-11am)',
                 timeMidday: 'Mediodía (11am-2pm)',
@@ -2399,12 +2316,12 @@ window.copyAppId = function() {
 };
 
 // ============================================================
-// TEST DATA FILL FUNCTIONALITY (unchanged)
+// PLACEHOLDER — test fill removed
 // ============================================================
 (function() {
     const initTestButton = () => {
-        const testBtn = document.getElementById('testFillBtn');
-        if (!testBtn) return;
+        // test fill button removed
+        return;
 
         const hostname = window.location.hostname;
         const isDev = hostname === 'localhost' || hostname === '127.0.0.1';

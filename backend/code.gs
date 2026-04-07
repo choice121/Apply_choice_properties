@@ -147,7 +147,7 @@ function initializeSheets() {
       'Vehicle Make', 'Vehicle Model', 'Vehicle Year', 'Vehicle License Plate', 'Has Vehicle',
       'Emergency Contact Relationship', 'Preferred Contact Method', 'Preferred Time', 'Preferred Time Specific',
       // ── NEW: Property context columns (from URL params, D-001) ────
-      'Property ID', 'Property Name', 'Property City', 'Property State', 'Listed Rent',
+      'Property ID', 'Property Name', 'Property City', 'Property State', 'Listed Rent', 'Property Address URL',
       // ── NEW: Lease columns ────────────────────────────────
       'Property Owner', 'Managed By',
       'Lease Status', 'Lease Sent Date', 'Lease Signed Date',
@@ -201,7 +201,7 @@ function addMissingLeaseColumns(sheet) {
     // Reference relationship fields (missed in original schema)
     'Reference 1 Relationship', 'Reference 2 Relationship',
     // D-001: property context columns
-    'Property ID', 'Property Name', 'Property City', 'Property State', 'Listed Rent',
+    'Property ID', 'Property Name', 'Property City', 'Property State', 'Listed Rent', 'Property Address URL',
     // Original lease columns
     'Property Owner', 'Managed By',
     'Lease Status', 'Lease Sent Date', 'Lease Signed Date',
@@ -961,6 +961,7 @@ function processApplication(formData, fileBlob) {
         case 'Property City':         rowData.push(formData['Property City']  || ''); break;
         case 'Property State':        rowData.push(formData['Property State'] || ''); break;
         case 'Listed Rent':           rowData.push(formData['Listed Rent']    || ''); break;
+        case 'Property Address URL':  rowData.push(formData['Property Address URL'] || ''); break;
           // ── D-001 extension: Additional property context params (ISSUE-002 fix) ──
           case 'Property Zip':        rowData.push(formData['Property Zip']        || ''); break;
           case 'Property Address':    rowData.push(formData['Property Address']    || ''); break;

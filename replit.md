@@ -23,3 +23,27 @@ A static web application for managing rental applications for Choice Properties.
 ## Deployment
 - Configured as a static deployment (publicDir: ".")
 - Originally designed for Cloudflare Pages hosting
+
+## Changes Applied (UX/Bug Fix Pass)
+
+### Global Removals
+- **Income ratio feature fully removed**: deleted `_setupIncomeRatio()` method, all calls to it (including `_prefillFromURL` and `restoreSavedProgress`), the `#incomeRatioResult` div in HTML, and `.income-ratio`, `.income-ratio-label`, `.income-ratio-value` CSS
+- **Pay Now button removed**: removed `payNowBtn` event listener from `setupEventListeners()`
+- **Test data fill button removed**: removed `#testButtonContainer` HTML block, disabled the test fill IIFE, removed all `.test-button-container` and `.test-fill-btn` CSS
+
+### Trust & Credibility
+- Replaced Stripe brand icon (`fab fa-stripe`) with generic security icon (`fas fa-shield-alt`)
+- Fixed footer Contact Support link from `href="#"` to `mailto:choicepropertygroup@hotmail.com`
+- Added trust statement near submit button: "Your information is securely processed and will only be used for rental application review."
+
+### Wording / Translations (EN + ES)
+- "Additional Person Information" → "Co-Applicant / Guarantor Information"
+- Step 4 nav label: "Financial & References" → "References & Emergency Contact"
+- "Contact Preferences (For Follow-up After Payment)" → "Contact Preferences"
+- "Availability for Follow-up (After Payment)" → "Availability"
+- "Your Preferences (For Follow-up After Payment)" → "Your Preferences"
+- "authorise" → "authorize" everywhere (error messages, consent label)
+
+### Data / Backend
+- Added `'Property Address URL'` column to GAS sheet headers, migration columns list, and row data switch/case mapping
+- The `name="Property Address URL"` hidden input was already present in HTML — GAS now stores it
