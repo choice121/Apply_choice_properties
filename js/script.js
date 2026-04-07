@@ -266,7 +266,7 @@ class RentalApplication {
             }
 
             // Show the property context banner (with extended listing details)
-            this._showPropertyBanner({ id, name, addr, city, state, rent, beds, baths, deposit, avail });
+            this._showPropertyBanner({ id, name, addr, city, state, rent, beds, baths, deposit, avail, terms });
 
             // Wire up income ratio on Step 3 if rent was passed
             if (rent) {
@@ -283,7 +283,7 @@ class RentalApplication {
     // PROPERTY CONTEXT BANNER — shown between header and progress bar.
     // Lets applicants confirm they're applying for the right property.
     // ─────────────────────────────────────────────────────────────────────
-    _showPropertyBanner({ name, addr, city, state, rent, beds, baths, deposit, avail }) {
+    _showPropertyBanner({ id, name, addr, city, state, rent, beds, baths, deposit, avail, terms }) {
         if (!name && !addr && !city) return;
 
         const displayName = name || 'Selected Property';
@@ -296,13 +296,29 @@ class RentalApplication {
         const metaParts = [locationLine, rentLine].filter(Boolean);
         const metaLine = metaParts.join(' &nbsp;·&nbsp; ');
 
-        // Build listing detail chips (beds / baths / deposit / available)
+        // Build listing detail chips (beds / baths / deposit / available / lease terms)
         const chips = [];
         if (beds)    chips.push('<span class="pcb-chip"><i class="fas fa-bed"></i> ' + this._escHtml(beds) + ' Bed</span>');
         if (baths)   chips.push('<span class="pcb-chip"><i class="fas fa-bath"></i> ' + this._escHtml(baths) + ' Bath</span>');
         if (deposit) chips.push('<span class="pcb-chip"><i class="fas fa-dollar-sign"></i> $' + parseFloat(deposit).toLocaleString('en-US') + ' Deposit</span>');
         if (avail)   chips.push('<span class="pcb-chip"><i class="fas fa-calendar-check"></i> Avail ' + this._escHtml(avail) + '</span>');
+        if (terms) {
+            const termsList = terms.split('|').map(function(t) { return t.trim(); }).filter(Boolean);
+            if (termsList.length) {
+                const termsLabel = termsList.map(function(t) {
+                    return t.replace(/(\d+)\s*months?/i, '$1-mo');
+                }).join(', ');
+                chips.push('<span class="pcb-chip"><i class="fas fa-file-contract"></i> ' + this._escHtml(termsLabel) + '</span>');
+            }
+        }
         const chipsHtml = chips.length ? '<div class="pcb-chips">' + chips.join('') + '</div>' : '';
+
+        // Back-to-listing link — only shown when a property ID was passed
+        const backLinkHtml = id
+            ? '<a href="https://choice-properties.pages.dev/property.html?id=' + encodeURIComponent(id) + '" class="pcb-back-link" target="_blank" rel="noopener">' +
+                  '<i class="fas fa-arrow-left"></i> View listing' +
+              '</a>'
+            : '';
 
         const banner = document.createElement('div');
         banner.id = 'propertyContextBanner';
@@ -325,6 +341,7 @@ class RentalApplication {
                         '<i class="fas fa-shield-alt"></i>' +
                         '<span><span data-i18n="managedBy">Managed by</span> <strong>Choice Properties</strong></span>' +
                     '</div>' +
+                    backLinkHtml +
                 '</div>' +
             '</div>';
 
