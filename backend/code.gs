@@ -464,7 +464,7 @@ function sendAdminOTP(email) {
     PropertiesService.getScriptProperties().setProperty('ADMIN_OTP_' + normalized, otp + ':' + expiry);
     MailApp.sendEmail({
       to: email.trim(),
-      subject: '🔐 Your Admin Login Code — Choice Properties',
+      subject: 'Admin Login Code — Choice Properties',
       htmlBody: `
         <div style="font-family:sans-serif;max-width:420px;margin:auto;padding:32px;background:#fff;border-radius:16px;">
           <h2 style="color:#1e293b;margin-bottom:8px;">Admin Login Code</h2>
@@ -1367,6 +1367,16 @@ function signLease(appId, tenantSignature, ipAddress) {
     });
 
     sendLeaseSignedAdminAlert(appId, firstName + ' ' + lastName, email, phone, tenantSignature.trim(), property);
+
+    // ── Task 4.4: Send move-in preparation guide to tenant ──
+    sendMoveInPreparationGuide(appId, email, firstName, {
+      property  : property,
+      rent      : rent,
+      deposit   : deposit,
+      moveInCost: moveInCost,
+      startDate : startDate,
+      endDate   : endDate
+    });
 
     logEmail('lease_signed', email, 'success', appId);
     return { success: true, message: 'Lease signed successfully.' };
@@ -2854,8 +2864,8 @@ const EmailTemplates = {
     <div class="section">
       <div class="section-label">Looking Ahead</div>
       <ul class="steps-list">
-        <li><span class="step-num">1</span><span><strong>This is Not Permanent</strong> — Our decisions are based on current application criteria. Circumstances change, and we encourage you to consider reapplying in the future should your situation evolve.</span></li>
-        <li><span class="step-num">2</span><span><strong>Other Properties</strong> — Choice Properties manages a portfolio of properties nationwide. Our team would be happy to discuss alternative options that may be a strong fit for your current profile.</span></li>
+        <li><span class="step-num">1</span><span><strong>This is Not Permanent</strong> — Our decisions are based on current application criteria. Circumstances change, and we encourage you to consider reapplying in the future should your situation evolve. Your application and screening results remain on file for 60 days from your submission date. If you wish to apply for another available Choice Properties unit within 30 days, <strong>no new application fee will be required</strong> — please contact our team to discuss your options.</span></li>
+        <li><span class="step-num">2</span><span><strong>Other Properties</strong> — Choice Properties manages a portfolio of properties. Our team would be happy to discuss alternative options that may be a strong fit for your current profile.</span></li>
         <li><span class="step-num">3</span><span><strong>Questions</strong> — If you would like to discuss this decision or explore your options further, please do not hesitate to reach out to our leasing team directly.</span></li>
       </ul>
     </div>
@@ -3133,7 +3143,287 @@ const EmailTemplates = {
 </div>
 </body>
 </html>
-`
+`,
+
+  // ── 8. Holding Fee Received ───────────────────────────────── Task 4.1
+  holdingFeeReceived: (appId, tenantName, feeAmount, property, newMoveInBalance, dashboardLink) => `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Holding Fee Received — Choice Properties</title>
+  <style>${EMAIL_BASE_CSS}</style>
+</head>
+<body>
+<div class="email-wrapper">
+  ${buildEmailHeader('Holding Fee Received', appId)}
+  <div class="status-line status-approved">✓ &nbsp; Holding Fee Successfully Received</div>
+  <div class="email-body">
+    <p class="greeting">Dear ${tenantName},</p>
+    ${property ? `<p style="font-size:13px;color:#64748b;margin:-4px 0 16px;">Property: <strong>${property}</strong></p>` : ''}
+    <p class="intro-text">We have received your holding fee and your unit is now secured. Thank you for acting promptly — your payment ensures the property will not be offered to other applicants while your lease is finalized.</p>
+    <div class="callout green">
+      <h4>✓ Holding Fee Confirmed</h4>
+      <p><strong>Amount Received:</strong> $${feeAmount}.00<br>
+      <strong>Credit at Move-In:</strong> This amount will be applied in full toward your move-in balance.<br>
+      ${newMoveInBalance !== undefined && newMoveInBalance !== null ? `<strong>Remaining Move-In Balance:</strong> $${newMoveInBalance}.00` : ''}</p>
+    </div>
+    <div class="section">
+      <div class="section-label">Next Steps</div>
+      <ul class="steps-list">
+        <li><span class="step-num">1</span><span><strong>Lease Agreement</strong> — Your lease agreement will be prepared and sent to you shortly for electronic signature.</span></li>
+        <li><span class="step-num">2</span><span><strong>Remaining Move-In Payment</strong> — Once your lease is signed, the remaining move-in balance will be due before key handoff.</span></li>
+        <li><span class="step-num">3</span><span><strong>Move-In Coordination</strong> — Our team will contact you to confirm your move-in date and key pickup details.</span></li>
+      </ul>
+    </div>
+    <div class="cta-wrap">
+      <a href="${dashboardLink}" class="cta-btn">View My Application</a>
+    </div>
+    <div class="contact-row">
+      <strong>Questions?</strong> &nbsp; Text: 707-706-3137 &nbsp;&middot;&nbsp; choicepropertygroup@hotmail.com
+    </div>
+    <div class="email-closing">
+      <p class="closing-text">We look forward to welcoming you as a Choice Properties resident.</p>
+      <div class="sign-off">Choice Properties Leasing Team</div>
+      <div class="sign-company">choicepropertygroup@hotmail.com</div>
+    </div>
+  </div>
+  ${EMAIL_FOOTER}
+</div>
+</body>
+</html>
+`,
+
+  // ── 9. Lease Signing Reminder ─────────────────────────────── Task 4.2
+  leaseSigningReminder: (appId, firstName, leaseLink, property) => `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Friendly Reminder — Sign Your Lease</title>
+  <style>${EMAIL_BASE_CSS}</style>
+</head>
+<body>
+<div class="email-wrapper">
+  ${buildEmailHeader('Lease Signing Reminder', appId)}
+  <div class="status-line" style="background:#fff7ed;color:#c2410c;border-left-color:#f97316;">⏳ &nbsp; Action Required — Your Lease Awaits Your Signature</div>
+  <div class="email-body">
+    <p class="greeting">Dear ${firstName},</p>
+    ${property ? `<p style="font-size:13px;color:#64748b;margin:-4px 0 16px;">Property: <strong>${property}</strong></p>` : ''}
+    <p class="intro-text">This is a friendly reminder that your lease agreement is still awaiting your electronic signature. Unit availability is time-sensitive — to protect your reservation, please sign at your earliest convenience.</p>
+    <div class="callout" style="border-left-color:#f97316;background:#fff7ed;">
+      <h4 style="color:#c2410c;">Please Sign Within 48 Hours</h4>
+      <p>If your lease remains unsigned, the unit may be offered to other applicants on our waiting list. If you have questions or concerns about any clause, please reach out to our team before the deadline.</p>
+    </div>
+    <div class="cta-wrap">
+      <a href="${leaseLink}" class="cta-btn">Sign My Lease Now →</a>
+    </div>
+    <div class="contact-row">
+      <strong>Questions?</strong> &nbsp; Text: 707-706-3137 &nbsp;&middot;&nbsp; choicepropertygroup@hotmail.com
+    </div>
+    <div class="email-closing">
+      <p class="closing-text">We're excited to have you as a resident and look forward to getting your home ready.</p>
+      <div class="sign-off">Choice Properties Leasing Team</div>
+      <div class="sign-company">choicepropertygroup@hotmail.com</div>
+    </div>
+  </div>
+  ${EMAIL_FOOTER}
+</div>
+</body>
+</html>
+`,
+
+  // ── 10. Lease Expiry Admin Alert ──────────────────────────── Task 4.3
+  leaseExpiryAdminAlert: (appId, tenantName, tenantEmail, tenantPhone, property) => `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Lease Unsigned — Admin Alert</title>
+  <style>${EMAIL_BASE_CSS}</style>
+</head>
+<body>
+<div class="email-wrapper">
+  ${buildEmailHeader('Lease Unsigned — 48h Alert', appId)}
+  <div class="status-line status-denied">⚠ &nbsp; Tenant Has Not Signed — 48 Hours Elapsed</div>
+  <div class="email-body">
+    <p class="intro-text">The lease agreement for Application <strong>${appId}</strong> has not been signed within 48 hours of delivery. Immediate follow-up is recommended to protect unit availability.</p>
+    <div class="callout red">
+      <h4>Applicant Contact Information</h4>
+      <p>
+        <strong>Name:</strong> ${tenantName}<br>
+        <strong>Email:</strong> ${tenantEmail}<br>
+        <strong>Phone:</strong> ${tenantPhone}<br>
+        ${property ? `<strong>Property:</strong> ${property}` : ''}
+      </p>
+    </div>
+    <div class="section">
+      <div class="section-label">Suggested Actions</div>
+      <ul class="steps-list">
+        <li><span class="step-num">1</span><span>Contact the applicant by text at <strong>${tenantPhone}</strong> to confirm they received the lease and address any questions.</span></li>
+        <li><span class="step-num">2</span><span>If no response within 24 hours, evaluate whether the unit should be re-listed.</span></li>
+        <li><span class="step-num">3</span><span>If cancelling, update the application status in the admin panel and notify the applicant.</span></li>
+      </ul>
+    </div>
+    <div class="contact-row">
+      This alert was generated automatically by the Choice Properties rental system.
+    </div>
+  </div>
+  ${EMAIL_FOOTER}
+</div>
+</body>
+</html>
+`,
+
+  // ── 11. Move-In Preparation Guide ────────────────────────── Task 4.4
+  moveInPreparationGuide: (appId, firstName, leaseData, dashboardLink) => {
+    const rent    = leaseData.rent    || 0;
+    const deposit = leaseData.deposit || 0;
+    const moveIn  = leaseData.moveInCost || (parseFloat(rent) + parseFloat(deposit));
+    const start   = leaseData.startDate  ? new Date(leaseData.startDate).toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' }) : 'As agreed';
+    const property = leaseData.property || '';
+    return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Move-In Preparation Guide — Choice Properties</title>
+  <style>${EMAIL_BASE_CSS}</style>
+</head>
+<body>
+<div class="email-wrapper">
+  ${buildEmailHeader('Move-In Preparation Guide', appId)}
+  <div class="status-line status-approved">🏠 &nbsp; Your Lease is Signed — Here\'s How to Prepare</div>
+  <div class="email-body">
+    <p class="greeting">Dear ${firstName},</p>
+    ${property ? `<p style="font-size:13px;color:#64748b;margin:-4px 0 16px;">Property: <strong>${property}</strong></p>` : ''}
+    <p class="intro-text">Congratulations on signing your lease! This guide covers everything you need to do before your move-in date of <strong>${start}</strong>.</p>
+    <div class="callout green">
+      <h4>Move-In Payment Due Before Key Handoff</h4>
+      <p>
+        <strong>First Month\'s Rent:</strong> $${parseFloat(rent).toFixed(2)}<br>
+        <strong>Security Deposit:</strong> $${parseFloat(deposit).toFixed(2)}<br>
+        <strong>Total Due:</strong> $${parseFloat(moveIn).toFixed(2)}<br><br>
+        Our team will contact you to arrange payment. <strong>Do not send money before speaking with us directly.</strong>
+      </p>
+    </div>
+    <div class="section">
+      <div class="section-label">What to Bring on Move-In Day</div>
+      <ul class="steps-list">
+        <li><span class="step-num">1</span><span><strong>Government-Issued Photo ID</strong> — Required for all adults 18+ who will reside in the unit.</span></li>
+        <li><span class="step-num">2</span><span><strong>Move-In Payment</strong> — Full move-in amount in the agreed payment form. Our team will confirm the method in advance.</span></li>
+        <li><span class="step-num">3</span><span><strong>Renter\'s Insurance Proof</strong> — A current binder or declaration page showing Choice Properties as an interested party.</span></li>
+      </ul>
+    </div>
+    <div class="section">
+      <div class="section-label">Before You Move In</div>
+      <ul class="steps-list">
+        <li><span class="step-num">A</span><span><strong>Set Up Utilities</strong> — Electric, gas, water, and internet accounts should be transferred or opened in your name on or before your lease start date. Your utility providers may need your move-in date and unit address.</span></li>
+        <li><span class="step-num">B</span><span><strong>Obtain Renter\'s Insurance</strong> — Your lease requires you to maintain renter\'s insurance for the full lease term. Most policies cost $10–$20/month. Please have your policy in effect before key handoff.</span></li>
+        <li><span class="step-num">C</span><span><strong>Review Parking</strong> — Parking assignments and rules are outlined in your lease. Please review these before your move-in day.</span></li>
+      </ul>
+    </div>
+    <div class="callout">
+      <h4>Maintenance & Emergency Contact</h4>
+      <p>For maintenance requests or questions, contact us by text at <strong>707-706-3137</strong> or email <strong>choicepropertygroup@hotmail.com</strong>. For property emergencies (water, electrical, structural), text us immediately and call 911 if there is any immediate safety risk.</p>
+    </div>
+    <div class="cta-wrap">
+      <a href="${dashboardLink}" class="cta-btn">View My Application</a>
+    </div>
+    <div class="email-closing">
+      <p class="closing-text">We\'re thrilled to welcome you to your new home. Our team is here to help make your move-in smooth and stress-free.</p>
+      <div class="sign-off">Choice Properties Leasing Team</div>
+      <div class="sign-company">choicepropertygroup@hotmail.com</div>
+    </div>
+  </div>
+  ${EMAIL_FOOTER}
+</div>
+</body>
+</html>
+`; },
+
+  // ── 12. Admin Review Summary ──────────────────────────────── Task 4.5
+  adminReviewSummary: (appId, data, adminPanelUrl) => {
+    const row = (label, value) => value ? `<tr><td style="padding:6px 10px;font-size:13px;color:#64748b;width:40%;border-bottom:1px solid #f1f5f9;">${label}</td><td style="padding:6px 10px;font-size:13px;color:#1e293b;font-weight:500;border-bottom:1px solid #f1f5f9;">${value}</td></tr>` : '';
+    const section = (title) => `<tr><td colspan="2" style="padding:10px 10px 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;background:#f8fafc;">${title}</td></tr>`;
+    return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Review Summary — ${appId}</title>
+  <style>${EMAIL_BASE_CSS}</style>
+</head>
+<body>
+<div class="email-wrapper">
+  ${buildEmailHeader('Application Review Summary', appId)}
+  <div class="status-line" style="background:#f0fdf4;color:#15803d;border-left-color:#22c55e;">✓ &nbsp; Fee Confirmed — Application Ready for Decision</div>
+  <div class="email-body">
+    <p class="intro-text">The application fee for <strong>${appId}</strong> has been confirmed. The full application summary is below. Please review and record your decision in the admin panel.</p>
+    <div class="callout green">
+      <h4>Decision Required</h4>
+      <p>Log in to the admin panel to <strong>Approve</strong> or <strong>Deny</strong> this application. Do not communicate your decision to the applicant directly — use the admin panel to trigger the correct email.</p>
+    </div>
+    <div class="section">
+      <div class="section-label">Full Application Data</div>
+      <table style="width:100%;border-collapse:collapse;background:white;border-radius:8px;overflow:hidden;border:1px solid #e2e8f0;">
+        <tbody>
+          ${section('Property')}
+          ${row('Property', data['Property Address'])}
+          ${row('Listed Rent', data['Listed Rent'] ? '$' + data['Listed Rent'] : '')}
+          ${row('Bedrooms', data['Bedrooms'])}
+          ${row('Bathrooms', data['Bathrooms'])}
+          ${section('Applicant')}
+          ${row('Full Name', (data['First Name'] || '') + ' ' + (data['Last Name'] || ''))}
+          ${row('Email', data['Email'])}
+          ${row('Phone', data['Phone'])}
+          ${row('Date of Birth', data['DOB'])}
+          ${row('SSN (last 4)', data['SSN Last 4'])}
+          ${row('Driver\'s License', data['Driver\'s License'])}
+          ${section('Residency')}
+          ${row('Current Address', data['Current Address'])}
+          ${row('Move-in Reason', data['Move-in Reason'])}
+          ${row('Current Landlord', data['Landlord Name'])}
+          ${row('Landlord Phone', data['Landlord Phone'])}
+          ${row('Monthly Rent (current)', data['Current Rent'] ? '$' + data['Current Rent'] : '')}
+          ${section('Employment & Income')}
+          ${row('Status', data['Employment Status'])}
+          ${row('Employer', data['Employer Name'])}
+          ${row('Job Title', data['Job Title'])}
+          ${row('Monthly Income', data['Monthly Income'] ? '$' + data['Monthly Income'] : '')}
+          ${section('References')}
+          ${row('Reference 1', data['Reference 1 Name'])}
+          ${row('Ref 1 Relationship', data['Reference 1 Relationship'])}
+          ${row('Ref 1 Phone', data['Reference 1 Phone'])}
+          ${row('Reference 2', data['Reference 2 Name'])}
+          ${row('Ref 2 Relationship', data['Reference 2 Relationship'])}
+          ${row('Ref 2 Phone', data['Reference 2 Phone'])}
+          ${section('Background')}
+          ${row('Has Criminal Record', data['Criminal Record'])}
+          ${row('Has Eviction', data['Eviction Record'])}
+          ${row('Has Bankruptcy', data['Bankruptcy Record'])}
+          ${section('Co-Applicant')}
+          ${row('Co-Applicant Name', data['Co-Applicant First Name'] ? (data['Co-Applicant First Name'] + ' ' + (data['Co-Applicant Last Name'] || '')) : '')}
+          ${row('Co-Applicant Email', data['Co-Applicant Email'])}
+          ${row('Co-Applicant Phone', data['Co-Applicant Phone'])}
+        </tbody>
+      </table>
+    </div>
+    <div class="cta-wrap">
+      <a href="${adminPanelUrl}" class="cta-btn">Open Admin Panel →</a>
+    </div>
+    <div class="contact-row">This summary was generated automatically when the application fee was confirmed.</div>
+  </div>
+  ${EMAIL_FOOTER}
+</div>
+</body>
+</html>
+`; }
 };
 
 // ============================================================
@@ -3173,7 +3463,7 @@ function sendAdminNotification(data, appId) {
     adminEmails.forEach(email => {
       MailApp.sendEmail({
         to: email,
-        subject: `🔔 NEW APPLICATION: ${appId} - ${data['First Name']} ${data['Last Name']}${propertySnippet}`,
+        subject: `New Application: ${appId} — ${data['First Name']} ${data['Last Name']}${propertySnippet}`,
         htmlBody: htmlBody, name: 'Choice Properties System'
       });
     });
@@ -3181,6 +3471,7 @@ function sendAdminNotification(data, appId) {
   } catch (error) { console.error('sendAdminNotification error:', error); return false; }
 }
 
+// ── Task 4.6: Refactored to use shared EMAIL_BASE_CSS, buildEmailHeader(), EMAIL_FOOTER ──
 function sendResumeEmail(email, resumeUrl, step) {
   try {
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -3197,39 +3488,44 @@ function sendResumeEmail(email, resumeUrl, step) {
           if (kv.length === 2) params[decodeURIComponent(kv[0])] = decodeURIComponent(kv[1].replace(/\+/g, ' '));
         });
         const propName = params['pn'] || params['addr'] || '';
-        if (propName) propertyLine = `<p style="color:#4a5568;font-size:14px;margin:0 0 16px;">You were applying for: <strong>${propName}</strong></p>`;
+        if (propName) propertyLine = `<p style="font-size:13px;color:#64748b;margin:-4px 0 16px;">Applying for: <strong>${propName}</strong></p>`;
       }
     } catch (e) {}
-    const subject = '📋 Resume Your Choice Properties Application';
+    const subject  = '📋 Resume Your Choice Properties Application';
     const htmlBody = `
 <!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background:#f5f7fa;font-family:'Inter',Arial,sans-serif;">
-<div style="max-width:520px;margin:32px auto;background:white;border-radius:16px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);">
-  <div style="background:#1B3A5C;padding:28px 32px;text-align:center;">
-    <div style="font-size:22px;font-weight:800;color:white;letter-spacing:0.5px;">CP &nbsp; Choice Properties</div>
-    <div style="color:#a8c4e0;font-size:13px;margin-top:4px;">Rental Application System</div>
-  </div>
-  <div style="padding:32px;">
-    <h2 style="font-size:20px;font-weight:700;color:#1B3A5C;margin:0 0 12px;">Your application progress is saved!</h2>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Resume Your Application — Choice Properties</title>
+  <style>${EMAIL_BASE_CSS}</style>
+</head>
+<body>
+<div class="email-wrapper">
+  ${buildEmailHeader('Resume Your Application', null)}
+  <div class="email-body">
+    <p class="greeting">Your progress is saved!</p>
     ${propertyLine}
-    <p style="color:#4a5568;font-size:14px;line-height:1.6;margin:0 0 20px;">
-      We've saved your progress through Step ${step} of 6. Click the button below to pick up right where you left off — your information will be restored automatically.
+    <p class="intro-text">
+      We've saved your progress through Step <strong>${step}</strong> of 6. Click the button below to pick up right where you left off — your information will be restored automatically.
     </p>
-    <div style="text-align:center;margin:28px 0;">
-      <a href="${resumeUrl}" style="display:inline-block;background:#2A6FAD;color:white;text-decoration:none;padding:14px 32px;border-radius:50px;font-size:15px;font-weight:600;">
-        Continue My Application →
-      </a>
+    <div class="cta-wrap">
+      <a href="${resumeUrl}" class="cta-btn">Continue My Application →</a>
     </div>
-    <p style="color:#718096;font-size:12px;line-height:1.5;margin:0;">
-      Your progress is saved locally in your browser. For best results, use the same device and browser you started on.<br><br>
-      Questions? Call or text <strong>707-706-3137</strong> or email <a href="mailto:choicepropertygroup@hotmail.com" style="color:#2A6FAD;">choicepropertygroup@hotmail.com</a>
-    </p>
+    <div class="callout">
+      <h4>A Note on Browser Compatibility</h4>
+      <p>Your progress is saved locally in your browser. For best results, use the same device and browser you started on.</p>
+    </div>
+    <div class="contact-row">
+      <strong>Questions?</strong> &nbsp; Text: 707-706-3137 &nbsp;&middot;&nbsp; choicepropertygroup@hotmail.com
+    </div>
+    <div class="email-closing">
+      <div class="sign-off">Choice Properties Leasing Team</div>
+      <div class="sign-company">choicepropertygroup@hotmail.com</div>
+    </div>
   </div>
-  <div style="background:#f8fafc;padding:16px 32px;text-align:center;font-size:11px;color:#a0aec0;border-top:1px solid #e2e8f0;">
-    Choice Properties &bull; 2265 Livernois, Suite 500, Troy, MI 48083
-  </div>
+  ${EMAIL_FOOTER}
 </div>
 </body>
 </html>`;
@@ -3238,6 +3534,129 @@ function sendResumeEmail(email, resumeUrl, step) {
   } catch (error) {
     console.error('sendResumeEmail error:', error);
     return { success: false, error: error.toString() };
+  }
+}
+
+// ── Task 4.1: Holding Fee Received dispatch ───────────────────────────────
+function sendHoldingFeeReceivedEmail(appId, email, tenantName, feeAmount, property, newMoveInBalance) {
+  try {
+    const baseUrl      = ScriptApp.getService().getUrl();
+    const dashboardLink = baseUrl + '?path=dashboard&id=' + appId;
+    const htmlBody     = EmailTemplates.holdingFeeReceived(appId, tenantName, feeAmount, property, newMoveInBalance, dashboardLink);
+    MailApp.sendEmail({
+      to: email,
+      subject: `Holding Fee Confirmed — ${property || 'Your Unit'} | Choice Properties (Ref: ${appId})`,
+      htmlBody: htmlBody,
+      name: 'Choice Properties Leasing',
+      replyTo: 'choicepropertygroup@hotmail.com'
+    });
+    logEmail('holding_fee_received', email, 'success', appId);
+    return true;
+  } catch (error) {
+    console.error('sendHoldingFeeReceivedEmail error:', error);
+    logEmail('holding_fee_received', email, 'failed', appId, error.toString());
+    return false;
+  }
+}
+
+// ── Task 4.2: Lease Signing Reminder dispatch ─────────────────────────────
+function sendLeaseSigningReminder(appId, email, firstName, leaseLink, property) {
+  try {
+    const htmlBody = EmailTemplates.leaseSigningReminder(appId, firstName, leaseLink, property);
+    MailApp.sendEmail({
+      to: email,
+      subject: `Reminder: Your Lease Awaits Signature — ${property || 'Choice Properties'} (Ref: ${appId})`,
+      htmlBody: htmlBody,
+      name: 'Choice Properties Leasing',
+      replyTo: 'choicepropertygroup@hotmail.com'
+    });
+    logEmail('lease_signing_reminder', email, 'success', appId);
+    return true;
+  } catch (error) {
+    console.error('sendLeaseSigningReminder error:', error);
+    logEmail('lease_signing_reminder', email, 'failed', appId, error.toString());
+    return false;
+  }
+}
+
+// ── Task 4.3: Lease Expiry Admin Alert dispatch ───────────────────────────
+function sendLeaseExpiryAdminAlert(appId, tenantName, tenantEmail, tenantPhone, property) {
+  try {
+    const adminEmails = getAdminEmails();
+    const htmlBody    = EmailTemplates.leaseExpiryAdminAlert(appId, tenantName, tenantEmail, tenantPhone, property);
+    adminEmails.forEach(adminEmail => {
+      MailApp.sendEmail({
+        to: adminEmail,
+        subject: `Lease Unsigned — 48h Alert: ${appId} — ${tenantName}`,
+        htmlBody: htmlBody,
+        name: 'Choice Properties System'
+      });
+    });
+    logEmail('lease_expiry_admin_alert', 'admin', 'success', appId);
+    return true;
+  } catch (error) {
+    console.error('sendLeaseExpiryAdminAlert error:', error);
+    logEmail('lease_expiry_admin_alert', 'admin', 'failed', appId, error.toString());
+    return false;
+  }
+}
+
+// ── Task 4.4: Move-In Preparation Guide dispatch ──────────────────────────
+function sendMoveInPreparationGuide(appId, email, firstName, leaseData) {
+  try {
+    const baseUrl       = ScriptApp.getService().getUrl();
+    const dashboardLink = baseUrl + '?path=dashboard&id=' + appId;
+    const htmlBody      = EmailTemplates.moveInPreparationGuide(appId, firstName, leaseData, dashboardLink);
+    MailApp.sendEmail({
+      to: email,
+      subject: `Your Move-In Preparation Guide — ${leaseData.property || 'Choice Properties'} (Ref: ${appId})`,
+      htmlBody: htmlBody,
+      name: 'Choice Properties Leasing',
+      replyTo: 'choicepropertygroup@hotmail.com'
+    });
+    logEmail('move_in_prep_guide', email, 'success', appId);
+    return true;
+  } catch (error) {
+    console.error('sendMoveInPreparationGuide error:', error);
+    logEmail('move_in_prep_guide', email, 'failed', appId, error.toString());
+    return false;
+  }
+}
+
+// ── Task 4.5: Admin Review Summary dispatch ───────────────────────────────
+function sendAdminReviewSummary(appId) {
+  try {
+    const ss    = getSpreadsheet();
+    const sheet = ss.getSheetByName(SHEET_NAME);
+    if (!sheet) throw new Error('Applications sheet not found');
+    const col  = getColumnMap(sheet);
+    const rows = sheet.getDataRange().getValues();
+    let appData = null;
+    for (let i = 1; i < rows.length; i++) {
+      if (rows[i][col['App ID'] - 1] === appId) {
+        appData = {};
+        Object.keys(col).forEach(key => { appData[key] = rows[i][col[key] - 1]; });
+        break;
+      }
+    }
+    if (!appData) throw new Error('Application not found: ' + appId);
+    const adminEmails   = getAdminEmails();
+    const adminPanelUrl = ScriptApp.getService().getUrl() + '?path=admin';
+    const htmlBody      = EmailTemplates.adminReviewSummary(appId, appData, adminPanelUrl);
+    adminEmails.forEach(adminEmail => {
+      MailApp.sendEmail({
+        to: adminEmail,
+        subject: `Review Summary: ${appId} — ${appData['First Name'] || ''} ${appData['Last Name'] || ''} — Fee Confirmed`,
+        htmlBody: htmlBody,
+        name: 'Choice Properties System'
+      });
+    });
+    logEmail('admin_review_summary', 'admin', 'success', appId);
+    return true;
+  } catch (error) {
+    console.error('sendAdminReviewSummary error:', error);
+    logEmail('admin_review_summary', 'admin', 'failed', appId, error.toString());
+    return false;
   }
 }
 
@@ -3481,6 +3900,16 @@ function markHoldingFeePaid(appId, adminNotes) {
       currAdminNotes ? currAdminNotes + '\n' + noteText : noteText
     );
 
+    // ── Task 4.1: Notify tenant that holding fee was received ──
+    const tenantEmail    = sheet.getRange(rowIndex, col['Email']).getValue();
+    const tenantFirst    = sheet.getRange(rowIndex, col['First Name']).getValue();
+    const tenantLast     = sheet.getRange(rowIndex, col['Last Name']).getValue();
+    const propertyAddr   = col['Property Address'] ? sheet.getRange(rowIndex, col['Property Address']).getValue() : '';
+    const rent           = col['Monthly Rent']     ? parseFloat(sheet.getRange(rowIndex, col['Monthly Rent']).getValue()) || 0 : 0;
+    const deposit        = col['Security Deposit'] ? parseFloat(sheet.getRange(rowIndex, col['Security Deposit']).getValue()) || 0 : 0;
+    const newBalance     = (rent + deposit - feeAmount) > 0 ? (rent + deposit - feeAmount) : null;
+    sendHoldingFeeReceivedEmail(appId, tenantEmail, tenantFirst + ' ' + tenantLast, feeAmount, propertyAddr, newBalance);
+
     return { success: true, message: `Holding fee of $${feeAmount} marked as paid.` };
   } catch (error) {
     console.error('markHoldingFeePaid error:', error);
@@ -3651,6 +4080,8 @@ function markAsPaid(appId, notes) {
     const phone     = sheet.getRange(rowIndex, col['Phone']).getValue();
     sendPaymentConfirmation(appId, email, firstName + ' ' + lastName, phone);
     logEmail('payment_confirmation', email, 'success', appId);
+    // ── Task 4.9: Send admin review summary now that fee is confirmed ──
+    sendAdminReviewSummary(appId);
     return { success: true, message: 'Application marked as paid' };
   } catch (error) {
     console.error('markAsPaid error:', error);

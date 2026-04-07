@@ -9,7 +9,7 @@ Do NOT proceed without verifying the last completed phase.
 **System:** Choice Properties Rental Application System
 **Stack:** Pure static HTML/CSS/Vanilla JS + Google Apps Script (GAS) backend + Google Sheets database
 **Last Updated:** April 7, 2026
-**Active Phase:** Phase 4 — NOT STARTED
+**Active Phase:** Phase 5 — NOT STARTED
 
 ---
 
@@ -134,7 +134,7 @@ Do NOT proceed without verifying the last completed phase.
 
 ## Phase 4 — Email Templates & Communication System
 
-**Status:** NOT STARTED
+**Status:** COMPLETE
 **Blocked By:** Phase 3
 
 ### Objectives
@@ -146,15 +146,15 @@ Do NOT proceed without verifying the last completed phase.
 
 ### Tasks
 
-- [ ] **4.1** Create `holdingFeeReceived` email template + call it from `markHoldingFeePaid()`
-- [ ] **4.2** Create `leaseSigningReminder` email template (for 24h automated trigger)
-- [ ] **4.3** Create `leaseExpiryAdminAlert` email template (for 48h automated trigger)
-- [ ] **4.4** Create `moveInPreparationGuide` email template
-- [ ] **4.5** Create `adminReviewSummary` email template (sent to admin when fee is marked paid)
-- [ ] **4.6** Refactor Save & Resume template to use `EMAIL_BASE_CSS`, `buildEmailHeader()`, `EMAIL_FOOTER`
-- [ ] **4.7** Remove emoji from admin notification and OTP email subjects
-- [ ] **4.8** Improve denial email: fix partial-sentence bug, add 30-day reapplication protection language
-- [ ] **4.9** Call `sendAdminReviewSummary()` from within `markAsPaid()`
+- [x] **4.1** Create `holdingFeeReceived` email template + call it from `markHoldingFeePaid()`
+- [x] **4.2** Create `leaseSigningReminder` email template (for 24h automated trigger)
+- [x] **4.3** Create `leaseExpiryAdminAlert` email template (for 48h automated trigger)
+- [x] **4.4** Create `moveInPreparationGuide` email template
+- [x] **4.5** Create `adminReviewSummary` email template (sent to admin when fee is marked paid)
+- [x] **4.6** Refactor Save & Resume template to use `EMAIL_BASE_CSS`, `buildEmailHeader()`, `EMAIL_FOOTER`
+- [x] **4.7** Remove emoji from admin notification and OTP email subjects
+- [x] **4.8** Improve denial email: fix partial-sentence bug, add 30-day reapplication protection language
+- [x] **4.9** Call `sendAdminReviewSummary()` from within `markAsPaid()`
 
 ### Files to Modify
 - `backend/code.gs`
@@ -264,6 +264,17 @@ Do NOT proceed without verifying the last completed phase.
 ---
 
 ## Completed Tasks Log
+
+### Phase 4 — April 7, 2026
+- **4.1** Added `EmailTemplates.holdingFeeReceived` template. Added `sendHoldingFeeReceivedEmail()` dispatch function. `markHoldingFeePaid()` now calls it after updating the sheet, computing remaining move-in balance from rent + deposit − holding fee.
+- **4.2** Added `EmailTemplates.leaseSigningReminder` template. Added `sendLeaseSigningReminder()` dispatch function (ready for Phase 7 trigger to call).
+- **4.3** Added `EmailTemplates.leaseExpiryAdminAlert` template. Added `sendLeaseExpiryAdminAlert()` dispatch function that emails all admin addresses (ready for Phase 7 trigger to call).
+- **4.4** Added `EmailTemplates.moveInPreparationGuide` template with move-in payment breakdown, what-to-bring checklist, utility setup note, renter's insurance requirement, parking reminder, and maintenance contact. Added `sendMoveInPreparationGuide()` dispatch. `signLease()` now calls it after recording the signature.
+- **4.5** Added `EmailTemplates.adminReviewSummary` template with full application data table (property, applicant, residency, employment, references, background, co-applicant sections). Added `sendAdminReviewSummary(appId)` dispatch that fetches the row from the sheet.
+- **4.6** Refactored `sendResumeEmail()` to use `EMAIL_BASE_CSS`, `buildEmailHeader()`, and `EMAIL_FOOTER` — now visually consistent with all other transactional emails. Content unchanged.
+- **4.7** Removed `🔔` from admin notification subject; removed `🔐` from OTP email subject. Subjects now read: `New Application: [AppID] — [Name]...` and `Admin Login Code — Choice Properties`.
+- **4.8** Denial email "Looking Ahead" step 1 now includes: 60-day on-file period, 30-day no-new-fee reapplication window with instruction to contact the team.
+- **4.9** `markAsPaid()` now calls `sendAdminReviewSummary(appId)` immediately after `sendPaymentConfirmation()`.
 
 ### Phase 3 — April 7, 2026
 - **3.1** Added phone digit count validation (< 10 digits → reject with clear message) and monthly income non-numeric warning (log only, never reject) in `processApplication()`.
