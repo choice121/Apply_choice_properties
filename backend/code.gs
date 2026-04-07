@@ -3435,6 +3435,65 @@ function markAsPaid(appId, notes) {
 }
 
 // ============================================================
+// _syncPropertyStatusToSupabase()
+// Keeps the listing platform's Supabase database in sync when
+// an application is approved or denied.
+//
+// approved → property.status = 'rented'  (takes it off the market)
+// denied   → property.status = 'active'  (makes it available again)
+//
+// SETUP REQUIRED — add these two Script Properties in the GAS editor:
+//   Extensions → Apps Script → Project Settings → Script Properties
+//     SUPABASE_URL         e.g. https://abcdefgh.supabase.co
+//     SUPABASE_SERVICE_KEY Your Supabase service role key
+//                          (Dashboard → Settings → API → service_role)
+//
+// This call is fire-and-forget — errors are logged but never block
+// the approval flow. If credentials are not set, it silently skips.
+// ============================================================
+function _syncPropertyStatusToSupabase(propertyId, supabaseStatus) {
+  try {
+    const props      = PropertiesService.getScriptProperties();
+    const supabaseUrl = props.getProperty('SUPABASE_URL');
+    const serviceKey  = props.getProperty('SUPABASE_SERVICE_KEY');
+
+    if (!supabaseUrl || !serviceKey) {
+      console.warn('_syncPropertyStatusToSupabase: SUPABASE_URL or SUPABASE_SERVICE_KEY not set in Script Properties. Skipping sync.');
+      return;
+    }
+    if (!propertyId) {
+      console.warn('_syncPropertyStatusToSupabase: No Property ID on this application. Skipping sync.');
+      return;
+    }
+
+    const url = supabaseUrl.replace(/\/$/, '') + '/rest/v1/properties?id=eq.' + encodeURIComponent(propertyId);
+    const options = {
+      method: 'PATCH',
+      contentType: 'application/json',
+      headers: {
+        'apikey':         serviceKey,
+        'Authorization':  'Bearer ' + serviceKey,
+        'Prefer':         'return=minimal'
+      },
+      payload:            JSON.stringify({ status: supabaseStatus }),
+      muteHttpExceptions: true
+    };
+
+    const response = UrlFetchApp.fetch(url, options);
+    const code     = response.getResponseCode();
+
+    if (code >= 200 && code < 300) {
+      console.log('_syncPropertyStatusToSupabase: Property ' + propertyId + ' → "' + supabaseStatus + '" (HTTP ' + code + ')');
+    } else {
+      console.error('_syncPropertyStatusToSupabase: Supabase returned HTTP ' + code + ': ' + response.getContentText());
+    }
+  } catch (err) {
+    // Never let a sync failure block the approval flow
+    console.error('_syncPropertyStatusToSupabase error (non-fatal):', err.toString());
+  }
+}
+
+// ============================================================
 // updateStatus()
 // ============================================================
 function updateStatus(appId, newStatus, notes) {
@@ -3464,6 +3523,16 @@ function updateStatus(appId, newStatus, notes) {
     const firstName = sheet.getRange(rowIndex, col['First Name']).getValue();
     sendStatusUpdateEmail(appId, email, firstName, newStatus, notes);
     logEmail('status_update', email, 'success', appId);
+
+    // Sync property availability to the listing platform (Supabase).
+    // approved → 'rented' | denied → 'active' (revert to available)
+    // Only fires when a Property ID was captured on the application.
+    if (col['Property ID']) {
+      const propertyId    = sheet.getRange(rowIndex, col['Property ID']).getValue();
+      const supabaseStatus = (newStatus === 'approved') ? 'rented' : 'active';
+      _syncPropertyStatusToSupabase(propertyId, supabaseStatus);
+    }
+
     return { success: true, message: `Status updated to ${newStatus}` };
   } catch (error) {
     console.error('updateStatus error:', error);
