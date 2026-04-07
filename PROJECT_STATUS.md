@@ -9,7 +9,7 @@ Do NOT proceed without verifying the last completed phase.
 **System:** Choice Properties Rental Application System
 **Stack:** Pure static HTML/CSS/Vanilla JS + Google Apps Script (GAS) backend + Google Sheets database
 **Last Updated:** April 7, 2026
-**Active Phase:** Phase 3 — NOT STARTED
+**Active Phase:** Phase 4 — NOT STARTED
 
 ---
 
@@ -108,7 +108,7 @@ Do NOT proceed without verifying the last completed phase.
 
 ## Phase 3 — Data Integrity & Backend Validation
 
-**Status:** NOT STARTED
+**Status:** COMPLETE
 **Blocked By:** Phase 2
 
 ### Objectives
@@ -121,11 +121,11 @@ Do NOT proceed without verifying the last completed phase.
 
 ### Tasks
 
-- [ ] **3.1** Add server-side validation in `processApplication()` for: DOB (age ≥ 18), monthly income (numeric), phone (valid format)
-- [ ] **3.2** Add duplicate application detection: check for existing row with same email + same property before creating a new row
-- [ ] **3.3** Add App ID uniqueness check in `generateAppId()`
-- [ ] **3.4** Override `Application Fee` column to always store `APPLICATION_FEE` constant, not the URL-param value
-- [ ] **3.5** Add phone number normalization function — store all phones in a consistent format
+- [x] **3.1** Add server-side validation in `processApplication()` for: DOB (age ≥ 18), monthly income (numeric), phone (valid format)
+- [x] **3.2** Add duplicate application detection: check for existing row with same email + same property before creating a new row
+- [x] **3.3** Add App ID uniqueness check in `generateAppId()`
+- [x] **3.4** Override `Application Fee` column to always store `APPLICATION_FEE` constant, not the URL-param value
+- [x] **3.5** Add phone number normalization function — store all phones in a consistent format
 
 ### Files to Modify
 - `backend/code.gs`
@@ -264,6 +264,13 @@ Do NOT proceed without verifying the last completed phase.
 ---
 
 ## Completed Tasks Log
+
+### Phase 3 — April 7, 2026
+- **3.1** Added phone digit count validation (< 10 digits → reject with clear message) and monthly income non-numeric warning (log only, never reject) in `processApplication()`.
+- **3.2** Added duplicate detection before row insert: compares incoming `Email` + `Property Address` against all existing rows; skips rows with `denied` or `withdrawn` status. Returns `{ duplicate: true, existingAppId }` so the client can surface the existing reference number.
+- **3.3** Extracted `generateUniqueAppId(sheet, col)` wrapper that calls `generateAppId()` up to 5 times, checking the App ID column for each candidate before returning. `processApplication()` now calls `generateUniqueAppId()` instead of `generateAppId()`.
+- **3.4** `Application Fee` case in the `rowData` switch now always pushes `APPLICATION_FEE` constant — client-supplied values are completely ignored on write.
+- **3.5** Added `normalizePhone(phone)` utility. Applied to 7 phone fields (`Phone`, `Co-Applicant Phone`, `Supervisor Phone`, `Reference 1 Phone`, `Reference 2 Phone`, `Emergency Phone`, `Landlord Phone`) before any sheet write.
 
 ### Phase 2 — April 7, 2026
 - **2.1** Upgraded `toggleEmployerSection()` in `js/script.js` to handle 5 statuses (Employed, Self-employed, Unemployed, Retired, Student) with per-status field visibility, labels, and required enforcement. Labels re-apply on language change.

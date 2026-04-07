@@ -946,11 +946,60 @@ function processApplication(formData, fileBlob) {
       }
     }
 
+    // ── Task 3.1: Phone format validation ──
+    const rawPhone = formData['Phone'] || '';
+    const phoneDigits = rawPhone.replace(/\D/g, '');
+    if (phoneDigits.length < 10) {
+      return { success: false, error: 'Phone number must contain at least 10 digits. Please check the number you entered.' };
+    }
+
+    // ── Task 3.1: Monthly income — warn only, never reject ──
+    if (formData['Monthly Income'] && formData['Monthly Income'].toString().trim()) {
+      const income = parseFloat(formData['Monthly Income'].toString().replace(/[^0-9.]/g, ''));
+      if (isNaN(income)) {
+        console.warn('processApplication: non-numeric Monthly Income received:', formData['Monthly Income']);
+      }
+    }
+
+    // ── Task 3.5: Normalize all phone fields before storing ──
+    const phoneFields = ['Phone', 'Co-Applicant Phone', 'Supervisor Phone', 'Reference 1 Phone', 'Reference 2 Phone', 'Emergency Phone', 'Landlord Phone'];
+    phoneFields.forEach(field => {
+      if (formData[field]) formData[field] = normalizePhone(formData[field]);
+    });
+
     const ss = getSpreadsheet();
     initializeSheets();
     const sheet = ss.getSheetByName(SHEET_NAME);
     const col   = getColumnMap(sheet);
-    const appId = formData.appId || generateAppId();
+
+    // ── Task 3.2: Duplicate application detection ──
+    const incomingEmail    = (formData['Email'] || '').toLowerCase().trim();
+    const incomingProperty = (formData['Property Address'] || '').toLowerCase().trim();
+    if (incomingEmail && incomingProperty) {
+      const allData = sheet.getDataRange().getValues();
+      const emailColIdx    = (col['Email']            || 1) - 1;
+      const propertyColIdx = (col['Property Address'] || 1) - 1;
+      const statusColIdx   = (col['Status']           || 1) - 1;
+      const appIdColIdx    = (col['App ID']            || 1) - 1;
+      for (let i = 1; i < allData.length; i++) {
+        const rowEmail    = (allData[i][emailColIdx]    || '').toString().toLowerCase().trim();
+        const rowProperty = (allData[i][propertyColIdx] || '').toString().toLowerCase().trim();
+        const rowStatus   = (allData[i][statusColIdx]   || '').toString().toLowerCase();
+        const rowAppId    = allData[i][appIdColIdx]     || '';
+        if (rowEmail === incomingEmail && rowProperty === incomingProperty &&
+            rowStatus !== 'denied' && rowStatus !== 'withdrawn') {
+          return {
+            success: false,
+            duplicate: true,
+            existingAppId: rowAppId,
+            error: `You already have an active application for this property (Ref: ${rowAppId}). Log in to your dashboard to check your status.`
+          };
+        }
+      }
+    }
+
+    // ── Task 3.3: Generate a unique App ID ──
+    const appId = formData.appId || generateUniqueAppId(sheet, col);
 
     // ── Resolve "Other" payment text into the main payment columns ──
     // If the user selected "Other" and typed a value, store that text directly
@@ -994,7 +1043,7 @@ function processApplication(formData, fileBlob) {
           case 'Property Zip':        rowData.push(formData['Property Zip']        || ''); break;
           case 'Property Address':    rowData.push(formData['Property Address']    || ''); break;
           case 'Security Deposit':    rowData.push(formData['Security Deposit']    || ''); break;
-          case 'Application Fee':     rowData.push(formData['Application Fee']     || ''); break;
+          case 'Application Fee':     rowData.push(APPLICATION_FEE); break; // Task 3.4: always use backend constant
           case 'Bedrooms':            rowData.push(formData['Bedrooms']            || ''); break;
           case 'Bathrooms':           rowData.push(formData['Bathrooms']           || ''); break;
           case 'Available Date':      rowData.push(formData['Available Date']      || ''); break;
@@ -1067,6 +1116,32 @@ function generateAppId() {
   const random = Math.random().toString(36).substring(2, 8).toUpperCase();
   const ms    = String(date.getMilliseconds()).padStart(3, '0');
   return `CP-${year}${month}${day}-${random}${ms}`;
+}
+
+// ── Task 3.3: generateUniqueAppId() ──────────────────────────
+// Generates an App ID and verifies it does not already exist in
+// the sheet. Retries up to 5 times before returning an error.
+function generateUniqueAppId(sheet, col) {
+  const maxAttempts = 5;
+  for (let i = 0; i < maxAttempts; i++) {
+    const candidate = generateAppId();
+    const data = sheet.getDataRange().getValues();
+    const colIdx = (col['App ID'] || 1) - 1;
+    const exists = data.slice(1).some(row => row[colIdx] === candidate);
+    if (!exists) return candidate;
+  }
+  throw new Error('Failed to generate a unique App ID after ' + maxAttempts + ' attempts.');
+}
+
+// ── Task 3.5: normalizePhone() ────────────────────────────────
+// Strips formatting and returns a consistent digit-only string.
+// Handles 10-digit US numbers and 11-digit numbers starting with 1.
+function normalizePhone(phone) {
+  if (!phone) return phone;
+  const digits = phone.toString().replace(/\D/g, '');
+  if (digits.length === 10) return digits;
+  if (digits.length === 11 && digits.charAt(0) === '1') return '+1' + digits.slice(1);
+  return phone; // Return original if format is unrecognized
 }
 
 // ============================================================
