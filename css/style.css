@@ -2186,11 +2186,6 @@ footer {
     font-weight: 600;
 }
 
-/* ===== SUBMISSION SECTION PLACEHOLDER ===== */
-.placeholder-removed {
-    display: none;
-}
-
 /* ---------- Modern Submission Progress ---------- */
 .submission-progress {
     background: white;

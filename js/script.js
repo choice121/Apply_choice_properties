@@ -192,17 +192,17 @@ class RentalApplication {
             // Nothing useful in the URL — show manual-entry prompt and return
             if (!id && !name && !addr && !city) { this._showNoContextPrompt(); return; }
 
-            // Store context on instance for later use (income ratio, success page, etc.)
+            // Store context on instance for later use (success page, etc.)
             this.state.propertyContext = { id, name, addr, city, state, rent };
 
-            // D-015: Populate hidden inputs so FormData serialises them automatically
+            // Populate hidden inputs so FormData serialises them automatically
             const setHidden = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
             setHidden('hiddenPropertyId',    id);
             setHidden('hiddenPropertyName',  name);
             setHidden('hiddenPropertyCity',  city);
             setHidden('hiddenPropertyState', state);
             setHidden('hiddenListedRent',    rent);
-              // D-015 extension: Additional property context params (ISSUE-002 fix)
+              // Additional property context params
               const zip        = p.get('zip')         || '';
               const deposit    = p.get('deposit')     || '';
               const fee        = p.get('fee')         || '';
@@ -423,7 +423,7 @@ class RentalApplication {
         }
     }
 
-    // ---------- Geoapify (unchanged) ----------
+    // ---------- Geoapify ----------
     setupGeoapify() {
         const apiKey = "bea2afb13c904abea5cb2c2693541dcf";
         const fields = ['propertyAddress', 'currentAddress'];
@@ -531,7 +531,7 @@ class RentalApplication {
         });
     }
 
-    // ---------- Validation logic (unchanged) ----------
+    // ---------- Validation logic ----------
     validateField(field) {
         let isValid = true;
         let errorMessage = 'Required';
@@ -644,7 +644,7 @@ class RentalApplication {
         }
     }
 
-    // ---------- Section navigation (unchanged) ----------
+    // ---------- Section navigation ----------
     getCurrentSection() {
         const activeSection = document.querySelector('.form-section.active');
         return activeSection ? parseInt(activeSection.id.replace('section', '')) : 1;
@@ -740,7 +740,7 @@ class RentalApplication {
         }
     }
 
-    // ---------- Step validation (unchanged) ----------
+    // ---------- Step validation ----------
     validateStep(stepNumber) {
         if (stepNumber === 5) {
             const isUnique = this.validatePaymentSelections();
@@ -834,7 +834,7 @@ class RentalApplication {
         setTimeout(() => field.classList.remove('shake', 'highlight-field'), 2000);
     }
 
-    // ---------- Conditional fields (unchanged) ----------
+    // ---------- Conditional fields ----------
     setupConditionalFields() {
         const paymentSelectors = ['primaryPayment', 'secondaryPayment', 'thirdPayment'];
         paymentSelectors.forEach(id => {
@@ -1112,7 +1112,7 @@ class RentalApplication {
         };
     }
 
-    // ---------- Language toggle (unchanged, includes all keys) ----------
+    // ---------- Language toggle ----------
     setupLanguageToggle() {
         const fee = this.state.applicationFee;
         const translations = {
@@ -1288,7 +1288,6 @@ class RentalApplication {
                 otherIncomeLabel: 'Additional Monthly Income (Optional)',
                 otherIncomePlaceholder: '$',
                 otherIncomeHint: 'Child support, disability, etc.',
-                incomeRatioLabel: 'Income-to-Rent Ratio:',
                 financialHeader: 'References & Emergency Contact',
                 personalReferences: 'Personal References',
                 referencesHint: 'Please provide two references who are not related to you',
@@ -1367,7 +1366,7 @@ class RentalApplication {
                 summaryResidency: 'Residency',
                 summaryOccupancy: 'Occupancy & Vehicles',
                 summaryEmployment: 'Employment & Income',
-                summaryFinancial: 'Financial & References',
+                summaryFinancial: 'References & Emergency Contact',
                 summaryPayment: 'Payment Preferences',
                 retryIn: 'in',
                 retryAttempt: 'attempt',
@@ -1549,8 +1548,7 @@ class RentalApplication {
                 otherIncomeLabel: 'Otros Ingresos Mensuales (Opcional)',
                 otherIncomePlaceholder: '$',
                 otherIncomeHint: 'Pensión alimenticia, discapacidad, etc.',
-                incomeRatioLabel: 'Relación Ingreso-Alquiler:',
-                financialHeader: 'Finanzas y Referencias',
+                financialHeader: 'Referencias y Contacto de Emergencia',
                 personalReferences: 'Referencias Personales',
                 referencesHint: 'Por favor proporcione dos referencias que no sean parientes',
                 ref1NameLabel: 'Nombre de Referencia 1',
@@ -1628,7 +1626,7 @@ class RentalApplication {
                 summaryResidency: 'Residencia',
                 summaryOccupancy: 'Ocupantes y Vehículos',
                 summaryEmployment: 'Empleo e Ingresos',
-                summaryFinancial: 'Finanzas y Referencias',
+                summaryFinancial: 'Referencias y Contacto de Emergencia',
                 summaryPayment: 'Preferencias de Pago',
                 retryIn: 'en',
                 retryAttempt: 'intento',
@@ -1805,7 +1803,7 @@ class RentalApplication {
         return null;
     }
 
-    // ---------- MODIFIED: updateSubmissionProgress (unchanged from previous) ----------
+    // ---------- updateSubmissionProgress ----------
     updateSubmissionProgress(step, customMessage) {
         const t = this.getTranslations();
         const messages = {
@@ -1916,7 +1914,7 @@ class RentalApplication {
             const form = document.getElementById('rentalApplication');
             const formData = new FormData(form);
 
-            // ── D-015: Property context fields are now carried by hidden inputs in index.html
+            // Property context fields are carried by hidden inputs in index.html
             // and serialised automatically by FormData — no manual appending needed.
 
             this.updateSubmissionProgress(2, t.validating);
@@ -1989,7 +1987,7 @@ class RentalApplication {
         if (form) form.style.display = 'block';
     }
 
-    // ---------- handleSubmissionSuccess (unchanged) ----------
+    // ---------- handleSubmissionSuccess ----------
     handleSubmissionSuccess(appId) {
         this.hideSubmissionProgress();
         const form = document.getElementById('rentalApplication');
@@ -2006,7 +2004,7 @@ class RentalApplication {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    // ---------- showSuccessState (unchanged) ----------
+    // ---------- showSuccessState ----------
     showSuccessState(appId) {
         const successState = document.getElementById('successState');
         if (!successState) return;
@@ -2316,251 +2314,10 @@ window.copyAppId = function() {
 };
 
 // ============================================================
-// PLACEHOLDER — test fill removed
+// Initialize app
 // ============================================================
-(function() {
-    const initTestButton = () => {
-        // test fill button removed
-        return;
+// NOTE: test-fill functionality was removed — see git history if needed.
 
-        const hostname = window.location.hostname;
-        const isDev = hostname === 'localhost' || hostname === '127.0.0.1';
-        const isTestMode = new URLSearchParams(window.location.search).get('test') === 'true';
-        if (!isDev && !isTestMode) {
-            const container = document.getElementById('testButtonContainer');
-            if (container) container.style.display = 'none';
-            return;
-        }
-
-        console.log('✅ Test button initialized');
-        
-        testBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            fillTestData();
-        });
-    };
-    
-    function fillTestData() {
-        console.log('🧪 Filling test data...');
-        
-        const today = new Date();
-        const futureDate = new Date();
-        futureDate.setDate(today.getDate() + 30);
-        const futureDateStr = futureDate.toISOString().split('T')[0];
-        
-        const pastDateStr = '1990-01-15';
-        
-        // Step 1
-        safeSetValue('propertyAddress', '123 Main Street, Troy, MI 48083');
-        safeSetValue('requestedMoveIn', futureDateStr);
-        safeSetValue('firstName', 'John');
-        safeSetValue('lastName', 'Testerson');
-        safeSetValue('email', 'test@example.com');
-        safeSetValue('phone', '(555) 123-4567');
-        safeSetValue('dob', pastDateStr);
-        safeSetValue('ssn', '1234');
-        safeSetValue('contactTimeSpecific', 'Best after 6pm, avoid Wednesdays');
-        
-        safeSetSelect('desiredLeaseTerm', '12 months');
-        
-        safeSetCheckbox('contactMethodText', true);
-        safeSetCheckbox('contactMethodEmail', true);
-        
-        safeSetCheckbox('timeMorning', true);
-        safeSetCheckbox('timeMidday', false);
-        safeSetCheckbox('timeAfternoon', false);
-        safeSetCheckbox('timeEarlyEvening', true);
-        safeSetCheckbox('timeLateEvening', false);
-        safeSetCheckbox('timeWeekend', true);
-        safeSetCheckbox('timeAnytime', false);
-        
-        // Co-applicant
-        safeSetCheckbox('hasCoApplicant', true);
-        safeSetCheckbox('roleCoApplicant', true);
-        safeSetValue('coFirstName', 'Jane');
-        safeSetValue('coLastName', 'Testerson');
-        safeSetValue('coEmail', 'jane@example.com');
-        safeSetValue('coPhone', '(555) 987-6543');
-        safeSetValue('coDob', '1992-03-20');
-        safeSetValue('coSsn', '5678');
-        safeSetValue('coEmployer', 'ABC Corp');
-        safeSetValue('coJobTitle', 'Analyst');
-        safeSetValue('coMonthlyIncome', '4500');
-        safeSetValue('coEmploymentDuration', '3 years');
-        safeSetCheckbox('coConsent', true);
-        
-        // Step 2
-        safeSetValue('currentAddress', '456 Oak Avenue, Troy, MI 48083');
-        safeSetValue('residencyStart', '3 years 2 months');
-        safeSetValue('rentAmount', '1500');
-        safeSetValue('reasonLeaving', 'Relocating for work opportunity');
-        safeSetValue('landlordName', 'Sarah Johnson');
-        safeSetValue('landlordPhone', '(555) 987-6543');
-        safeSetValue('totalOccupants', '2');
-        safeSetValue('occupantNames', 'Emma (age 7, daughter)');
-        
-        document.getElementById('petsYes')?.click();
-        safeSetValue('petDetails', 'One friendly golden retriever, 65 lbs');
-        
-        // Vehicle
-        document.getElementById('vehicleYes')?.click();
-        safeSetValue('vehicleMake', 'Toyota');
-        safeSetValue('vehicleModel', 'Camry');
-        safeSetValue('vehicleYear', '2020');
-        safeSetValue('vehiclePlate', 'ABC123');
-        
-        // Step 3
-        safeSetSelect('employmentStatus', 'Full-time');
-        safeSetValue('employer', 'Tech Solutions Inc');
-        safeSetValue('jobTitle', 'Project Manager');
-        safeSetValue('employmentDuration', '2 years');
-        safeSetValue('supervisorName', 'Michael Chen');
-        safeSetValue('supervisorPhone', '(555) 456-7890');
-        safeSetValue('monthlyIncome', '5500');
-        safeSetValue('otherIncome', '500');
-        
-        // Step 4
-        safeSetValue('ref1Name', 'Robert Miller');
-        safeSetValue('ref1Phone', '(555) 222-3333');
-        safeSetValue('ref2Name', 'Lisa Thompson');
-        safeSetValue('ref2Phone', '(555) 444-5555');
-        safeSetValue('emergencyName', 'Jane Testerson');
-        safeSetValue('emergencyPhone', '(555) 666-7777');
-        safeSetValue('emergencyRelationship', 'Spouse');
-        
-        document.getElementById('evictedNo')?.click();
-        document.getElementById('smokeNo')?.click();
-        
-        // Step 5
-        safeSetSelect('primaryPayment', 'Venmo');
-        safeSetSelect('secondaryPayment', 'PayPal');
-        safeSetSelect('thirdPayment', 'Cash App');
-        
-        document.querySelectorAll('.other-payment-input').forEach(el => {
-            el.style.display = 'none';
-        });
-        
-        // Step 6
-        safeSetCheckbox('certifyCorrect', true);
-        safeSetCheckbox('authorizeVerify', true);
-        safeSetCheckbox('termsAgree', true);
-        
-        if (window.app && typeof window.app.saveProgress === 'function') {
-            window.app.saveProgress();
-        }
-        
-        showTestFillNotification();
-        
-        if (window.app && typeof window.app.showSection === 'function') {
-            window.app.showSection(1);
-            window.app.updateProgressBar();
-        }
-        
-        console.log('✅ Test data filled successfully');
-    }
-    
-    function safeSetValue(id, value) {
-        const el = document.getElementById(id);
-        if (el) {
-            el.value = value;
-            el.dispatchEvent(new Event('input', { bubbles: true }));
-            el.dispatchEvent(new Event('change', { bubbles: true }));
-            el.dispatchEvent(new Event('blur', { bubbles: true }));
-        }
-    }
-    
-    function safeSetSelect(id, value) {
-        const el = document.getElementById(id);
-        if (el) {
-            el.value = value;
-            el.dispatchEvent(new Event('change', { bubbles: true }));
-            
-            if (id === 'primaryPayment' && value === 'Other') {
-                document.getElementById('primaryPaymentOtherContainer').style.display = 'block';
-            }
-            if (id === 'secondaryPayment' && value === 'Other') {
-                document.getElementById('secondaryPaymentOtherContainer').style.display = 'block';
-            }
-            if (id === 'thirdPayment' && value === 'Other') {
-                document.getElementById('thirdPaymentOtherContainer').style.display = 'block';
-            }
-        }
-    }
-    
-    function safeSetCheckbox(id, checked) {
-        const el = document.getElementById(id);
-        if (el) {
-            el.checked = checked;
-            el.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-    }
-    
-    function showTestFillNotification() {
-        const existing = document.getElementById('testFillNotification');
-        if (existing) existing.remove();
-        
-        const notification = document.createElement('div');
-        notification.id = 'testFillNotification';
-        notification.innerHTML = `
-            <i class="fas fa-check-circle"></i>
-            <span>Test data filled! You can now edit any field.</span>
-        `;
-        notification.style.cssText = `
-            position: fixed;
-            top: 24px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #10b981;
-            color: white;
-            padding: 16px 24px;
-            border-radius: 60px;
-            font-weight: 500;
-            box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.5);
-            z-index: 100000;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            animation: slideDown 0.3s ease;
-            border: 2px solid white;
-        `;
-        
-        if (!document.getElementById('testNotificationStyle')) {
-            const style = document.createElement('style');
-            style.id = 'testNotificationStyle';
-            style.textContent = `
-                @keyframes slideDown {
-                    from {
-                        opacity: 0;
-                        transform: translate(-50%, -20px);
-                    }
-                    to {
-                        opacity: 1;
-                        transform: translate(-50%, 0);
-                    }
-                }
-            `;
-            document.head.appendChild(style);
-        }
-        
-        document.body.appendChild(notification);
-        
-        setTimeout(() => {
-            if (notification) {
-                notification.style.opacity = '0';
-                notification.style.transition = 'opacity 0.3s';
-                setTimeout(() => notification.remove(), 300);
-            }
-        }, 3000);
-    }
-    
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initTestButton);
-    } else {
-        initTestButton();
-    }
-})();
-
-// ---------- Initialize app ----------
 document.addEventListener('DOMContentLoaded', () => {
     window.app = new RentalApplication();
     const s1 = document.getElementById('section1');

@@ -261,13 +261,13 @@
                     <input type="text" id="propertyAddress" name="Property Address" required placeholder="Street address, city, state, zip" data-i18n="propertyAddressPlaceholder">
                     <div class="error-message" data-i18n="errAddress">Please enter the property address</div>
                 </div>
-                <!-- D-015: Hidden inputs — carry URL param property context through FormData automatically -->
+                <!-- Hidden inputs — carry URL param property context through FormData automatically -->
                 <input type="hidden" id="hiddenPropertyId"    name="Property ID">
                 <input type="hidden" id="hiddenPropertyName"  name="Property Name">
                 <input type="hidden" id="hiddenPropertyCity"  name="Property City">
                 <input type="hidden" id="hiddenPropertyState" name="Property State">
                 <input type="hidden" id="hiddenListedRent"    name="Listed Rent">
-                  <!-- D-015 extension: Additional property context — Phase 2 params (ISSUE-002 fix) -->
+                  <!-- Additional property context from URL params -->
                   <input type="hidden" id="hiddenPropertyZip"       name="Property Zip">
                   <input type="hidden" id="hiddenPropertyAddress" name="Property Address URL">
                   <input type="hidden" id="hiddenSecurityDeposit"   name="Security Deposit">
@@ -761,7 +761,7 @@
                 </div>
             </div>
 
-            <!-- ===== STEP 4: Financial & References ===== -->
+            <!-- ===== STEP 4: References & Emergency Contact ===== -->
             <div class="form-section" id="section4">
                 <h2><i class="fas fa-list-ul"></i> <span data-i18n="financialHeader">References & Emergency Contact</span></h2>
 
@@ -941,7 +941,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label class="required" data-i18n="availabilityLabel">Availability for Follow-up (After Payment)</label>
+                        <label class="required" data-i18n="availabilityLabel">Availability</label>
                         <div class="time-categories">
                             <div class="time-category">
                                 <h5 data-i18n="weekdays">Weekdays</h5>
