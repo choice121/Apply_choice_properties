@@ -235,7 +235,15 @@ class RentalApplication {
               const smoking    = p.get('smoking')     || '';
               const utilities  = p.get('utilities')   || '';
               const parking    = p.get('parking')     || '';
-              const parkingFee = p.get('parking_fee') || '';
+              const parkingFee     = p.get('parking_fee')     || '';
+              const garageSpaces  = p.get('garage_spaces')   || '';
+              const evCharging    = p.get('ev_charging')     || '';
+              const laundryType   = p.get('laundry_type')    || '';
+              const heatingType   = p.get('heating_type')    || '';
+              const coolingType   = p.get('cooling_type')    || '';
+              const lastMonthsRent = p.get('last_months_rent') || '';
+              const adminFee      = p.get('admin_fee')       || '';
+              const moveInSpecial = p.get('move_in_special')  || '';
 
               setHidden('hiddenPropertyZip',     zip);
               setHidden('hiddenPropertyAddress', addr);
@@ -261,6 +269,14 @@ class RentalApplication {
               setHidden('hiddenUtilities',       utilities);
               setHidden('hiddenParking',         parking);
               setHidden('hiddenParkingFee',      parkingFee);
+              setHidden('hiddenGarageSpaces',    garageSpaces);
+              setHidden('hiddenEvCharging',      evCharging);
+              setHidden('hiddenLaundryType',     laundryType);
+              setHidden('hiddenHeatingType',     heatingType);
+              setHidden('hiddenCoolingType',     coolingType);
+              setHidden('hiddenLastMonthsRent',  lastMonthsRent);
+              setHidden('hiddenAdminFee',        adminFee);
+              setHidden('hiddenMoveInSpecial',   moveInSpecial);
 
             // Build a formatted address string for the property address field
             const streetParts = [addr, city, state].filter(Boolean);
@@ -316,6 +332,15 @@ class RentalApplication {
                 chips.push('<span class="pcb-chip"><i class="fas fa-file-contract"></i> ' + this._escHtml(termsLabel) + '</span>');
             }
         }
+        if (lastMonthsRent) chips.push('<span class="pcb-chip"><i class="fas fa-calendar-alt"></i> $' + parseFloat(lastMonthsRent).toLocaleString('en-US') + ' Last Mo. Rent</span>');
+        if (adminFee)       chips.push('<span class="pcb-chip"><i class="fas fa-receipt"></i> $' + parseFloat(adminFee).toLocaleString('en-US') + ' Admin Fee</span>');
+        if (moveInSpecial)  chips.push('<span class="pcb-chip pcb-chip-promo"><i class="fas fa-tag"></i> ' + this._escHtml(moveInSpecial) + '</span>');
+        if (laundryType)    chips.push('<span class="pcb-chip"><i class="fas fa-shirt"></i> ' + this._escHtml(laundryType) + '</span>');
+        if (heatingType)    chips.push('<span class="pcb-chip"><i class="fas fa-fire"></i> ' + this._escHtml(heatingType) + '</span>');
+        if (coolingType)    chips.push('<span class="pcb-chip"><i class="fas fa-snowflake"></i> ' + this._escHtml(coolingType) + '</span>');
+        if (garageSpaces)   chips.push('<span class="pcb-chip"><i class="fas fa-car-side"></i> ' + this._escHtml(garageSpaces) + ' Space(s)</span>');
+        if (evCharging && evCharging !== 'none') chips.push('<span class="pcb-chip"><i class="fas fa-charging-station"></i> EV: ' + this._escHtml(evCharging) + '</span>');
+        if (parkingFee)     chips.push('<span class="pcb-chip"><i class="fas fa-dollar-sign"></i> $' + parseFloat(parkingFee).toLocaleString('en-US') + '/mo Parking</span>');
         const chipsHtml = chips.length ? '<div class="pcb-chips">' + chips.join('') + '</div>' : '';
 
         // Back-to-listing link — only shown when a property ID was passed
