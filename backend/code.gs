@@ -1126,6 +1126,21 @@ function processApplication(formData, fileBlob) {
         const fileName  = formData[`_docFile_${docIdx}_name`];
         const mimeType  = formData[`_docFile_${docIdx}_type`] || 'application/octet-stream';
         const b64Data   = formData[`_docFile_${docIdx}_data`];
+        // ── File type validation — allowlist of safe document/image types ──
+        const ALLOWED_MIME_TYPES = [
+          'application/pdf',
+          'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif',
+          'application/msword',
+          'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+          'text/plain'
+        ];
+        const ALLOWED_EXTENSIONS = ['.pdf','.jpg','.jpeg','.png','.webp','.gif','.doc','.docx','.txt'];
+        const fileExt = (fileName.match(/\.[^.]+$/) || [''])[0].toLowerCase();
+        if (!ALLOWED_MIME_TYPES.includes(mimeType) || !ALLOWED_EXTENSIONS.includes(fileExt)) {
+          console.warn('processApplication: rejected file "' + fileName + '" (type: ' + mimeType + ', ext: ' + fileExt + ')');
+          docIdx++;
+          continue;
+        }
         const decoded   = Utilities.base64Decode(b64Data);
         const blob      = Utilities.newBlob(decoded, mimeType, `${appId}_${fileName}`);
         let folder;
