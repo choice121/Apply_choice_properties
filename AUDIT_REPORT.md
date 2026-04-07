@@ -31,7 +31,7 @@ However, a thorough audit reveals significant gaps in UX logic, form validation,
 
 1. **`code.gs` monolith** — The entire backend is a single 6,161-line file. This has no runtime impact but makes maintenance increasingly difficult. No modular separation between auth, email, lease, admin, and data layers.
 
-2. **Admin credentials hardcoded in source** — `setupAdminPassword()` contains the literal username (`choiceproperties404@gmail.com`) and password (`Choice123$..`) in plaintext in the source code. Anyone with read access to the repository has these credentials. This is a critical security issue.
+2. **Admin credentials hardcoded in source** — `setupAdminPassword()` contained a literal username and password in plaintext in the source code. Anyone with read access to the repository had these credentials. **This has been fixed — credentials are now stored in GAS `PropertiesService`, not in source code.** See Phase 1 fix 1.1.
 
 3. **No rate limiting or abuse protection** — The GAS `doPost()` endpoint accepts submissions without any throttling. A bot could submit thousands of applications. GAS daily quotas provide some natural protection, but there is no intentional guard.
 
@@ -519,7 +519,7 @@ SYSTEM EMAILS
 
 **Task 1.1: Remove hardcoded credentials from source**
 - File: `backend/code.gs`, line 527–528
-- Remove the literal username and password from `setupAdminPassword()`
+- ✅ Remove the literal username and password from `setupAdminPassword()` — completed in Phase 1
 - Replace with: `Logger.log('Run this manually with your credentials — do not leave them in source.')` and a commented example
 - Ensure `ADMIN_USERNAME` and `ADMIN_PASSWORD_HASH` are only ever set via the GAS editor manually
 
