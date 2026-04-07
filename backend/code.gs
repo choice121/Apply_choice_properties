@@ -913,7 +913,35 @@ function doPost(e) {
       return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
     }
 
-    const result = processApplication(formData, fileBlob);
+    // ── Honeypot check — bots fill this field, real users don't ──────────────
+      if (formData['website'] && formData['website'].trim() !== '') {
+        // Return fake success to avoid revealing the honeypot mechanism
+        return ContentService
+          .createTextOutput(JSON.stringify({ success: true, message: 'Application received.', app_id: 'HP-' + Date.now() }))
+          .setMimeType(ContentService.MimeType.JSON);
+      }
+
+      // ── Rate limiting via CacheService (max 5 submissions per email per day) ─
+      try {
+        const email = (formData['Email'] || '').toLowerCase().trim();
+        if (email) {
+          const cache = CacheService.getScriptCache();
+          const cacheKey = 'rl_email_' + email.replace(/[^a-z0-9]/g, '_');
+          const cached = cache.get(cacheKey);
+          const count = cached ? parseInt(cached, 10) : 0;
+          if (count >= 5) {
+            return ContentService
+              .createTextOutput(JSON.stringify({ success: false, error: 'Too many submissions from this email address. Please wait 24 hours before trying again.' }))
+              .setMimeType(ContentService.MimeType.JSON);
+          }
+          cache.put(cacheKey, String(count + 1), 86400); // 24-hour window
+        }
+      } catch (rateErr) {
+        // CacheService unavailable — allow the submission through
+        console.error('Rate limit check failed (non-blocking):', rateErr.toString());
+      }
+
+      const result = processApplication(formData, fileBlob);
     return ContentService
       .createTextOutput(JSON.stringify(result))
       .setMimeType(ContentService.MimeType.JSON);
