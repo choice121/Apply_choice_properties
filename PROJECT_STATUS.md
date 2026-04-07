@@ -9,7 +9,7 @@ Do NOT proceed without verifying the last completed phase.
 **System:** Choice Properties Rental Application System
 **Stack:** Pure static HTML/CSS/Vanilla JS + Google Apps Script (GAS) backend + Google Sheets database
 **Last Updated:** April 7, 2026
-**Active Phase:** Phase 6 — NOT STARTED
+**Active Phase:** Phase 8 — NOT STARTED
 
 ---
 
@@ -22,8 +22,8 @@ Do NOT proceed without verifying the last completed phase.
 | 3 | Data Integrity & Backend Validation | COMPLETE |
 | 4 | Email Templates & Communication System | COMPLETE |
 | 5 | Lease System Improvements | COMPLETE |
-| 6 | Payment Flow Improvements | NOT STARTED |
-| 7 | Automation (GAS Triggers) | NOT STARTED |
+| 6 | Payment Flow Improvements | COMPLETE |
+| 7 | Automation (GAS Triggers) | CANCELLED — all emails are manual |
 | 8 | UX & Flow Completion | NOT STARTED |
 
 ---
@@ -191,7 +191,7 @@ Do NOT proceed without verifying the last completed phase.
 
 ## Phase 6 — Payment Flow Improvements
 
-**Status:** NOT STARTED
+**Status:** COMPLETE
 **Blocked By:** Phase 5
 
 ### Objectives
@@ -202,44 +202,27 @@ Do NOT proceed without verifying the last completed phase.
 
 ### Tasks
 
-- [ ] **6.1** Add `Actual Payment Method`, `Transaction Reference`, `Amount Collected` fields to the Mark as Paid modal — write to sheet
-- [ ] **6.2** Add "Mark as Refunded" admin action and "refunded" payment status
-- [ ] **6.3** Add deadline field to the Request Holding Fee modal — include deadline in holding fee request email
-- [ ] **6.4** Enhance payment confirmation email with a formatted receipt block (amount, date, method, reference)
+- [x] **6.1** Add `Actual Payment Method`, `Transaction Reference`, `Amount Collected` fields to the Mark as Paid modal — write to sheet
+- [x] **6.2** Add "Mark as Refunded" admin action and "refunded" payment status
+- [x] **6.3** Add deadline field to the Request Holding Fee modal — include deadline in holding fee request email
+- [x] **6.4** Enhance payment confirmation email with a formatted receipt block (amount, date, method, reference)
 
-### Files to Modify
+### Files Modified
 - `backend/code.gs` (admin panel HTML + GAS functions)
 
 ---
 
 ## Phase 7 — GAS Automation (Triggers)
 
-**Status:** NOT STARTED
-**Blocked By:** Phase 6
-
-### Objectives
-- Create all automated time-based GAS triggers
-- Implement handler functions for each trigger
-
-### Tasks
-
-- [ ] **7.1** Create `installTriggers()` function — documents how to install triggers in GAS editor
-- [ ] **7.2** Create `checkFeeFollowUp()` — alert admin if payment unpaid after 72h
-- [ ] **7.3** Create `checkLeaseSigning()` — 24h reminder to tenant + 48h alert to admin
-- [ ] **7.4** Create `checkPostApproval()` — alert admin if lease not sent 24h after approval
-- [ ] **7.5** Create `checkMoveInReminders()` — send move-in prep email 7 days before start date
-- [ ] **7.6** Document trigger installation instructions in `docs/TRIGGERS.md`
-
-### Files to Modify
-- `backend/code.gs`
-- `docs/TRIGGERS.md` (new file)
+**Status:** CANCELLED
+**Decision:** All emails and status updates are handled manually by admin through the dashboard. No automated triggers will be implemented. Email templates created in Phase 4 (`leaseSigningReminder`, `leaseExpiryAdminAlert`) remain in the codebase as dispatch functions the admin can call manually if needed, but no time-based GAS triggers will be installed.
 
 ---
 
 ## Phase 8 — UX & Flow Completion
 
 **Status:** NOT STARTED
-**Blocked By:** Phase 7
+**Blocked By:** Phase 6
 
 ### Objectives
 - Improve applicant dashboard denied state
@@ -284,6 +267,12 @@ Do NOT proceed without verifying the last completed phase.
 - **4.8** Denial email "Looking Ahead" step 1 now includes: 60-day on-file period, 30-day no-new-fee reapplication window with instruction to contact the team.
 - **4.9** `markAsPaid()` now calls `sendAdminReviewSummary(appId)` immediately after `sendPaymentConfirmation()`.
 
+### Phase 6 — April 7, 2026
+- **6.1** Added `Amount Collected` field to the Mark as Paid modal (alongside the existing Payment Method dropdown and Transaction Reference field). `markAsPaid()` now accepts a 5th `amountCollected` parameter. Value is written to the new `Amount Collected` sheet column (added to `migrateSchema()`). Admin audit note also records the amount.
+- **6.2** `markAsRefunded()` function confirmed complete. "Refunded" button added to the **server-rendered** admin card (`buildAdminCardHtml`) — it was already present in the client-side JS card renderer. Both paths now show the button when `Payment Status = 'paid'`.
+- **6.3** Holding fee deadline dropdown confirmed complete in the Request Holding Fee modal (`requestHoldingFee()` stores deadline to `Holding Fee Deadline` sheet column; `sendHoldingFeeRequestEmail()` includes deadline in the tenant email).
+- **6.4** `paymentConfirmation` email template updated to show `Amount Collected` (the actual amount the admin recorded) alongside the `Application Fee` constant. `sendPaymentConfirmation()` signature updated to pass `amountCollected` through from `markAsPaid()`.
+
 ### Phase 3 — April 7, 2026
 - **3.1** Added phone digit count validation (< 10 digits → reject with clear message) and monthly income non-numeric warning (log only, never reject) in `processApplication()`.
 - **3.2** Added duplicate detection before row insert: compares incoming `Email` + `Property Address` against all existing rows; skips rows with `denied` or `withdrawn` status. Returns `{ duplicate: true, existingAppId }` so the client can surface the existing reference number.
@@ -311,7 +300,7 @@ Do NOT proceed without verifying the last completed phase.
 
 ## Known Issues Remaining
 
-All 41 issues identified in `AUDIT_REPORT.md` are pending. See the audit report for the full breakdown.
+Of the 41 issues identified in `AUDIT_REPORT.md`, Phases 1–6 have addressed the majority. Phase 8 (UX & Flow Completion) covers the remaining open items. Phase 7 (Automation) has been cancelled by design — all communications remain admin-initiated.
 
 ---
 
@@ -352,7 +341,7 @@ NEXT AI INSTRUCTIONS:
 - Read `PROJECT_STATUS.md` (this file) first
 - Read `PROJECT_RULES.md` second
 - Read `docs/IMPLEMENTATION_PLAN.md` third
-- Verify the last COMPLETED phase before proceeding
-- Do not skip phases or work out of order
-- Do not start Phase 2 until Phase 1 is COMPLETED and VERIFIED
+- Last completed phase: Phase 6. Phase 7 is CANCELLED. Next active phase: Phase 8.
+- Phase 7 (GAS Automation) is permanently cancelled — do NOT implement automated triggers or scheduled emails
+- All emails and status updates are admin-initiated through the dashboard only
 - Do not introduce any infrastructure not already in the project

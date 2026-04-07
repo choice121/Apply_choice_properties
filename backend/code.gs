@@ -223,7 +223,7 @@ function addMissingLeaseColumns(sheet) {
     // Phase 5 (Implementation Plan): new columns
     'Verified Property Address', 'Renter Insurance Agreed',
     // Phase 6: payment tracking and holding fee deadline
-    'Payment Method Used', 'Transaction Reference', 'Holding Fee Deadline'
+    'Payment Method Used', 'Transaction Reference', 'Amount Collected', 'Holding Fee Deadline'
   ];
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   newColumns.forEach(col => {
@@ -2738,7 +2738,7 @@ const EmailTemplates = {
 `,
 
   // ── 3. Payment Confirmation ───────────────────────────────
-  paymentConfirmation: (appId, applicantName, phone, dashboardLink, propertyAddress, propertyName, fee, actualMethod, transactionRef) => `
+  paymentConfirmation: (appId, applicantName, phone, dashboardLink, propertyAddress, propertyName, fee, actualMethod, transactionRef, amountCollected) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2775,7 +2775,8 @@ const EmailTemplates = {
         <div class="financial-row"><span class="f-label">Application ID</span><span class="f-value">${appId}</span></div>
         <div class="financial-row"><span class="f-label">Applicant</span><span class="f-value">${applicantName}</span></div>
         ${(propertyAddress || propertyName) ? `<div class="financial-row"><span class="f-label">Property</span><span class="f-value">${propertyName || propertyAddress}</span></div>` : ''}
-        <div class="financial-row"><span class="f-label">Amount Paid</span><span class="f-value">$${fee || APPLICATION_FEE}.00</span></div>
+        <div class="financial-row"><span class="f-label">Application Fee</span><span class="f-value">$${fee || APPLICATION_FEE}.00</span></div>
+        ${amountCollected ? `<div class="financial-row"><span class="f-label">Amount Collected</span><span class="f-value">$${parseFloat(amountCollected).toFixed(2)}</span></div>` : ''}
         <div class="financial-row"><span class="f-label">Payment Date</span><span class="f-value">${new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</span></div>
         ${actualMethod ? `<div class="financial-row"><span class="f-label">Payment Method</span><span class="f-value">${actualMethod}</span></div>` : ''}
         ${transactionRef ? `<div class="financial-row"><span class="f-label">Reference / Note</span><span class="f-value">${transactionRef}</span></div>` : ''}
@@ -3695,7 +3696,7 @@ function sendAdminReviewSummary(appId) {
   }
 }
 
-function sendPaymentConfirmation(appId, applicantEmail, applicantName, phone, actualMethod, transactionRef) {
+function sendPaymentConfirmation(appId, applicantEmail, applicantName, phone, actualMethod, transactionRef, amountCollected) {
   try {
     const baseUrl       = ScriptApp.getService().getUrl();
     const dashboardLink = baseUrl + '?path=dashboard&id=' + appId;
@@ -3716,7 +3717,7 @@ function sendPaymentConfirmation(appId, applicantEmail, applicantName, phone, ac
     MailApp.sendEmail({
       to: applicantEmail,
       subject: `✅ Payment Confirmed${propertySnippet} | Application ${appId}`,
-      htmlBody: EmailTemplates.paymentConfirmation(appId, applicantName, phone, dashboardLink, propertyAddress, propertyName, applicationFee, actualMethod, transactionRef),
+      htmlBody: EmailTemplates.paymentConfirmation(appId, applicantName, phone, dashboardLink, propertyAddress, propertyName, applicationFee, actualMethod, transactionRef, amountCollected),
       name: 'Choice Properties'
     });
     return true;
@@ -4091,11 +4092,12 @@ function sendHoldingFeeRequestEmail(appId, email, fullName, phone, feeAmount, pr
 // ============================================================
 // markAsPaid()
 // ============================================================
-function markAsPaid(appId, notes, actualMethod, transactionRef) {
+function markAsPaid(appId, notes, actualMethod, transactionRef, amountCollected) {
   try {
     const ss    = getSpreadsheet();
     const sheet = ss.getSheetByName(SHEET_NAME);
     if (!sheet) throw new Error('Applications sheet not found');
+    initializeSheets();
     const col  = getColumnMap(sheet);
     const data = sheet.getDataRange().getValues();
     let rowIndex = -1;
@@ -4114,10 +4116,14 @@ function markAsPaid(appId, notes, actualMethod, transactionRef) {
     if (transactionRef && col['Transaction Reference']) {
       sheet.getRange(rowIndex, col['Transaction Reference']).setValue(transactionRef.trim());
     }
+    if (amountCollected && col['Amount Collected']) {
+      sheet.getRange(rowIndex, col['Amount Collected']).setValue(parseFloat(amountCollected));
+    }
     const noteLines = [];
-    if (actualMethod)   noteLines.push('Method: ' + actualMethod);
-    if (transactionRef) noteLines.push('Ref: ' + transactionRef);
-    if (notes)          noteLines.push(notes);
+    if (actualMethod)    noteLines.push('Method: ' + actualMethod);
+    if (amountCollected) noteLines.push('Amount: $' + parseFloat(amountCollected).toFixed(2));
+    if (transactionRef)  noteLines.push('Ref: ' + transactionRef);
+    if (notes)           noteLines.push(notes);
     if (noteLines.length) {
       const curr = sheet.getRange(rowIndex, col['Admin Notes']).getValue();
       const note = `[${new Date().toLocaleString()}] Payment marked as paid. ${noteLines.join(' | ')}`;
@@ -4127,7 +4133,7 @@ function markAsPaid(appId, notes, actualMethod, transactionRef) {
     const firstName = sheet.getRange(rowIndex, col['First Name']).getValue();
     const lastName  = sheet.getRange(rowIndex, col['Last Name']).getValue();
     const phone     = sheet.getRange(rowIndex, col['Phone']).getValue();
-    sendPaymentConfirmation(appId, email, firstName + ' ' + lastName, phone, actualMethod, transactionRef);
+    sendPaymentConfirmation(appId, email, firstName + ' ' + lastName, phone, actualMethod, transactionRef, amountCollected);
     logEmail('payment_confirmation', email, 'success', appId);
     // ── Task 4.9: Send admin review summary now that fee is confirmed ──
     sendAdminReviewSummary(appId);
@@ -6040,6 +6046,10 @@ function renderAdminPanel(authToken) {
           </select>
         </div>
         <div class="form-group" style="margin-bottom:12px;">
+          <label class="form-label" for="amountCollected">Amount Collected ($) <span style="color:#ef4444;">*</span></label>
+          <input type="number" class="form-control" id="amountCollected" placeholder="e.g., 50" min="0" step="0.01">
+        </div>
+        <div class="form-group" style="margin-bottom:12px;">
           <label class="form-label" for="transactionRef">Transaction Reference / Note (optional)</label>
           <input type="text" class="form-control" id="transactionRef" placeholder="e.g., Venmo confirmation #12345, check #001...">
         </div>
@@ -6480,10 +6490,12 @@ function renderAdminPanel(authToken) {
       showToast('Error: ' + err, 'error');
     };
     if (currentAction === 'markPaid') {
-      const actualMethod  = document.getElementById('actualPaymentMethod').value.trim();
+      const actualMethod   = document.getElementById('actualPaymentMethod').value.trim();
+      const amountCollected = document.getElementById('amountCollected').value.trim();
       const transactionRef = document.getElementById('transactionRef').value.trim();
-      if (!actualMethod) { onFail('Please select a payment method.'); btn.disabled = false; btn.textContent = 'Confirm Payment'; _actionInProgress = false; return; }
-      google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).markAsPaid(currentAppId, notes, actualMethod, transactionRef);
+      if (!actualMethod)   { onFail('Please select a payment method.'); btn.disabled = false; btn.textContent = 'Confirm Payment'; _actionInProgress = false; return; }
+      if (!amountCollected || parseFloat(amountCollected) <= 0) { onFail('Please enter the amount collected.'); btn.disabled = false; btn.textContent = 'Confirm Payment'; _actionInProgress = false; return; }
+      google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).markAsPaid(currentAppId, notes, actualMethod, transactionRef, parseFloat(amountCollected));
     }
     else if (currentAction === 'approve')     google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).updateStatus(currentAppId, 'approved', notes);
     else if (currentAction === 'deny')        google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).updateStatus(currentAppId, 'denied', notes);
@@ -6585,6 +6597,7 @@ function renderAdminPanel(authToken) {
     document.getElementById('paymentFields').style.display = c.payFields ? 'block' : 'none';
     if (c.payFields) {
       document.getElementById('actualPaymentMethod').value = '';
+      document.getElementById('amountCollected').value = '';
       document.getElementById('transactionRef').value = '';
     }
     document.getElementById('notesField').style.display = c.notes ? 'block' : 'none';
@@ -6940,6 +6953,7 @@ function buildAdminCard(app, baseUrl) {
         ${payPrefsHtml}
         <div class="card-actions">
           <button class="act-btn btn-pay"   onclick="showConfirmModal('markPaid','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canMarkPaid?'':'disabled'} aria-label="Mark as paid"><i class="fas fa-coins"></i> Mark Paid</button>
+          <button class="act-btn btn-deny"  onclick="showConfirmModal('markRefund','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canMarkRefund?'':'disabled'} aria-label="Mark as refunded" style="background:linear-gradient(to right,#7c3aed,#a855f7);"><i class="fas fa-rotate-left"></i> Refunded</button>
           <button class="act-btn btn-appr"  onclick="showConfirmModal('approve','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canApprove?'':'disabled'} aria-label="Approve"><i class="fas fa-circle-check"></i> Approve</button>
           <button class="act-btn btn-deny"  onclick="showConfirmModal('deny','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canDeny?'':'disabled'} aria-label="Deny"><i class="fas fa-circle-xmark"></i> Deny</button>
           <button class="act-btn btn-lease" onclick="showLeaseModal('${app['App ID']}','${safeName}','${safeContact}','${safeTimes}','${safeAddr}')" ${canSendLease?'':'disabled'} aria-label="Send lease"><i class="fas fa-file-signature"></i> Send Lease</button>
