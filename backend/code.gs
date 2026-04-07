@@ -7201,6 +7201,84 @@ function buildAdminCard(app, baseUrl) {
 // ============================================================
 // runCompleteBackendTest() — dev helper (unchanged)
 // ============================================================
-function runCompleteBackendTest() {
+// ============================================================
+  // checkUnsignedLeases()  — Issue #6 fix
+  // Scheduled to run daily via setupLeaseReminderTrigger().
+  // At 24h after lease sent: emails tenant a signing reminder.
+  // At 48h after lease sent: emails admin an expiry alert.
+  // Each action fires only once (sentinel tags in Admin Notes).
+  // ============================================================
+  function checkUnsignedLeases() {
+    try {
+      const ss    = getSpreadsheet();
+      const sheet = ss.getSheetByName(SHEET_NAME);
+      if (!sheet) return;
+      const col  = getColumnMap(sheet);
+      const data = sheet.getDataRange().getValues();
+      const now  = new Date();
+
+      for (let i = 1; i < data.length; i++) {
+        const row          = data[i];
+        const leaseStatus  = col['Lease Status']    ? row[col['Lease Status'] - 1]    : '';
+        const leaseSentRaw = col['Lease Sent Date'] ? row[col['Lease Sent Date'] - 1] : '';
+        if (leaseStatus !== 'sent' || !leaseSentRaw) continue;
+
+        const leaseSentDate = new Date(leaseSentRaw);
+        if (isNaN(leaseSentDate.getTime())) continue;
+        const hoursElapsed = (now - leaseSentDate) / 36e5;
+
+        const rowNum     = i + 1;
+        const appId      = col['App ID']           ? row[col['App ID'] - 1]           : '';
+        const email      = col['Email']            ? row[col['Email'] - 1]             : '';
+        const firstName  = col['First Name']       ? row[col['First Name'] - 1]        : '';
+        const lastName   = col['Last Name']        ? row[col['Last Name'] - 1]         : '';
+        const tenantName = (firstName + ' ' + lastName).trim();
+        const tenantPhone= col['Phone']            ? row[col['Phone'] - 1]             : '';
+        const property   = col['Property Address'] ? row[col['Property Address'] - 1]  : '';
+        const leaseLink  = col['Lease Link']       ? row[col['Lease Link'] - 1]        : '';
+        const adminNotes = col['Admin Notes']      ? String(row[col['Admin Notes'] - 1] || '') : '';
+
+        if (!appId || !email) continue;
+
+        // 24h window: send tenant reminder once (between 24h and 36h after send)
+        if (hoursElapsed >= 24 && hoursElapsed < 36 && !adminNotes.includes('[REMINDER_SENT]')) {
+          sendLeaseSigningReminder(appId, email, firstName, leaseLink, property);
+          const note = '[' + new Date().toLocaleString() + '] [REMINDER_SENT] 24h lease signing reminder emailed to tenant.';
+          sheet.getRange(rowNum, col['Admin Notes']).setValue(adminNotes ? adminNotes + '\n' + note : note);
+          console.log('checkUnsignedLeases: 24h reminder sent for', appId);
+        }
+
+        // 48h window: send admin expiry alert once (at or after 48h)
+        if (hoursElapsed >= 48 && !adminNotes.includes('[EXPIRY_ALERT_SENT]')) {
+          sendLeaseExpiryAdminAlert(appId, tenantName, email, tenantPhone, property);
+          const current = sheet.getRange(rowNum, col['Admin Notes']).getValue();
+          const note = '[' + new Date().toLocaleString() + '] [EXPIRY_ALERT_SENT] 48h unsigned lease admin alert sent.';
+          sheet.getRange(rowNum, col['Admin Notes']).setValue(current ? current + '\n' + note : note);
+          console.log('checkUnsignedLeases: 48h admin alert sent for', appId);
+        }
+      }
+    } catch (err) {
+      console.error('checkUnsignedLeases error:', err);
+    }
+  }
+
+  // ============================================================
+  // setupLeaseReminderTrigger()  — Run ONCE manually from GAS IDE.
+  // Creates a daily time-driven trigger for checkUnsignedLeases().
+  // Safe to re-run — removes any duplicate triggers first.
+  // ============================================================
+  function setupLeaseReminderTrigger() {
+    ScriptApp.getProjectTriggers().forEach(function(t) {
+      if (t.getHandlerFunction() === 'checkUnsignedLeases') ScriptApp.deleteTrigger(t);
+    });
+    ScriptApp.newTrigger('checkUnsignedLeases')
+      .timeBased()
+      .everyDays(1)
+      .atHour(9)
+      .create();
+    console.log('setupLeaseReminderTrigger: daily 9 AM trigger created for checkUnsignedLeases.');
+  }
+
+  function runCompleteBackendTest() {
   console.log('🚀 TEST FUNCTION — kept for development');
 }
