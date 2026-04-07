@@ -7293,7 +7293,3 @@ function buildAdminCard(app, baseUrl) {
       .create();
     console.log('setupLeaseReminderTrigger: daily 9 AM trigger created for checkUnsignedLeases.');
   }
-
-  function runCompleteBackendTest() {
-  console.log('🚀 TEST FUNCTION — kept for development');
-}
