@@ -9,7 +9,7 @@ Do NOT proceed without verifying the last completed phase.
 **System:** Choice Properties Rental Application System
 **Stack:** Pure static HTML/CSS/Vanilla JS + Google Apps Script (GAS) backend + Google Sheets database
 **Last Updated:** April 7, 2026
-**Active Phase:** Phase 2 — NOT STARTED
+**Active Phase:** Phase 3 — NOT STARTED
 
 ---
 
@@ -18,7 +18,7 @@ Do NOT proceed without verifying the last completed phase.
 | Phase | Title | Status |
 |---|---|---|
 | 1 | Critical: Security & Legal | COMPLETE |
-| 2 | Core Form Logic Fixes | NOT STARTED |
+| 2 | Core Form Logic Fixes | COMPLETE |
 | 3 | Data Integrity & Backend Validation | NOT STARTED |
 | 4 | Email Templates & Communication System | NOT STARTED |
 | 5 | Lease System Improvements | NOT STARTED |
@@ -69,7 +69,7 @@ Do NOT proceed without verifying the last completed phase.
 
 ## Phase 2 — Core Form Logic Fixes
 
-**Status:** NOT STARTED
+**Status:** COMPLETE
 **Blocked By:** Phase 1 must be completed first
 
 ### Objectives
@@ -83,13 +83,13 @@ Do NOT proceed without verifying the last completed phase.
 
 ### Tasks
 
-- [ ] **2.1** Conditional employment fields — when status is Unemployed/Retired/Student/Self-employed, show/hide and re-label appropriate fields
-- [ ] **2.2** Make co-applicant Name/Email/Phone required when the co-applicant checkbox is checked
-- [ ] **2.3** Add minimum age (18) validation on the Date of Birth field
-- [ ] **2.4** Make Reference 1 Relationship field required
-- [ ] **2.5** Update `_readApplicationFee()` to also update the Step 6 fee heading display
-- [ ] **2.6** Fix footer Privacy Policy and Terms of Service dead links; update consent checkbox wording
-- [ ] **2.7** Fix the denial email partial-sentence bug (when no reason is provided)
+- [x] **2.1** Conditional employment fields — when status is Unemployed/Retired/Student/Self-employed, show/hide and re-label appropriate fields
+- [x] **2.2** Make co-applicant Name/Email/Phone required when the co-applicant checkbox is checked
+- [x] **2.3** Add minimum age (18) validation on the Date of Birth field
+- [x] **2.4** Make Reference 1 Relationship field required
+- [x] **2.5** Update `_readApplicationFee()` to also update the Step 6 fee heading display
+- [x] **2.6** Fix footer Privacy Policy and Terms of Service dead links; update consent checkbox wording
+- [x] **2.7** Fix the denial email partial-sentence bug (when no reason is provided)
 
 ### Files to Modify
 - `js/script.js`
@@ -264,6 +264,15 @@ Do NOT proceed without verifying the last completed phase.
 ---
 
 ## Completed Tasks Log
+
+### Phase 2 — April 7, 2026
+- **2.1** Upgraded `toggleEmployerSection()` in `js/script.js` to handle 5 statuses (Employed, Self-employed, Unemployed, Retired, Student) with per-status field visibility, labels, and required enforcement. Labels re-apply on language change.
+- **2.2** Added `required` to `coFirstName`, `coLastName`, `coEmail`, `coPhone` when co-applicant checkbox is checked; removes and clears them when unchecked.
+- **2.3** Frontend age validation already present. Added server-side age ≥ 18 check in `processApplication()` in `backend/code.gs`.
+- **2.4** Added `required` attribute and `required` CSS class to `#ref1Relationship` in `index.html`.
+- **2.5** `_readApplicationFee()` now updates the fee title heading and `.fee-amount` element in the DOM when a `?fee=` URL param is present.
+- **2.6** Footer Privacy Policy and Terms of Service links changed from `href="#"` to `mailto:choicepropertygroup@hotmail.com` with descriptive `title` attributes. `termsAgreeLabel` updated to honest certification wording (en + es).
+- **2.7** Denial email in `backend/code.gs` now uses `"Our decision is based on our standard application review criteria."` as the fallback when no reason is provided.
 
 ### Phase 1 — April 7, 2026
 - **1.1** Verified no hardcoded credentials in `setupAdminPassword()` — empty string placeholders in place

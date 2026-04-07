@@ -932,6 +932,20 @@ function processApplication(formData, fileBlob) {
       }
     }
 
+    // ── Task 2.3: Server-side minimum age validation (18+) ──
+    if (formData['DOB'] && formData['DOB'].trim()) {
+      const dob = new Date(formData['DOB']);
+      if (!isNaN(dob.getTime())) {
+        const today = new Date();
+        let age = today.getFullYear() - dob.getFullYear();
+        const m = today.getMonth() - dob.getMonth();
+        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+        if (age < 18) {
+          return { success: false, error: 'Applicant must be 18 or older to apply.' };
+        }
+      }
+    }
+
     const ss = getSpreadsheet();
     initializeSheets();
     const sheet = ss.getSheetByName(SHEET_NAME);
@@ -2756,7 +2770,10 @@ const EmailTemplates = {
 
     <div class="callout red">
       <h4>Application Status — Not Approved</h4>
-      <p>${reason ? `After review, the primary reason for this decision relates to: <strong>${reason}</strong>. ` : ''}We understand this is disappointing news and we genuinely appreciate the trust you placed in us by applying.</p>
+      <p>${reason
+        ? `After review, the primary reason for this decision relates to: <strong>${reason}</strong>.`
+        : `Our decision is based on our standard application review criteria.`
+      } We understand this is disappointing news and we genuinely appreciate the trust you placed in us by applying.</p>
     </div>
 
     <div class="section">

@@ -170,7 +170,14 @@ class RentalApplication {
         try {
             const p   = new URLSearchParams(window.location.search);
             const fee = parseFloat(p.get('fee'));
-            if (fee && fee > 0) this.state.applicationFee = fee;
+            if (fee && fee > 0) {
+                this.state.applicationFee = fee;
+                const formatted = '$' + fee.toFixed(2);
+                const feeTitle = document.querySelector('[data-i18n="feeTitle"]');
+                if (feeTitle) feeTitle.textContent = 'Application Fee: ' + formatted;
+                const feeAmount = document.querySelector('.fee-amount');
+                if (feeAmount) feeAmount.textContent = '$' + fee.toFixed(0);
+            }
         } catch (e) {}
     }
 
@@ -867,10 +874,20 @@ class RentalApplication {
         }
         const hasCoApplicantCheck = document.getElementById('hasCoApplicant');
         const coApplicantSection = document.getElementById('coApplicantSection');
+        const coRequiredIds = ['coFirstName', 'coLastName', 'coEmail', 'coPhone'];
         if (hasCoApplicantCheck && coApplicantSection) {
             hasCoApplicantCheck.addEventListener('change', (e) => {
                 coApplicantSection.style.display = e.target.checked ? 'block' : 'none';
-                if (!e.target.checked) {
+                if (e.target.checked) {
+                    coRequiredIds.forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.setAttribute('required', 'required');
+                    });
+                } else {
+                    coRequiredIds.forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) { el.removeAttribute('required'); el.value = ''; }
+                    });
                     const inputs = coApplicantSection.querySelectorAll('input, select, textarea');
                     inputs.forEach(input => this.clearError(input));
                 }
@@ -887,45 +904,76 @@ class RentalApplication {
             vehicleNo.addEventListener('change', toggleVehicle);
         }
 
-        // ── Employment status: hide/un-require employer fields when not applicable ──
-        // Unemployed, Retired, and Student applicants have no employer to list.
-        // Hiding these fields prevents a hard block at Step 3 validation.
-        const NON_EMPLOYED = ['Unemployed', 'Retired', 'Student'];
-        const employerFieldIds = ['employer', 'jobTitle', 'employmentDuration', 'supervisorName', 'supervisorPhone'];
-
+        // ── Employment status: conditionally show/label/require employer fields ──
+        // Each status type shows different fields with different labels.
         const toggleEmployerSection = (status) => {
-            const isEmployed = !NON_EMPLOYED.includes(status);
-            // Track which .form-row elements have already been toggled this pass
-            // (employer+jobTitle share one row, supervisorName+Phone share another)
+            const lang = this.state.language || 'en';
+            const getLabel = (id) => document.querySelector(`label[for="${id}"]`);
             const rowsSeen = new Set();
-            employerFieldIds.forEach(id => {
+
+            const showField = (id, required, labelEn, labelEs) => {
                 const el = document.getElementById(id);
                 if (!el) return;
-                if (isEmployed) {
-                    el.setAttribute('required', 'required');
-                    el.classList.remove('is-invalid');
-                    this.clearError(el);
-                } else {
-                    el.removeAttribute('required');
-                    el.value = '';
-                    el.classList.remove('is-invalid');
-                    this.clearError(el);
-                }
-                // Hide/show the parent .form-row (covers 2-column rows correctly)
+                if (required) el.setAttribute('required', 'required');
+                else el.removeAttribute('required');
+                el.classList.remove('is-invalid');
+                this.clearError(el);
+                const lbl = getLabel(id);
+                if (lbl && labelEn) lbl.textContent = lang === 'es' ? labelEs : labelEn;
                 const row = el.closest('.form-row') || el.closest('.form-group');
-                if (row && !rowsSeen.has(row)) {
-                    row.style.display = isEmployed ? '' : 'none';
-                    rowsSeen.add(row);
-                }
-            });
+                if (row && !rowsSeen.has(row)) { row.style.display = ''; rowsSeen.add(row); }
+            };
+
+            const hideField = (id) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.removeAttribute('required');
+                el.value = '';
+                el.classList.remove('is-invalid');
+                this.clearError(el);
+                const row = el.closest('.form-row') || el.closest('.form-group');
+                if (row && !rowsSeen.has(row)) { row.style.display = 'none'; rowsSeen.add(row); }
+            };
+
+            if (status === 'Unemployed') {
+                hideField('employer');
+                hideField('jobTitle');
+                hideField('employmentDuration');
+                hideField('supervisorName');
+                hideField('supervisorPhone');
+            } else if (status === 'Retired') {
+                showField('employer', false, 'Former Employer (Optional)', 'Empleador Anterior (Opcional)');
+                showField('jobTitle', false, 'Former Job Title (Optional)', 'Cargo Anterior (Opcional)');
+                showField('employmentDuration', false, 'How long at this job?', '¿Cuánto tiempo en este trabajo?');
+                hideField('supervisorName');
+                hideField('supervisorPhone');
+            } else if (status === 'Student') {
+                showField('employer', false, 'School / Institution Name (Optional)', 'Escuela / Institución (Opcional)');
+                showField('jobTitle', false, 'Program / Field of Study (Optional)', 'Programa / Campo de Estudio (Opcional)');
+                showField('employmentDuration', false, 'Years at Institution', 'Años en la institución');
+                hideField('supervisorName');
+                hideField('supervisorPhone');
+            } else if (status === 'Self-employed') {
+                showField('employer', true, 'Business Name', 'Nombre del Negocio');
+                showField('jobTitle', true, 'Your Role / Title', 'Su Rol / Cargo');
+                showField('employmentDuration', true, 'How long in business?', '¿Cuánto tiempo en el negocio?');
+                hideField('supervisorName');
+                hideField('supervisorPhone');
+            } else {
+                showField('employer', true, 'Employer', 'Empleador');
+                showField('jobTitle', true, 'Job Title', 'Puesto');
+                showField('employmentDuration', true, 'How long at this job?', '¿Cuánto tiempo en este trabajo?');
+                showField('supervisorName', true, 'Supervisor Name', 'Nombre del supervisor');
+                showField('supervisorPhone', true, 'Supervisor Phone', 'Teléfono del supervisor');
+            }
         };
 
         const empStatusEl = document.getElementById('employmentStatus');
         if (empStatusEl) {
             empStatusEl.addEventListener('change', () => toggleEmployerSection(empStatusEl.value));
-            // Apply on load in case saved/pre-filled state is non-employed
             toggleEmployerSection(empStatusEl.value);
         }
+        this._toggleEmployerSection = toggleEmployerSection;
     }
 
     setupFileUploads() {}
@@ -1331,7 +1379,7 @@ class RentalApplication {
                 legalDeclaration: 'Legal Declaration',
                 legalCertify: 'I certify that the information provided in this application is true and correct to the best of my knowledge.',
                 legalAuthorize: 'I authorize verification of the information provided, including employment, income, and references.',
-                termsAgreeLabel: 'I agree to the terms and conditions',
+                termsAgreeLabel: 'I certify that all information provided in this application is accurate and complete, and I authorize Choice Properties to verify it.',
                 submitBtn: 'Submit Application',
                 submitDisclaimer: 'By clicking submit, your application will be securely transmitted to Choice Properties.',
                 privacyPolicy: 'Privacy Policy',
@@ -1591,7 +1639,7 @@ class RentalApplication {
                 legalDeclaration: 'Declaración Legal',
                 legalCertify: 'Certifico que la información proporcionada en esta solicitud es verdadera y correcta a mi leal saber y entender.',
                 legalAuthorize: 'Autorizo la verificación de la información proporcionada, incluyendo empleo, ingresos y referencias.',
-                termsAgreeLabel: 'Acepto los términos y condiciones',
+                termsAgreeLabel: 'Certifico que toda la información proporcionada en esta solicitud es exacta y completa, y autorizo a Choice Properties a verificarla.',
                 submitBtn: 'Enviar Solicitud',
                 submitDisclaimer: 'Al hacer clic en enviar, su solicitud será transmitida de forma segura a Choice Properties.',
                 privacyPolicy: 'Política de Privacidad',
@@ -1690,6 +1738,11 @@ class RentalApplication {
 
                 if (this.getCurrentSection() === 6) {
                     this.generateApplicationSummary();
+                }
+
+                const empEl = document.getElementById('employmentStatus');
+                if (empEl && this._toggleEmployerSection) {
+                    this._toggleEmployerSection(empEl.value);
                 }
 
                 this.saveProgress();
