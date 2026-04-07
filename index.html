@@ -1024,6 +1024,21 @@
                     <span><strong data-i18n="reapplicationPolicyTitle">Reapplication Protection:</strong> <span data-i18n="reapplicationPolicyTextShort">If denied, apply again within 30 days with no new fee. Screening results valid for 60 days.</span></span>
                 </div>
 
+                <!-- Phase 8.2: Supporting Document Upload -->
+                <div class="upload-section" style="margin:20px 0;">
+                    <h3 style="font-size:16px;font-weight:700;color:var(--primary);margin:0 0 6px;display:flex;align-items:center;gap:8px;"><i class="fas fa-paperclip" style="color:var(--secondary);"></i> Supporting Documents <span style="font-weight:400;font-size:13px;color:#64748b;">(Optional)</span></h3>
+                    <p style="font-size:13px;color:#5f6b7a;margin:0 0 12px;line-height:1.5;">Attaching documents now can speed up your review. You may also provide them when our team contacts you. <strong>Accepted:</strong> PDF, JPG, PNG · Max 4 MB per file · Up to 4 files.</p>
+                    <div class="upload-zone" id="uploadZone">
+                        <input type="file" id="docUpload" multiple accept=".pdf,.jpg,.jpeg,.png" style="display:none;" aria-label="Upload supporting documents">
+                        <label for="docUpload" class="upload-label" id="uploadLabel">
+                            <i class="fas fa-cloud-upload-alt" style="font-size:30px;color:var(--secondary);margin-bottom:8px;display:block;"></i>
+                            <strong>Click to upload — or drag files here</strong><br>
+                            <span class="upload-hint">Government ID &nbsp;·&nbsp; Pay stubs &nbsp;·&nbsp; Bank statements</span>
+                        </label>
+                        <div id="uploadedFiles" class="uploaded-files-list"></div>
+                    </div>
+                </div>
+
                 <div class="legal-section">
                     <h3 data-i18n="legalDeclaration">Legal Declaration</h3>
 

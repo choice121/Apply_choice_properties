@@ -976,7 +976,51 @@ class RentalApplication {
         this._toggleEmployerSection = toggleEmployerSection;
     }
 
-    setupFileUploads() {}
+    setupFileUploads() {
+        this._uploadedFiles = [];
+        const input = document.getElementById('docUpload');
+        const zone  = document.getElementById('uploadZone');
+        const list  = document.getElementById('uploadedFiles');
+        if (!input || !zone || !list) return;
+
+        const MAX_SIZE  = 4 * 1024 * 1024;
+        const MAX_FILES = 4;
+
+        const renderList = () => {
+            list.innerHTML = this._uploadedFiles.map((f, i) => `
+                <div class="upload-file-item">
+                    <i class="fas fa-file-alt" style="color:var(--secondary);flex-shrink:0;"></i>
+                    <span class="upload-file-name">${f.name}</span>
+                    <span class="upload-file-size">(${(f.size / 1024).toFixed(0)} KB)</span>
+                    <button type="button" class="upload-remove-btn" onclick="window._rentalApp.removeUploadedFile(${i})" aria-label="Remove ${f.name}"><i class="fas fa-xmark"></i></button>
+                </div>`).join('');
+        };
+
+        const handleFiles = (files) => {
+            Array.from(files).forEach(file => {
+                if (this._uploadedFiles.length >= MAX_FILES) {
+                    alert(`Maximum ${MAX_FILES} files allowed.`); return;
+                }
+                if (file.size > MAX_SIZE) {
+                    alert(`"${file.name}" is larger than 4 MB and was not added.`); return;
+                }
+                if (this._uploadedFiles.some(f => f.name === file.name)) return;
+                this._uploadedFiles.push(file);
+            });
+            renderList();
+        };
+
+        input.addEventListener('change', () => { handleFiles(input.files); input.value = ''; });
+        zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('drag-over'); });
+        zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+        zone.addEventListener('drop', e => {
+            e.preventDefault(); zone.classList.remove('drag-over');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        this.removeUploadedFile = (i) => { this._uploadedFiles.splice(i, 1); renderList(); };
+        window._rentalApp = this;
+    }
 
     // ---------- Save & Resume Later ----------
     setupSaveResume() {
@@ -1969,6 +2013,25 @@ class RentalApplication {
 
             // Property context fields are carried by hidden inputs in index.html
             // and serialised automatically by FormData — no manual appending needed.
+
+            // Phase 8.2: Encode any attached documents as base64 and append to form data
+            if (this._uploadedFiles && this._uploadedFiles.length > 0) {
+                const encodeFile = (file) => new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const b64 = reader.result.split(',')[1];
+                        resolve(b64);
+                    };
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+                const encoded = await Promise.all(this._uploadedFiles.map(encodeFile));
+                encoded.forEach((b64, i) => {
+                    formData.append(`_docFile_${i}_name`, this._uploadedFiles[i].name);
+                    formData.append(`_docFile_${i}_type`, this._uploadedFiles[i].type || 'application/octet-stream');
+                    formData.append(`_docFile_${i}_data`, b64);
+                });
+            }
 
             this.updateSubmissionProgress(2, t.validating);
 

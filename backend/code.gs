@@ -223,7 +223,9 @@ function addMissingLeaseColumns(sheet) {
     // Phase 5 (Implementation Plan): new columns
     'Verified Property Address', 'Renter Insurance Agreed',
     // Phase 6: payment tracking and holding fee deadline
-    'Payment Method Used', 'Transaction Reference', 'Amount Collected', 'Holding Fee Deadline'
+    'Payment Method Used', 'Transaction Reference', 'Amount Collected', 'Holding Fee Deadline',
+    // Phase 8: UX & flow completion
+    'Last Contacted', 'Document URLs'
   ];
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   newColumns.forEach(col => {
@@ -1078,12 +1080,49 @@ function processApplication(formData, fileBlob) {
         case 'Tenant Signature':      rowData.push(''); break;
         case 'Signature Timestamp':   rowData.push(''); break;
         case 'Lease IP Address':      rowData.push(''); break;
+        // Phase 8 columns — populated after row insert
+        case 'Last Contacted':        rowData.push(''); break;
+        case 'Document URLs':         rowData.push(''); break;
         default:
           rowData.push(formData[header] || '');
       }
     });
 
     sheet.appendRow(rowData);
+
+    // ── Phase 8: Save attached documents to Google Drive ──────
+    const docUrls = [];
+    let docIdx = 0;
+    while (formData[`_docFile_${docIdx}_name`] && formData[`_docFile_${docIdx}_data`]) {
+      try {
+        const fileName  = formData[`_docFile_${docIdx}_name`];
+        const mimeType  = formData[`_docFile_${docIdx}_type`] || 'application/octet-stream';
+        const b64Data   = formData[`_docFile_${docIdx}_data`];
+        const decoded   = Utilities.base64Decode(b64Data);
+        const blob      = Utilities.newBlob(decoded, mimeType, `${appId}_${fileName}`);
+        let folder;
+        try {
+          const folders = DriveApp.getFoldersByName('CP_Applicant_Docs');
+          folder = folders.hasNext() ? folders.next() : DriveApp.createFolder('CP_Applicant_Docs');
+        } catch(fe) {
+          folder = DriveApp.getRootFolder();
+        }
+        const file = folder.createFile(blob);
+        file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        docUrls.push(file.getUrl());
+      } catch(de) {
+        console.warn('processApplication: failed to save doc ' + docIdx, de);
+      }
+      docIdx++;
+    }
+    if (docUrls.length > 0) {
+      const newCol = getColumnMap(sheet);
+      const newLastRow = sheet.getLastRow();
+      if (newCol['Document URLs']) {
+        sheet.getRange(newLastRow, newCol['Document URLs']).setValue(docUrls.join('\n'));
+      }
+    }
+    // ─────────────────────────────────────────────────────────
 
     const lastRow = sheet.getLastRow();
     if (lastRow > 1) {
@@ -4176,6 +4215,80 @@ function markAsRefunded(appId, notes) {
 }
 
 // ============================================================
+// markAsContacted()  — Phase 8.3
+// Logs the current timestamp into the "Last Contacted" column
+// so admins can see when they last reached out to an applicant.
+// ============================================================
+function markAsContacted(appId) {
+  try {
+    const ss    = getSpreadsheet();
+    const sheet = ss.getSheetByName(SHEET_NAME);
+    if (!sheet) throw new Error('Applications sheet not found');
+    initializeSheets();
+    const col  = getColumnMap(sheet);
+    const data = sheet.getDataRange().getValues();
+    let rowIndex = -1;
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][col['App ID'] - 1] === appId) { rowIndex = i + 1; break; }
+    }
+    if (rowIndex === -1) throw new Error('Application not found');
+    const now = new Date();
+    if (col['Last Contacted']) {
+      sheet.getRange(rowIndex, col['Last Contacted']).setValue(now);
+    }
+    const curr     = sheet.getRange(rowIndex, col['Admin Notes']).getValue();
+    const noteText = `[${now.toLocaleString()}] Applicant contacted by admin.`;
+    sheet.getRange(rowIndex, col['Admin Notes']).setValue(curr ? curr + '\n' + noteText : noteText);
+    return { success: true, message: 'Contact logged', contactedAt: now.toLocaleString() };
+  } catch (error) {
+    console.error('markAsContacted error:', error);
+    return { success: false, error: error.toString() };
+  }
+}
+
+// ============================================================
+// withdrawApplication()  — Phase 8.5
+// Allows an applicant to withdraw their own application.
+// Sets status to 'withdrawn' and reverts the property listing
+// to 'active' so it becomes available for other applicants.
+// ============================================================
+function withdrawApplication(appId) {
+  try {
+    const ss    = getSpreadsheet();
+    const sheet = ss.getSheetByName(SHEET_NAME);
+    if (!sheet) throw new Error('Applications sheet not found');
+    const col  = getColumnMap(sheet);
+    const data = sheet.getDataRange().getValues();
+    let rowIndex = -1;
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][col['App ID'] - 1] === appId) { rowIndex = i + 1; break; }
+    }
+    if (rowIndex === -1) throw new Error('Application not found');
+    const currentStatus  = sheet.getRange(rowIndex, col['Status']).getValue();
+    const leaseStatus    = col['Lease Status'] ? sheet.getRange(rowIndex, col['Lease Status']).getValue() : '';
+    if (currentStatus === 'approved' && (leaseStatus === 'signed' || leaseStatus === 'active')) {
+      throw new Error('Your lease has already been executed and cannot be withdrawn. Please contact our office directly.');
+    }
+    if (currentStatus === 'withdrawn') {
+      throw new Error('This application has already been withdrawn.');
+    }
+    sheet.getRange(rowIndex, col['Status']).setValue('withdrawn');
+    const now      = new Date();
+    const curr     = sheet.getRange(rowIndex, col['Admin Notes']).getValue();
+    const noteText = `[${now.toLocaleString()}] Application withdrawn by applicant.`;
+    sheet.getRange(rowIndex, col['Admin Notes']).setValue(curr ? curr + '\n' + noteText : noteText);
+    if (col['Property ID']) {
+      const propertyId = sheet.getRange(rowIndex, col['Property ID']).getValue();
+      if (propertyId) _syncPropertyStatusToSupabase(propertyId, 'active');
+    }
+    return { success: true, message: 'Your application has been withdrawn.' };
+  } catch (error) {
+    console.error('withdrawApplication error:', error);
+    return { success: false, error: error.toString() };
+  }
+}
+
+// ============================================================
 // _syncPropertyStatusToSupabase()
 // Keeps the listing platform's Supabase database in sync when
 // an application is approved or denied.
@@ -4466,6 +4579,10 @@ function renderApplicantDashboard(appId) {
     statusColor = '#ef4444'; statusGradient = 'linear-gradient(135deg,#dc2626,#ef4444)';
     statusText = 'Not Approved'; statusIcon = '📋';
     statusSubtext = 'Thank you for your application';
+  } else if (app['Status'] === 'withdrawn') {
+    statusColor = '#64748b'; statusGradient = 'linear-gradient(135deg,#475569,#64748b)';
+    statusText = 'Withdrawn'; statusIcon = '↩️';
+    statusSubtext = 'You have withdrawn this application';
   } else if (app['Payment Status'] === 'paid') {
     statusColor = '#6366f1'; statusGradient = 'linear-gradient(135deg,#4f46e5,#6366f1)';
     statusText = 'Under Review'; statusIcon = '🔍';
@@ -4492,6 +4609,43 @@ function renderApplicantDashboard(appId) {
       <div style="width:34px;height:34px;border-radius:50%;background:${s.done ? statusColor : '#e2e8f0'};color:${s.done ? 'white' : '#94a3b8'};display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;position:relative;z-index:1;box-shadow:${s.done ? '0 4px 10px rgba(0,0,0,.15)' : 'none'};">${s.done ? '✓' : (i + 1)}</div>
       <span style="font-size:11px;font-weight:600;color:${s.done ? '#1e293b' : '#94a3b8'};margin-top:7px;text-align:center;line-height:1.2;">${s.label}</span>
     </div>`).join('');
+
+  // ── Phase 8.1: Denied reapplication card ──────────────────
+  let deniedCardHtml = '';
+  if (app['Status'] === 'denied') {
+    deniedCardHtml = `
+      <div style="background:white;border-radius:18px;overflow:hidden;box-shadow:0 4px 20px rgba(239,68,68,.12);margin:0 0 20px;border:1.5px solid #fca5a5;">
+        <div style="background:linear-gradient(135deg,#dc2626,#ef4444);padding:18px 24px;display:flex;align-items:center;gap:14px;">
+          <div style="width:44px;height:44px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🔄</div>
+          <div>
+            <div style="color:white;font-weight:700;font-size:16px;">Reapplication Protection</div>
+            <div style="color:rgba(255,255,255,.85);font-size:13px;margin-top:2px;">Your options going forward</div>
+          </div>
+        </div>
+        <div style="padding:18px 22px;font-size:14px;color:#374151;">
+          <p style="margin:0 0 12px;line-height:1.6;">While we were unable to approve your application for this property, our decision is based on current criteria and is <strong>not permanent</strong>.</p>
+          <div style="background:#fef2f2;border-radius:12px;padding:14px 16px;margin-bottom:14px;">
+            <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;font-size:13px;line-height:1.5;"><span style="color:#dc2626;font-weight:700;flex-shrink:0;">✓</span><span><strong>No new fee for 30 days</strong> — Apply for any other available Choice Properties unit within 30 days and the $50 application fee will be waived.</span></div>
+            <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.5;"><span style="color:#dc2626;font-weight:700;flex-shrink:0;">✓</span><span><strong>Results valid for 60 days</strong> — Your background and credit screening remains on file and can be applied to a new application without re-running checks.</span></div>
+          </div>
+          <p style="margin:0 0 14px;font-size:13px;color:#6b7280;line-height:1.5;">We encourage you to reach out — our team can discuss available properties that may be a better fit and walk you through your options.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:10px;">
+            <a href="tel:7077063137" style="display:inline-flex;align-items:center;gap:8px;background:#dc2626;color:white;padding:11px 20px;border-radius:50px;font-weight:600;font-size:14px;text-decoration:none;"><i class="fas fa-phone"></i> Call Us</a>
+            <a href="mailto:choicepropertygroup@hotmail.com" style="display:inline-flex;align-items:center;gap:8px;background:white;color:#dc2626;border:2px solid #fca5a5;padding:10px 20px;border-radius:50px;font-weight:600;font-size:14px;text-decoration:none;"><i class="fas fa-envelope"></i> Email Us</a>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // ── Phase 8.5: Withdraw button (shown when status is still actionable) ──
+  const canWithdraw = !['approved', 'denied', 'withdrawn'].includes(app['Status'] || '') &&
+                      !['signed', 'active'].includes(app['Lease Status'] || '');
+  const withdrawHtml = canWithdraw ? `
+    <div style="text-align:center;margin:0 0 20px;">
+      <button id="withdrawBtn" onclick="withdrawApp()" style="background:none;border:none;color:#94a3b8;font-size:13px;cursor:pointer;text-decoration:underline;font-family:inherit;padding:4px 8px;">
+        Withdraw my application
+      </button>
+    </div>` : '';
 
   // ── Holding fee card (shown on approved apps when HF requested or paid) ──
   let hfCardHtml = '';
@@ -4986,6 +5140,12 @@ function renderApplicantDashboard(appId) {
     <div class="contact-footer"></div>
   </div>
 
+  <!-- Phase 8.1: Denied reapplication card -->
+  ${deniedCardHtml}
+
+  <!-- Phase 8.5: Withdraw application link -->
+  ${withdrawHtml}
+
   <!-- Contact card — professional replacement for the old dark footer -->
   <div class="contact-card">
     <div class="contact-card-header">
@@ -5262,6 +5422,28 @@ function renderApplicantDashboard(appId) {
 
   // Boot the watcher when the page loads
   window.addEventListener('load', initStatusWatcher);
+
+  // ── Phase 8.5: Withdraw application ──────────────────────
+  function withdrawApp() {
+    if (!confirm('Are you sure you want to withdraw your application? This action cannot be undone.')) return;
+    const btn = document.getElementById('withdrawBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Withdrawing…'; }
+    google.script.run
+      .withSuccessHandler(function(result) {
+        if (result.success) {
+          window.location.reload();
+        } else {
+          alert('Could not withdraw: ' + result.error);
+          if (btn) { btn.disabled = false; btn.textContent = 'Withdraw my application'; }
+        }
+      })
+      .withFailureHandler(function(err) {
+        alert('Error: ' + (err.message || err));
+        if (btn) { btn.disabled = false; btn.textContent = 'Withdraw my application'; }
+      })
+      .withdrawApplication('${app['App ID']}');
+  }
+  // ─────────────────────────────────────────────────────────
 </body>
 </html>
   `).setTitle('Application ' + app['App ID'] + ' — Choice Properties');
@@ -5722,9 +5904,10 @@ function renderAdminPanel(authToken) {
     .btn-deny  { background:#fee2e2; color:#991b1b; border: 1.5px solid #fca5a5; }
     .btn-lease { background:#dbeafe; color:#1e40af; border: 1.5px solid #93c5fd; }
     .btn-view  { background:#e0e7ff; color:#3730a3; border: 1.5px solid #a5b4fc; }
-    .btn-text  { background:#f0fdf4; color:#15803d; border: 1.5px solid #86efac; }
+    .btn-text      { background:#f0fdf4; color:#15803d; border: 1.5px solid #86efac; }
     .btn-hold-req  { background:#fef3c7; color:#78350f; border: 1.5px solid #fcd34d; }
     .btn-hold-paid { background:#d1fae5; color:#065f46; border: 1.5px solid #6ee7b7; }
+    .btn-contacted { background:#dcfce7; color:#166534; border: 1.5px solid #86efac; }
     .badge-hold-req  { background:#fef3c7; color:#92400e; }
     .badge-hold-paid { background:#d1fae5; color:#065f46; }
 
@@ -6499,8 +6682,9 @@ function renderAdminPanel(authToken) {
     }
     else if (currentAction === 'approve')     google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).updateStatus(currentAppId, 'approved', notes);
     else if (currentAction === 'deny')        google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).updateStatus(currentAppId, 'denied', notes);
-    else if (currentAction === 'holdFeePaid') google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).markHoldingFeePaid(currentAppId, notes);
-    else if (currentAction === 'markRefund')  google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).markAsRefunded(currentAppId, notes);
+    else if (currentAction === 'holdFeePaid')   google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).markHoldingFeePaid(currentAppId, notes);
+    else if (currentAction === 'markRefund')    google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).markAsRefunded(currentAppId, notes);
+    else if (currentAction === 'markContacted') google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).markAsContacted(currentAppId);
     else if (currentAction === 'countersign') {
       if (!notes || notes.trim().length < 2) {
         onFail('Please enter your full legal name to countersign.');
@@ -6588,7 +6772,8 @@ function renderAdminPanel(authToken) {
       deny        : { title: 'Deny Application',           sub: 'The applicant will be notified by email.',                           btn: 'Deny Application',  notes: true,  notesLabel: 'Reason for denial (optional — sent to applicant)', payFields: false },
       holdFeePaid : { title: 'Mark Hold Fee Received',     sub: 'Holding fee will be credited toward move-in total.',                 btn: 'Confirm Receipt',   notes: true,  notesLabel: 'Notes (optional)', payFields: false },
       countersign : { title: 'Countersign Lease',          sub: 'Enter your full legal name to countersign this lease. Lease status will update to Executed.', btn: 'Countersign Lease', notes: true, notesLabel: 'Your Full Legal Name (required)', payFields: false },
-      markRefund  : { title: 'Mark as Refunded',           sub: 'Payment Status will be set to "refunded". No email is sent automatically.', btn: 'Mark Refunded', notes: true, notesLabel: 'Refund reason / notes (optional)', payFields: false }
+      markRefund    : { title: 'Mark as Refunded',   sub: 'Payment Status will be set to "refunded". No email is sent automatically.', btn: 'Mark Refunded',   notes: true,  notesLabel: 'Refund reason / notes (optional)', payFields: false },
+      markContacted : { title: 'Log Contact',         sub: 'Record that you contacted this applicant. The timestamp will appear on their card.', btn: 'Log Contact', notes: false, notesLabel: '', payFields: false }
     };
     const c = config[action];
     document.getElementById('modalTitle').textContent    = c.title;
@@ -6667,6 +6852,12 @@ function renderAdminPanel(authToken) {
       : hfStatus === 'requested'
       ? \`<span class="status-badge badge-hold-req" style="margin-left:6px;" title="Holding fee $\{hfAmt} requested"><i class="fas fa-hourglass-half"></i> Hold Fee Pending</span>\`
       : '';
+    // Phase 8.4: Application age indicator
+    const _daysAgo = app['Timestamp'] ? Math.floor((Date.now() - new Date(app['Timestamp']).getTime()) / 86400000) : null;
+    const ageChip  = _daysAgo !== null ? \`<span class="info-chip" title="Submitted \${_daysAgo} day\${_daysAgo===1?'':'s'} ago" style="color:\${_daysAgo>14?'#b45309':'#64748b'};"><i class="fas fa-calendar-days" style="opacity:.6;"></i> \${_daysAgo}d old</span>\` : '';
+    // Phase 8.3: Last contacted badge
+    const _lastContacted = app['Last Contacted'] ? new Date(app['Last Contacted']).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : null;
+    const contactedBadge = _lastContacted ? \`<span class="status-badge" style="background:#dcfce7;color:#166534;margin-left:6px;font-size:11px;" title="Last contacted: \${_lastContacted}"><i class="fas fa-phone-volume"></i> Contacted \${_lastContacted}</span>\` : '';
 
     let payPrefsHtml = '';
     if (app['Payment Status'] === 'unpaid') {
@@ -6688,6 +6879,7 @@ function renderAdminPanel(authToken) {
             <div style="display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end;align-items:center;">
               <span class="status-badge \${badgeClass}">\${statusText}</span>
               \${hfBadgeHtml}
+              \${contactedBadge}
             </div>
           </div>
           <div class="card-info-row">
@@ -6696,17 +6888,19 @@ function renderAdminPanel(authToken) {
             <span class="info-chip"><i class="fas fa-house" style="opacity:.6;"></i> \${app['Property Address']||'No property'}</span>
             <span class="info-chip"><i class="fas fa-mobile-screen-button" style="opacity:.6;"></i> \${contactMethod}</span>
             <span class="info-chip"><i class="fas fa-clock" style="opacity:.6;"></i> \${contactTimes}</span>
+            \${ageChip}
           </div>
           \${payPrefsHtml}
           <div class="card-actions">
-            <button class="act-btn btn-pay"   onclick="showConfirmModal('markPaid','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canMarkPaid?'':'disabled'} aria-label="Mark as paid"><i class="fas fa-coins"></i> Mark Paid</button>
-            <button class="act-btn btn-deny"  onclick="showConfirmModal('markRefund','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canMarkRefund?'':'disabled'} aria-label="Mark as refunded" style="background:linear-gradient(to right,#7c3aed,#a855f7);"><i class="fas fa-rotate-left"></i> Refunded</button>
-            <button class="act-btn btn-appr"  onclick="showConfirmModal('approve','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canApprove?'':'disabled'} aria-label="Approve"><i class="fas fa-circle-check"></i> Approve</button>
-            <button class="act-btn btn-deny"  onclick="showConfirmModal('deny','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canDeny?'':'disabled'} aria-label="Deny"><i class="fas fa-circle-xmark"></i> Deny</button>
-            <button class="act-btn btn-lease" onclick="showLeaseModal('\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}','\${safeAddr}')" \${canSendLease?'':'disabled'} aria-label="Send lease"><i class="fas fa-file-signature"></i> Send Lease</button>
+            <button class="act-btn btn-pay"       onclick="showConfirmModal('markPaid','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canMarkPaid?'':'disabled'} aria-label="Mark as paid"><i class="fas fa-coins"></i> Mark Paid</button>
+            <button class="act-btn btn-deny"      onclick="showConfirmModal('markRefund','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canMarkRefund?'':'disabled'} aria-label="Mark as refunded" style="background:linear-gradient(to right,#7c3aed,#a855f7);"><i class="fas fa-rotate-left"></i> Refunded</button>
+            <button class="act-btn btn-appr"      onclick="showConfirmModal('approve','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canApprove?'':'disabled'} aria-label="Approve"><i class="fas fa-circle-check"></i> Approve</button>
+            <button class="act-btn btn-deny"      onclick="showConfirmModal('deny','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canDeny?'':'disabled'} aria-label="Deny"><i class="fas fa-circle-xmark"></i> Deny</button>
+            <button class="act-btn btn-lease"     onclick="showLeaseModal('\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}','\${safeAddr}')" \${canSendLease?'':'disabled'} aria-label="Send lease"><i class="fas fa-file-signature"></i> Send Lease</button>
             <button class="act-btn btn-hold-req"  onclick="showHoldingFeeModal('\${app['App ID']}','\${safeName}','\${safeContact}')" \${canRequestHF?'':'disabled'} aria-label="Request holding fee"><i class="fas fa-hand-holding-dollar"></i> Request Hold Fee</button>
             <button class="act-btn btn-hold-paid" onclick="showConfirmModal('holdFeePaid','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canConfirmHF?'':'disabled'} aria-label="Mark holding fee received"><i class="fas fa-circle-check"></i> Hold Fee Received</button>
             <button class="act-btn btn-countersign" onclick="showConfirmModal('countersign','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canCountersign?'':'disabled'} aria-label="Countersign lease"><i class="fas fa-file-signature"></i> Countersign Lease</button>
+            <button class="act-btn btn-contacted" onclick="showConfirmModal('markContacted','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" aria-label="Log contact"><i class="fas fa-phone-volume"></i> Mark Contacted</button>
             <a href="?path=dashboard&id=\${app['App ID']}" target="_blank" class="act-btn btn-view" aria-label="View dashboard"><i class="fas fa-eye"></i> View</a>
             <a href="sms:7077063137?body=Hi%20\${encodeURIComponent(app['First Name']||'')}%2C%20this%20is%20Choice%20Properties%20re%20app%20\${app['App ID']}" class="act-btn btn-text" aria-label="Text applicant"><i class="fas fa-comment-sms"></i> Text</a>
           </div>
@@ -6920,6 +7114,12 @@ function buildAdminCard(app, baseUrl) {
     : hfStatus === 'requested'
     ? `<span class="status-badge badge-hold-req" style="margin-left:6px;" title="Holding fee $${hfAmt} requested"><i class="fas fa-hourglass-half"></i> Hold Fee Pending</span>`
     : '';
+  // Phase 8.4: Application age indicator
+  const _daysAgo  = app['Timestamp'] ? Math.floor((Date.now() - new Date(app['Timestamp']).getTime()) / 86400000) : null;
+  const ageChip   = _daysAgo !== null ? `<span class="info-chip" title="Submitted ${_daysAgo} day${_daysAgo===1?'':'s'} ago" style="color:${_daysAgo>14?'#b45309':'#64748b'};"><i class="fas fa-calendar-days" style="opacity:.6;"></i> ${_daysAgo}d old</span>` : '';
+  // Phase 8.3: Last contacted badge
+  const _lastContacted = app['Last Contacted'] ? new Date(app['Last Contacted']).toLocaleString('en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : null;
+  const contactedBadge = _lastContacted ? `<span class="status-badge" style="background:#dcfce7;color:#166534;margin-left:6px;font-size:11px;" title="Last contacted: ${_lastContacted}"><i class="fas fa-phone-volume"></i> Contacted ${_lastContacted}</span>` : '';
 
   let payPrefsHtml = '';
   if (app['Payment Status'] === 'unpaid') {
@@ -6941,6 +7141,7 @@ function buildAdminCard(app, baseUrl) {
           <div style="display:flex;flex-wrap:wrap;gap:5px;justify-content:flex-end;align-items:center;">
             <span class="status-badge ${badgeClass}">${statusText}</span>
             ${hfBadgeHtml}
+            ${contactedBadge}
           </div>
         </div>
         <div class="card-info-row">
@@ -6949,17 +7150,19 @@ function buildAdminCard(app, baseUrl) {
           <span class="info-chip"><i class="fas fa-house" style="opacity:.6;"></i> ${app['Property Address']||'No property'}</span>
           <span class="info-chip"><i class="fas fa-mobile-screen-button" style="opacity:.6;"></i> ${contactMethod}</span>
           <span class="info-chip"><i class="fas fa-clock" style="opacity:.6;"></i> ${contactTimes}</span>
+          ${ageChip}
         </div>
         ${payPrefsHtml}
         <div class="card-actions">
-          <button class="act-btn btn-pay"   onclick="showConfirmModal('markPaid','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canMarkPaid?'':'disabled'} aria-label="Mark as paid"><i class="fas fa-coins"></i> Mark Paid</button>
-          <button class="act-btn btn-deny"  onclick="showConfirmModal('markRefund','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canMarkRefund?'':'disabled'} aria-label="Mark as refunded" style="background:linear-gradient(to right,#7c3aed,#a855f7);"><i class="fas fa-rotate-left"></i> Refunded</button>
-          <button class="act-btn btn-appr"  onclick="showConfirmModal('approve','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canApprove?'':'disabled'} aria-label="Approve"><i class="fas fa-circle-check"></i> Approve</button>
-          <button class="act-btn btn-deny"  onclick="showConfirmModal('deny','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canDeny?'':'disabled'} aria-label="Deny"><i class="fas fa-circle-xmark"></i> Deny</button>
-          <button class="act-btn btn-lease" onclick="showLeaseModal('${app['App ID']}','${safeName}','${safeContact}','${safeTimes}','${safeAddr}')" ${canSendLease?'':'disabled'} aria-label="Send lease"><i class="fas fa-file-signature"></i> Send Lease</button>
+          <button class="act-btn btn-pay"       onclick="showConfirmModal('markPaid','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canMarkPaid?'':'disabled'} aria-label="Mark as paid"><i class="fas fa-coins"></i> Mark Paid</button>
+          <button class="act-btn btn-deny"      onclick="showConfirmModal('markRefund','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canMarkRefund?'':'disabled'} aria-label="Mark as refunded" style="background:linear-gradient(to right,#7c3aed,#a855f7);"><i class="fas fa-rotate-left"></i> Refunded</button>
+          <button class="act-btn btn-appr"      onclick="showConfirmModal('approve','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canApprove?'':'disabled'} aria-label="Approve"><i class="fas fa-circle-check"></i> Approve</button>
+          <button class="act-btn btn-deny"      onclick="showConfirmModal('deny','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canDeny?'':'disabled'} aria-label="Deny"><i class="fas fa-circle-xmark"></i> Deny</button>
+          <button class="act-btn btn-lease"     onclick="showLeaseModal('${app['App ID']}','${safeName}','${safeContact}','${safeTimes}','${safeAddr}')" ${canSendLease?'':'disabled'} aria-label="Send lease"><i class="fas fa-file-signature"></i> Send Lease</button>
           <button class="act-btn btn-hold-req"  onclick="showHoldingFeeModal('${app['App ID']}','${safeName}','${safeContact}')" ${canRequestHF?'':'disabled'} aria-label="Request holding fee"><i class="fas fa-hand-holding-dollar"></i> Request Hold Fee</button>
           <button class="act-btn btn-hold-paid" onclick="showConfirmModal('holdFeePaid','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canConfirmHF?'':'disabled'} aria-label="Mark holding fee received"><i class="fas fa-circle-check"></i> Hold Fee Received</button>
           <button class="act-btn btn-countersign" onclick="showConfirmModal('countersign','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canCountersign?'':'disabled'} aria-label="Countersign lease"><i class="fas fa-file-signature"></i> Countersign Lease</button>
+          <button class="act-btn btn-contacted" onclick="showConfirmModal('markContacted','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" aria-label="Log contact"><i class="fas fa-phone-volume"></i> Mark Contacted</button>
           <a href="${baseUrl}?path=dashboard&id=${app['App ID']}" target="_blank" class="act-btn btn-view" aria-label="View dashboard"><i class="fas fa-eye"></i> View</a>
           <a href="sms:7077063137?body=Hi%20${encodeURIComponent(app['First Name']||'')}%2C%20this%20is%20Choice%20Properties%20re%20app%20${app['App ID']}" class="act-btn btn-text" aria-label="Text applicant"><i class="fas fa-comment-sms"></i> Text</a>
         </div>

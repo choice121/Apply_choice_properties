@@ -9,7 +9,7 @@ Do NOT proceed without verifying the last completed phase.
 **System:** Choice Properties Rental Application System
 **Stack:** Pure static HTML/CSS/Vanilla JS + Google Apps Script (GAS) backend + Google Sheets database
 **Last Updated:** April 7, 2026
-**Active Phase:** Phase 8 — NOT STARTED
+**Active Phase:** Phase 8 — COMPLETE (all 8 phases done)
 
 ---
 
@@ -24,7 +24,7 @@ Do NOT proceed without verifying the last completed phase.
 | 5 | Lease System Improvements | COMPLETE |
 | 6 | Payment Flow Improvements | COMPLETE |
 | 7 | Automation (GAS Triggers) | CANCELLED — all emails are manual |
-| 8 | UX & Flow Completion | NOT STARTED |
+| 8 | UX & Flow Completion | COMPLETE |
 
 ---
 
@@ -221,32 +221,39 @@ Do NOT proceed without verifying the last completed phase.
 
 ## Phase 8 — UX & Flow Completion
 
-**Status:** NOT STARTED
-**Blocked By:** Phase 6
+**Status:** COMPLETE — April 7, 2026
 
 ### Objectives
-- Improve applicant dashboard denied state
-- Add document upload UI to the form
-- Add "Mark as Contacted" admin action
-- Add application age indicator to admin panel
-- Add "Withdraw Application" flow on dashboard
+- Improve applicant dashboard denied state ✓
+- Add document upload UI to the form ✓
+- Add "Mark as Contacted" admin action ✓
+- Add application age indicator to admin panel ✓
+- Add "Withdraw Application" flow on dashboard ✓
 
 ### Tasks
 
-- [ ] **8.1** Improve applicant dashboard denied state: show reapplication protection message and contact CTA
-- [ ] **8.2** Add visible file upload field to Step 3 or Step 6 of the application form
-- [ ] **8.3** Add "Mark as Contacted" action button in admin panel
-- [ ] **8.4** Add application age (days since submission) indicator to admin panel rows
-- [ ] **8.5** Add "Withdraw Application" button on the applicant dashboard
+- [x] **8.1** Denied dashboard: added "Reapplication Protection" card — shows 30-day no-fee window, 60-day results validity, and contact CTAs (phone + email buttons)
+- [x] **8.2** Document upload: added dropzone UI in Step 6 (PDF/JPG/PNG, 4 MB/file, up to 4 files); JS encodes files to base64 on submit; GAS saves to `CP_Applicant_Docs` Drive folder and writes URLs to new `Document URLs` sheet column
+- [x] **8.3** Mark as Contacted: added `markAsContacted()` GAS function; new `Last Contacted` sheet column; "Mark Contacted" button added to both admin card renderers (server-rendered and client-side); "Contacted" green badge shown on card when set
+- [x] **8.4** Application age: both admin card renderers now show "Xd old" chip on every card — turns amber after 14 days
+- [x] **8.5** Withdraw Application: added `withdrawApplication()` GAS function; "Withdraw my application" link on dashboard (hidden for approved/denied/signed); dashboard handles 'withdrawn' status state; property reverts to 'active' on withdrawal
 
-### Files to Modify
-- `backend/code.gs`
-- `index.html`
-- `js/script.js`
+### Files Modified
+- `backend/code.gs` — 8 function additions/changes + both card renderers + dashboard template
+- `index.html` — document upload section in Step 6
+- `css/style.css` — upload zone styles
+- `js/script.js` — `setupFileUploads()`, base64 submit encoding
 
 ---
 
 ## Completed Tasks Log
+
+### Phase 8 — April 7, 2026
+- **8.1** Added "Reapplication Protection" card to denied applicant dashboard: 30-day no-fee reapplication window, 60-day results validity, phone + email CTAs.
+- **8.2** Added drag-and-drop document upload zone to Step 6 (PDF/JPG/PNG, 4 MB max/file, up to 4 files). JS encodes files to base64 on form submit. GAS `processApplication()` saves files to `CP_Applicant_Docs` Drive folder and stores public URLs in new `Document URLs` sheet column. Upload zone added to `index.html`; CSS in `css/style.css`; `setupFileUploads()` implemented in `js/script.js`.
+- **8.3** Added `markAsContacted()` GAS function; new `Last Contacted` sheet column; "Mark Contacted" button in both admin card renderers; "Contacted" green badge shown when date is set.
+- **8.4** Application age chip ("Xd old") added to both admin card renderers (client-side + server-rendered). Chip turns amber after 14 days.
+- **8.5** Added `withdrawApplication()` GAS function; "Withdraw my application" link on applicant dashboard; `withdrawn` status state; property reverts to `active` on withdrawal.
 
 ### Phase 5 — April 7, 2026
 - **5.1** Added `@media print` CSS to `renderLeaseConfirmPage()` — hides buttons and contact info, keeps card, detail box, and next-steps sections. Updated button label to "Save or Print Your Lease (PDF)" and added browser-print instruction text below the buttons.
@@ -300,7 +307,7 @@ Do NOT proceed without verifying the last completed phase.
 
 ## Known Issues Remaining
 
-Of the 41 issues identified in `AUDIT_REPORT.md`, Phases 1–6 have addressed the majority. Phase 8 (UX & Flow Completion) covers the remaining open items. Phase 7 (Automation) has been cancelled by design — all communications remain admin-initiated.
+All 41 issues from `AUDIT_REPORT.md` have been addressed. Phases 1–6 covered the bulk of the work; Phase 8 completed the remaining UX items. Phase 7 (Automation) was cancelled by design — all communications remain admin-initiated. The system is feature-complete.
 
 ---
 
@@ -341,7 +348,8 @@ NEXT AI INSTRUCTIONS:
 - Read `PROJECT_STATUS.md` (this file) first
 - Read `PROJECT_RULES.md` second
 - Read `docs/IMPLEMENTATION_PLAN.md` third
-- Last completed phase: Phase 6. Phase 7 is CANCELLED. Next active phase: Phase 8.
+- ALL 8 PHASES ARE COMPLETE. The system is feature-complete as of April 7, 2026.
 - Phase 7 (GAS Automation) is permanently cancelled — do NOT implement automated triggers or scheduled emails
 - All emails and status updates are admin-initiated through the dashboard only
 - Do not introduce any infrastructure not already in the project
+- Any new work should be treated as a Phase 9 or bug-fix request — scope carefully against `PROJECT_RULES.md`
