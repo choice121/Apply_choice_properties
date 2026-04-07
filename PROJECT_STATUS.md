@@ -9,7 +9,7 @@ Do NOT proceed without verifying the last completed phase.
 **System:** Choice Properties Rental Application System
 **Stack:** Pure static HTML/CSS/Vanilla JS + Google Apps Script (GAS) backend + Google Sheets database
 **Last Updated:** April 7, 2026
-**Active Phase:** Phase 1 — NOT STARTED
+**Active Phase:** Phase 2 — NOT STARTED
 
 ---
 
@@ -17,7 +17,7 @@ Do NOT proceed without verifying the last completed phase.
 
 | Phase | Title | Status |
 |---|---|---|
-| 1 | Critical: Security & Legal | NOT STARTED |
+| 1 | Critical: Security & Legal | COMPLETE |
 | 2 | Core Form Logic Fixes | NOT STARTED |
 | 3 | Data Integrity & Backend Validation | NOT STARTED |
 | 4 | Email Templates & Communication System | NOT STARTED |
@@ -30,7 +30,7 @@ Do NOT proceed without verifying the last completed phase.
 
 ## Phase 1 — Critical: Security & Legal
 
-**Status:** NOT STARTED
+**Status:** COMPLETE
 **Priority:** Highest — legal and security exposure
 
 ### Objectives
@@ -42,11 +42,11 @@ Do NOT proceed without verifying the last completed phase.
 
 ### Tasks
 
-- [ ] **1.1** Remove hardcoded credentials from `setupAdminPassword()` in `backend/code.gs`
-- [ ] **1.2** Add management countersignature system to lease (new columns + GAS function + admin panel button)
-- [ ] **1.3** Fix Lead Paint Disclosure clause (remove false "acknowledges receipt" language)
-- [ ] **1.4** Fix month-to-month lease end date: display "Month-to-Month — No Fixed Expiration" instead of calculated +1 month date
-- [ ] **1.5** Add server-side validation to `generateAndSendLease()` — reject if `monthlyRent` ≤ 0 or `leaseStartDate` is empty
+- [x] **1.1** Remove hardcoded credentials from `setupAdminPassword()` in `backend/code.gs`
+- [x] **1.2** Add management countersignature system to lease (new columns + GAS function + admin panel button + signature block in lease document + pending notice on confirmation page)
+- [x] **1.3** Fix Lead Paint Disclosure clause (remove false "acknowledges receipt" language)
+- [x] **1.4** Fix month-to-month lease end date: display "Month-to-Month — No Fixed Expiration" instead of calculated +1 month date
+- [x] **1.5** Add server-side validation to `generateAndSendLease()` — reject if `monthlyRent` ≤ 0 or `leaseStartDate` is empty
 
 ### Files to Modify
 - `backend/code.gs`
@@ -59,11 +59,11 @@ Do NOT proceed without verifying the last completed phase.
 - Lease cannot be sent with missing financial data
 
 ### Verification Checklist
-- [ ] `grep -n "Choice123" backend/code.gs` returns no results
-- [ ] `grep -n "choiceproperties404" backend/code.gs` returns no results
-- [ ] Lease document contains a management signature block
-- [ ] Month-to-month lease end date shows "Month-to-Month — No Fixed Expiration"
-- [ ] `generateAndSendLease()` returns an error if rent = 0
+- [x] `grep -n "Choice123" backend/code.gs` returns no results ✓
+- [x] `grep -n "choiceproperties404" backend/code.gs` returns no results ✓
+- [x] Lease document contains a management signature block ✓
+- [x] Month-to-month lease end date shows "Month-to-Month — No Fixed Expiration" ✓
+- [x] `generateAndSendLease()` returns an error if rent = 0 ✓
 
 ---
 
@@ -265,7 +265,12 @@ Do NOT proceed without verifying the last completed phase.
 
 ## Completed Tasks Log
 
-*(Populated as phases are completed)*
+### Phase 1 — April 7, 2026
+- **1.1** Verified no hardcoded credentials in `setupAdminPassword()` — empty string placeholders in place
+- **1.2** Added management countersignature block to the lease document HTML (before the E-SIGNATURE BLOCK in `renderLeaseSigningPage()`) and added "Management Countersignature Pending" notice to `renderLeaseConfirmPage()`. `managementCountersign()` GAS function, sheet columns, and admin panel "Countersign Lease" button were already implemented.
+- **1.3** Verified Lead Paint Disclosure clause contains no "acknowledges receipt of the federal form" language — already corrected
+- **1.4** Verified `calculateLeaseEndDate()` returns `null` for month-to-month and `generateAndSendLease()` displays "Month-to-Month — No Fixed Expiration" — already implemented
+- **1.5** Verified `generateAndSendLease()` rejects `monthlyRent ≤ 0` and missing/invalid `leaseStartDate` — already implemented
 
 ---
 
@@ -277,13 +282,21 @@ All 41 issues identified in `AUDIT_REPORT.md` are pending. See the audit report 
 
 ## Modified Files Log
 
-*(Populated as phases are completed)*
+### Phase 1
+- `backend/code.gs` — Added management signature block in `renderLeaseSigningPage()` and countersignature pending notice in `renderLeaseConfirmPage()`
+- `PROJECT_STATUS.md` — Updated phase status to COMPLETE
 
 ---
 
 ## Verification Results
 
-*(Populated as phases are completed and verified)*
+### Phase 1 — April 7, 2026
+All 5 verification checks passed:
+- `grep "Choice123" backend/code.gs` → 0 results ✓
+- `grep "choiceproperties404" backend/code.gs` → 0 results ✓
+- Management signature block present in lease document ✓
+- Month-to-month end date shows "Month-to-Month — No Fixed Expiration" ✓
+- `generateAndSendLease()` returns error when rent = 0 ✓
 
 ---
 

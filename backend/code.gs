@@ -1895,6 +1895,42 @@ function renderLeaseSigningPage(appId) {
     </div>
 
     <!-- ═══════════════════════════════════════
+         MANAGEMENT COUNTERSIGNATURE BLOCK
+    ═══════════════════════════════════════ -->
+    <div style="margin:32px 0;padding:24px 28px;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#64748b;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid #e2e8f0;">
+        Management Countersignature
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px 32px;margin-bottom:16px;">
+        <div>
+          <div style="font-size:11px;color:#94a3b8;margin-bottom:4px;">For and on behalf of</div>
+          <div style="font-size:14px;font-weight:600;color:#1e293b;">${landlordName}</div>
+          <div style="font-size:12px;color:#64748b;">By its authorized management agent, Choice Properties</div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:#94a3b8;margin-bottom:4px;">Title</div>
+          <div style="font-size:14px;font-weight:600;color:#1e293b;">Authorized Leasing Agent</div>
+          <div style="font-size:12px;color:#64748b;">Choice Properties</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px 32px;margin-top:8px;">
+        <div>
+          <div style="font-size:11px;color:#94a3b8;margin-bottom:6px;">Signature</div>
+          <div style="height:44px;border-bottom:2px solid #94a3b8;display:flex;align-items:flex-end;padding-bottom:4px;">
+            <span style="font-size:11px;color:#94a3b8;font-style:italic;">Awaiting management countersignature</span>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;color:#94a3b8;margin-bottom:6px;">Date</div>
+          <div style="height:44px;border-bottom:2px solid #94a3b8;"></div>
+        </div>
+      </div>
+      <div style="margin-top:14px;font-size:12px;color:#64748b;background:#f1f5f9;padding:10px 14px;border-radius:6px;">
+        📋 This lease becomes fully executed upon management countersignature. You will receive a confirmation email once both parties have signed.
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════
          E-SIGNATURE BLOCK
     ═══════════════════════════════════════ -->
     <div class="signature-section" id="signatureSection">
@@ -2237,10 +2273,16 @@ function renderLeaseConfirmPage(appId) {
       <div class="detail-row"><span class="detail-label">Application ID</span><span class="detail-value">${appId}</span></div>
     </div>
 
+    <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:16px 20px;margin:16px 0;text-align:left;">
+      <div style="font-size:13px;font-weight:700;color:#92400e;margin-bottom:6px;">⏳ Management Countersignature Pending</div>
+      <p style="font-size:13px;color:#78350f;line-height:1.6;">Your signature has been recorded. This lease becomes fully executed once a Choice Properties representative countersigns. You will receive a follow-up email when the countersignature is complete.</p>
+    </div>
+
     <div class="next-steps">
       <h4>📋 What Happens Next</h4>
       <ul style="padding-left:18px;">
         <li>A confirmation email has been sent to you with your lease details.</li>
+        <li>Choice Properties will countersign your lease to fully execute the agreement.</li>
         <li>Our team will contact you to confirm your move-in date and collect move-in payment.</li>
         <li>You'll receive key handoff instructions closer to your move-in date.</li>
         <li>Save our number: <strong>707-706-3137</strong> — text us anytime.</li>
