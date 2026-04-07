@@ -234,6 +234,12 @@ class RentalApplication {
               setHidden('hiddenBedrooms',        beds);
               setHidden('hiddenBathrooms',       baths);
               setHidden('hiddenAvailableDate',   avail);
+              // Enforce available date as minimum move-in date so users can't
+              // select a date before the property is actually available
+              if (avail) {
+                  const moveInField = document.getElementById('requestedMoveIn');
+                  if (moveInField) moveInField.min = avail;
+              }
               setHidden('hiddenLeaseTerms',      terms);
               setHidden('hiddenMinLeaseMonths',  minMonths);
               setHidden('hiddenPetsAllowed',     pets);
