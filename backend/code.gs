@@ -164,6 +164,9 @@ function initializeSheets() {
       'Property Zip', 'Application Fee', 'Available Date', 'Lease Terms',
       'Min Lease Months', 'Pets Allowed', 'Pet Types Allowed', 'Pet Weight Limit',
       'Pet Deposit', 'Smoking Allowed', 'Utilities Included', 'Parking', 'Parking Fee',
+      // 2026-04-07: Extended property context — new data-collection fields
+      'Garage Spaces', 'EV Charging', 'Laundry Type', 'Heating Type', 'Cooling Type',
+      'Last Months Rent', 'Admin Fee', 'Move-in Special',
       // Phase 1: Management countersignature
       'Management Signature', 'Management Signature Date', 'Management Signer Name'
     ];
@@ -225,7 +228,10 @@ function addMissingLeaseColumns(sheet) {
     // Phase 6: payment tracking and holding fee deadline
     'Payment Method Used', 'Transaction Reference', 'Amount Collected', 'Holding Fee Deadline',
     // Phase 8: UX & flow completion
-    'Last Contacted', 'Document URLs'
+    'Last Contacted', 'Document URLs',
+    // 2026-04-07: Extended property context — new data-collection fields
+    'Garage Spaces', 'EV Charging', 'Laundry Type', 'Heating Type', 'Cooling Type',
+    'Last Months Rent', 'Admin Fee', 'Move-in Special'
   ];
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   newColumns.forEach(col => {
