@@ -68,11 +68,19 @@ There is no traditional server. There is no database server. There is no build s
 | `beds` | Bedrooms → context banner |
 | `baths` | Bathrooms → context banner |
 | `pets` | Pet policy string → context banner |
-| `term` | Lease term string → context banner |
+| `terms` | Pipe-separated lease term options → context banner & move-in date constraint |
 | `id` | Property ID → display/log only |
 | `fee` | Application fee amount → overrides default $50 |
+  | `zip` | Property zip code → stored in hidden field |
+  | `deposit` | Security deposit amount → displayed in banner |
+  | `avail` | Available date → enforced as minimum move-in date |
+  | `min_months` | Minimum lease months → fallback when terms array is empty |
+  | `smoking` | `true`/`false` — pre-sets and locks the smoking field |
+  | `utilities` | Pipe-separated included utilities → banner context |
+  | `parking` | Parking description → banner context |
+  | `parking_fee` | Parking fee amount → stored in hidden field |
 
-**These params are display-only. They are NEVER sent to GAS.**
+**These params pre-fill the form fields. The values are stored in hidden `<input>` elements and ARE submitted to GAS as part of the form data (stored in Google Sheets under Property context columns). The raw URL params are not directly read or trusted by GAS for validation — the GAS backend only reads the submitted form fields.**
 
 ---
 
