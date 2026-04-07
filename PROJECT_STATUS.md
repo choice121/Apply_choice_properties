@@ -9,7 +9,7 @@ Do NOT proceed without verifying the last completed phase.
 **System:** Choice Properties Rental Application System
 **Stack:** Pure static HTML/CSS/Vanilla JS + Google Apps Script (GAS) backend + Google Sheets database
 **Last Updated:** April 7, 2026
-**Active Phase:** Phase 5 — NOT STARTED
+**Active Phase:** Phase 6 — NOT STARTED
 
 ---
 
@@ -19,9 +19,9 @@ Do NOT proceed without verifying the last completed phase.
 |---|---|---|
 | 1 | Critical: Security & Legal | COMPLETE |
 | 2 | Core Form Logic Fixes | COMPLETE |
-| 3 | Data Integrity & Backend Validation | NOT STARTED |
-| 4 | Email Templates & Communication System | NOT STARTED |
-| 5 | Lease System Improvements | NOT STARTED |
+| 3 | Data Integrity & Backend Validation | COMPLETE |
+| 4 | Email Templates & Communication System | COMPLETE |
+| 5 | Lease System Improvements | COMPLETE |
 | 6 | Payment Flow Improvements | NOT STARTED |
 | 7 | Automation (GAS Triggers) | NOT STARTED |
 | 8 | UX & Flow Completion | NOT STARTED |
@@ -163,7 +163,7 @@ Do NOT proceed without verifying the last completed phase.
 
 ## Phase 5 — Lease System Improvements
 
-**Status:** NOT STARTED
+**Status:** COMPLETE
 **Blocked By:** Phase 4
 
 ### Objectives
@@ -177,12 +177,12 @@ Do NOT proceed without verifying the last completed phase.
 
 ### Tasks
 
-- [ ] **5.1** Add `@media print` CSS to lease confirmation page for clean printing
-- [ ] **5.2** Add editable "Property Address (verify before sending)" field to the admin Send Lease modal
-- [ ] **5.3** Remove Pet Addendum cross-reference from Clause 4 — incorporate pet terms into the main lease body
-- [ ] **5.4** Change renter's insurance (Clause 13) from "strongly encouraged" to "required" + add 5th confirmation checkbox
-- [ ] **5.5** Fix early termination notice period: for month-to-month leases, reference `mtmNoticeDays` not `earlyTermNoticeDays`
-- [ ] **5.6** Add a link to the read-only lease page in the "Lease Signed" tenant email
+- [x] **5.1** Add `@media print` CSS to lease confirmation page for clean printing
+- [x] **5.2** Add editable "Property Address (verify before sending)" field to the admin Send Lease modal
+- [x] **5.3** Remove Pet Addendum cross-reference from Clause 4 — incorporate pet terms into the main lease body
+- [x] **5.4** Change renter's insurance (Clause 13) from "strongly encouraged" to "required" + add 5th confirmation checkbox
+- [x] **5.5** Fix early termination notice period: for month-to-month leases, reference `mtmNoticeDays` not `earlyTermNoticeDays` (verified already correctly implemented)
+- [x] **5.6** Add a link to the read-only lease page in the "Lease Signed" tenant email
 
 ### Files to Modify
 - `backend/code.gs`
@@ -264,6 +264,14 @@ Do NOT proceed without verifying the last completed phase.
 ---
 
 ## Completed Tasks Log
+
+### Phase 5 — April 7, 2026
+- **5.1** Added `@media print` CSS to `renderLeaseConfirmPage()` — hides buttons and contact info, keeps card, detail box, and next-steps sections. Updated button label to "Save or Print Your Lease (PDF)" and added browser-print instruction text below the buttons.
+- **5.2** Added "Property Address (verify and correct before sending)" text field to the Send Lease modal (`leasePropertyAddress`). `showLeaseModal()` now accepts a 5th `propertyAddress` param and pre-fills the field. Both card builder call sites (client-side JS template and server-rendered GAS) updated to pass the property address via `safeAddr`. `submitLease()` collects it and passes it as `verifiedPropertyAddress` to `generateAndSendLease()`. GAS function stores it in the new `Verified Property Address` sheet column. `renderLeaseSigningPage()` prefers `Verified Property Address` over `Property Address` when rendering the lease document.
+- **5.3** Removed all Pet Addendum cross-references from Clause 4. Pet-present variant now reads "Pet terms are agreed in writing with Management prior to move-in and are incorporated into this Agreement." No-pets variant no longer references "execution of a Pet Addendum."
+- **5.4** Updated Clause 13 from "strongly encouraged" to "required," with added proof-of-coverage language. Added 5th confirmation checkbox `agreeInsurance` (row5) to the lease signing page. `validateSignatureForm()` updated to require all 5 checkboxes. Hint text updated from "4 checkboxes" to "5 checkboxes." `submitSignature()` now collects the insurance flag and passes it as the 4th argument to `signLease()`. `signLease()` backend updated to store "Yes"/"No" in new `Renter Insurance Agreed` sheet column. Both columns added to `addMissingLeaseColumns()`.
+- **5.5** Verified already correctly implemented in previous session. Early termination Clause 15 conditionally uses `jur.mtmNoticeDays` for month-to-month tenancies and `jur.earlyTermNoticeDays` for fixed-term leases. No code change needed.
+- **5.6** Added "View your executed lease agreement" link and descriptive note to `EmailTemplates.leaseSignedTenant` template. Lease URL derived from `dashboardLink` by replacing `path=dashboard` with `path=lease`.
 
 ### Phase 4 — April 7, 2026
 - **4.1** Added `EmailTemplates.holdingFeeReceived` template. Added `sendHoldingFeeReceivedEmail()` dispatch function. `markHoldingFeePaid()` now calls it after updating the sheet, computing remaining move-in balance from rent + deposit − holding fee.

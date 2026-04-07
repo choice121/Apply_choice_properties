@@ -219,7 +219,9 @@ function addMissingLeaseColumns(sheet) {
     // Session 043: Has Vehicle (previously uncaptured)
     'Has Vehicle',
     // Phase 1: Management countersignature columns
-    'Management Signature', 'Management Signature Date', 'Management Signer Name'
+    'Management Signature', 'Management Signature Date', 'Management Signer Name',
+    // Phase 5 (Implementation Plan): new columns
+    'Verified Property Address', 'Renter Insurance Agreed'
   ];
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   newColumns.forEach(col => {
@@ -1158,7 +1160,7 @@ function normalizePhone(phone) {
 // Called from admin panel. Populates lease data, then emails
 // the tenant a link to sign.
 // ─────────────────────────────────────────────────────────
-function generateAndSendLease(appId, monthlyRent, securityDeposit, leaseStartDate, leaseNotes, rentDueDay, gracePeriodDays, lateFeeAmount, unitType, bedrooms, bathrooms, parkingSpace, includedUtilities, petDeposit, monthlyPetRent) {
+function generateAndSendLease(appId, monthlyRent, securityDeposit, leaseStartDate, leaseNotes, rentDueDay, gracePeriodDays, lateFeeAmount, unitType, bedrooms, bathrooms, parkingSpace, includedUtilities, petDeposit, monthlyPetRent, verifiedPropertyAddress) {
   try {
     const ss    = getSpreadsheet();
     const sheet = ss.getSheetByName(SHEET_NAME);
@@ -1233,6 +1235,10 @@ function generateAndSendLease(appId, monthlyRent, securityDeposit, leaseStartDat
     if (col['Included Utilities'])  sheet.getRange(rowIndex, col['Included Utilities']).setValue(includedUtilities || '');
     if (col['Pet Deposit Amount'])  sheet.getRange(rowIndex, col['Pet Deposit Amount']).setValue(parseFloat(petDeposit) || 0);
     if (col['Monthly Pet Rent'])    sheet.getRange(rowIndex, col['Monthly Pet Rent']).setValue(parseFloat(monthlyPetRent) || 0);
+    // Task 5.2: Store admin-verified property address
+    if (verifiedPropertyAddress && col['Verified Property Address']) {
+      sheet.getRange(rowIndex, col['Verified Property Address']).setValue(verifiedPropertyAddress.trim());
+    }
 
     // Add admin note
     const currentNotes = sheet.getRange(rowIndex, col['Admin Notes']).getValue();
@@ -1258,7 +1264,7 @@ function generateAndSendLease(appId, monthlyRent, securityDeposit, leaseStartDat
       startDate     : leaseStartDate,
       endDate       : endDateStr,
       term          : desiredTerm,
-      property      : sheet.getRange(rowIndex, col['Property Address']).getValue(),
+      property      : (verifiedPropertyAddress && verifiedPropertyAddress.trim()) ? verifiedPropertyAddress.trim() : sheet.getRange(rowIndex, col['Property Address']).getValue(),
       propertyOwner : propertyOwner,
       propertyState : col['Property State'] ? sheet.getRange(rowIndex, col['Property State']).getValue() || 'MI' : 'MI',
       rentDueDay    : rentDue,
@@ -1297,7 +1303,7 @@ function calculateLeaseEndDate(startDate, termString) {
 // ── signLease() ───────────────────────────────────────────
 // Called via google.script.run from the lease signing page.
 // ─────────────────────────────────────────────────────────
-function signLease(appId, tenantSignature, ipAddress) {
+function signLease(appId, tenantSignature, ipAddress, rentersInsuranceAgreed) {
   try {
     if (!tenantSignature || tenantSignature.trim().length < 2) {
       throw new Error('A valid signature is required.');
@@ -1326,6 +1332,9 @@ function signLease(appId, tenantSignature, ipAddress) {
     sheet.getRange(rowIndex, col['Tenant Signature']).setValue(tenantSignature.trim());
     sheet.getRange(rowIndex, col['Signature Timestamp']).setValue(signedAt.toISOString());
     sheet.getRange(rowIndex, col['Lease IP Address']).setValue(ipAddress || 'not captured');
+    if (col['Renter Insurance Agreed']) {
+      sheet.getRange(rowIndex, col['Renter Insurance Agreed']).setValue(rentersInsuranceAgreed ? 'Yes' : 'No');
+    }
 
     // Add audit note
     const currentNotes = sheet.getRange(rowIndex, col['Admin Notes']).getValue();
@@ -1456,7 +1465,7 @@ function renderLeaseSigningPage(appId) {
   const firstName     = app['First Name']         || '';
   const lastName      = app['Last Name']          || '';
   const fullName      = firstName + ' ' + lastName;
-  const property      = app['Property Address']   || '';
+  const property      = app['Verified Property Address'] || app['Property Address'] || '';
   const term          = app['Desired Lease Term'] || '';
   const rent          = parseFloat(app['Monthly Rent'])       || 0;
   const deposit       = parseFloat(app['Security Deposit'])   || 0;
@@ -1866,8 +1875,8 @@ function renderLeaseSigningPage(appId) {
       <li>
         <b>4. Pets.</b>
         ${hasPets === 'Yes' || hasPets === 'yes' || hasPets === 'true'
-          ? `Tenant has disclosed the following pet(s) on the application: <em>${petDetails || 'details on file'}</em>. Any approved pet requires a separate Pet Addendum, which must be signed prior to move-in.${petDeposit > 0 ? ` A non-refundable pet deposit of <b>$${petDeposit.toFixed(2)}</b> is required prior to move-in.` : ''}${monthlyPetRent > 0 ? ` Monthly pet rent of <b>$${monthlyPetRent.toFixed(2)}</b> is due with each monthly rent payment.` : ''} Unauthorized pets, or pets not covered by an executed addendum, may result in additional fees and/or lease termination. Tenant is responsible for all damage, odors, or liability caused by any pet.`
-          : `No pets are permitted at the property without prior written approval from Management and execution of a Pet Addendum. Discovery of an unauthorized pet may result in immediate lease termination proceedings and any applicable cleaning or remediation fees charged to the Tenant.`
+          ? `Tenant has disclosed the following pet(s) on the application: <em>${petDetails || 'details on file'}</em>. Pet terms are agreed in writing with Management prior to move-in and are incorporated into this Agreement.${petDeposit > 0 ? ` A non-refundable pet deposit of <b>$${petDeposit.toFixed(2)}</b> is required prior to move-in.` : ''}${monthlyPetRent > 0 ? ` Monthly pet rent of <b>$${monthlyPetRent.toFixed(2)}</b> is due with each monthly rent payment.` : ''} Unauthorized pets may result in additional fees and/or lease termination. Tenant is responsible for all damage, odors, or liability caused by any pet.`
+          : `No pets are permitted at the property without prior written approval from Management. Discovery of an unauthorized pet may result in immediate lease termination proceedings and any applicable cleaning or remediation fees charged to the Tenant.`
         }
       </li>
 
@@ -1917,7 +1926,7 @@ function renderLeaseSigningPage(appId) {
 
       <li>
         <b>13. Renter's Insurance.</b>
-        Tenant is strongly encouraged to obtain a renter's insurance policy prior to move-in and maintain it throughout the lease term. The Landlord's property insurance does not cover Tenant's personal belongings, liability, or losses resulting from theft, fire, water damage, or other events. Choice Properties is not responsible for the loss, damage, or theft of any of Tenant's personal property.
+        Tenant is required to obtain a renter's insurance policy prior to move-in and maintain it in full force and effect throughout the entire lease term. Proof of coverage may be requested by Management at any time. The Landlord's property insurance does not cover Tenant's personal belongings, liability, or losses resulting from theft, fire, water damage, or other events. Choice Properties is not responsible for the loss, damage, or theft of any of Tenant's personal property.
       </li>
 
       <li>
@@ -2109,6 +2118,10 @@ function renderLeaseSigningPage(appId) {
           <input type="checkbox" id="agreeOwnership" onchange="validateSignatureForm()">
           <label for="agreeOwnership">I understand that <b>${landlordName}</b> is the Landlord for this property${!isChoiceOwned ? ', and that Choice Properties is acting as the authorized management agent on their behalf' : ''}, and that Choice Properties will handle all communications, maintenance requests, and rent collection.</label>
         </div>
+        <div class="checkbox-row" id="row5" onclick="toggleCheck('agreeInsurance','row5')">
+          <input type="checkbox" id="agreeInsurance" onchange="validateSignatureForm()">
+          <label for="agreeInsurance">I confirm that I will obtain and maintain a renter's insurance policy for the full duration of this lease term, as required by Clause 13, and will provide proof of coverage upon request.</label>
+        </div>
       </div>
 
       <!-- Step 3: Submit -->
@@ -2124,7 +2137,7 @@ function renderLeaseSigningPage(appId) {
           ✍️ Execute Lease Agreement
         </button>
         <div class="btn-sign-sub" id="signBtnSub">
-          Complete your name and all 4 checkboxes to activate
+          Complete your name and all 5 checkboxes to activate
         </div>
       </div>
 
@@ -2210,9 +2223,10 @@ function renderLeaseSigningPage(appId) {
     const binding   = document.getElementById('agreeBinding').checked;
     const financial = document.getElementById('agreeFinancial').checked;
     const ownership = document.getElementById('agreeOwnership').checked;
+    const insurance = document.getElementById('agreeInsurance').checked;
     const btn       = document.getElementById('signBtn');
     const sub       = document.getElementById('signBtnSub');
-    allChecked = terms && binding && financial && ownership;
+    allChecked = terms && binding && financial && ownership && insurance;
 
     // Step indicators
     document.getElementById('step1').className =
@@ -2234,6 +2248,7 @@ function renderLeaseSigningPage(appId) {
       if (!binding)        missing.push('binding acknowledgment');
       if (!financial)      missing.push('financial agreement');
       if (!ownership)      missing.push('ownership acknowledgment');
+      if (!insurance)      missing.push('renter\'s insurance confirmation');
       sub.textContent = 'Still needed: ' + missing.join(' · ');
       sub.style.color = '#94a3b8';
     }
@@ -2252,12 +2267,13 @@ function renderLeaseSigningPage(appId) {
       } catch(e) { capturedIP = 'unavailable'; }
     }
 
+    const insuranceAgreed = document.getElementById('agreeInsurance').checked;
     const btn = document.getElementById('signBtn');
     btn.disabled = true;
     btn.textContent = '⏳ Securing signature...';
     document.getElementById('sigSpinner').style.display = 'block';
     document.getElementById('tenantSignature').disabled = true;
-    ['agreeTerms','agreeBinding','agreeFinancial','agreeOwnership'].forEach(id => {
+    ['agreeTerms','agreeBinding','agreeFinancial','agreeOwnership','agreeInsurance'].forEach(id => {
       document.getElementById(id).disabled = true;
     });
     clearAlert();
@@ -2282,7 +2298,7 @@ function renderLeaseSigningPage(appId) {
           btn.disabled = false;
           btn.textContent = '✍️ Execute Lease Agreement';
           document.getElementById('tenantSignature').disabled = false;
-          ['agreeTerms','agreeBinding','agreeFinancial','agreeOwnership'].forEach(id => {
+          ['agreeTerms','agreeBinding','agreeFinancial','agreeOwnership','agreeInsurance'].forEach(id => {
             document.getElementById(id).disabled = false;
           });
           showAlert('⚠️ ' + result.error, 'danger');
@@ -2293,12 +2309,12 @@ function renderLeaseSigningPage(appId) {
         btn.disabled = false;
         btn.textContent = '✍️ Execute Lease Agreement';
         document.getElementById('tenantSignature').disabled = false;
-        ['agreeTerms','agreeBinding','agreeFinancial','agreeOwnership'].forEach(id => {
+        ['agreeTerms','agreeBinding','agreeFinancial','agreeOwnership','agreeInsurance'].forEach(id => {
           document.getElementById(id).disabled = false;
         });
         showAlert('Submission failed. Please try again or text us at 707-706-3137.', 'danger');
       })
-      .signLease(APP_ID, sig, capturedIP);
+      .signLease(APP_ID, sig, capturedIP, insuranceAgreed);
   }
 
   function showAlert(msg, type) {
@@ -2357,6 +2373,14 @@ function renderLeaseConfirmPage(appId) {
     .btn-secondary{background:white;color:#2c3e50;border:1px solid #dde3ea;}
     .btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.1);}
     .contact{margin-top:24px;padding-top:24px;border-top:1px solid #eee;font-size:13px;color:#95a5a6;}
+    .print-note{font-size:12px;color:#95a5a6;margin-top:6px;}
+    @media print{
+      body{background:white !important;}
+      .btn,.contact,.print-note{display:none !important;}
+      .card{box-shadow:none !important;border:1px solid #ccc;padding:30px 24px;}
+      .next-steps,.detail-box{break-inside:avoid;}
+      h1{color:#1a5276 !important;}
+    }
   </style>
 </head>
 <body>
@@ -2389,7 +2413,8 @@ function renderLeaseConfirmPage(appId) {
     </div>
 
     <a href="${dashLink}" class="btn btn-primary">📊 View My Dashboard</a>
-    <a href="javascript:window.print()" class="btn btn-secondary">🖨️ Print This Page</a>
+    <a href="javascript:window.print()" class="btn btn-secondary">🖨️ Save or Print Your Lease (PDF)</a>
+    <p class="print-note">Click Print in your browser, then choose "Save as PDF" to save a copy for your records.</p>
 
     <div class="contact">
       Questions? Text us at <strong>707-706-3137</strong> or email choicepropertygroup@hotmail.com
@@ -3049,6 +3074,11 @@ const EmailTemplates = {
 
     <div class="cta-wrap">
       <a href="${dashboardLink}" class="cta-btn">View My Dashboard</a>
+    </div>
+
+    <div style="text-align:center;margin:12px 0 24px;">
+      <a href="${dashboardLink.replace('path=dashboard','path=lease')}" style="font-size:13px;color:#1a5276;text-decoration:underline;">View your executed lease agreement</a>
+      <p style="font-size:11px;color:#888888;margin-top:4px;">This link shows your signed lease in read-only format. We recommend printing or saving it as a PDF for your records.</p>
     </div>
 
     <div class="contact-row">
@@ -5995,6 +6025,10 @@ function renderAdminPanel(authToken) {
     <div class="modal-body">
       <div id="leaseAlertArea"></div>
       <div class="form-group">
+        <label class="form-label">Property Address <span style="color:#ef4444;">*</span> <span style="font-size:11px;color:#64748b;font-weight:400;">(verify and correct before sending)</span></label>
+        <input type="text" class="form-control" id="leasePropertyAddress" placeholder="e.g., 123 Main St, Troy, MI 48083">
+      </div>
+      <div class="form-group">
         <label class="form-label">Monthly Rent ($) <span style="color:#ef4444;">*</span></label>
         <input type="number" class="form-control" id="leaseRent" placeholder="e.g., 1200" min="0" step="0.01">
       </div>
@@ -6271,13 +6305,14 @@ function renderAdminPanel(authToken) {
   }
 
   // ── Lease modal ──
-  function showLeaseModal(appId, tenantName, contactMethod, contactTimes) {
+  function showLeaseModal(appId, tenantName, contactMethod, contactTimes, propertyAddress) {
     currentAppId = appId;
     pausePolling();
     document.getElementById('leaseModalSubtitle').textContent = tenantName + '  ·  ' + appId;
     ['leaseRent','leaseDeposit','leaseStartDate','leaseNotes',
      'leaseUnitType','leaseParkingSpace','leaseBedrooms','leaseBathrooms','leaseIncludedUtilities'
     ].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('leasePropertyAddress').value = propertyAddress || '';
     document.getElementById('leaseRentDueDay').value      = '1';
     document.getElementById('leaseGraceDays').value       = '5';
     document.getElementById('leaseLateFee').value         = '50';
@@ -6294,6 +6329,7 @@ function renderAdminPanel(authToken) {
     resumePolling();
   }
   function submitLease() {
+    const verifiedAddress = document.getElementById('leasePropertyAddress').value.trim();
     const rent      = document.getElementById('leaseRent').value;
     const deposit   = document.getElementById('leaseDeposit').value;
     const startDate = document.getElementById('leaseStartDate').value;
@@ -6336,7 +6372,7 @@ function renderAdminPanel(authToken) {
         alertArea.innerHTML = '<div class="alert alert-danger">Server error: ' + err + '</div>';
       })
       .generateAndSendLease(currentAppId, rent, deposit, startDate, notes, rentDueDay, graceDays, lateFee,
-                             unitType, bedrooms, bathrooms, parkingSpace, includedUtilities, petDeposit, monthlyPetRent);
+                             unitType, bedrooms, bathrooms, parkingSpace, includedUtilities, petDeposit, monthlyPetRent, verifiedAddress);
   }
 
   // ── Confirm modal close + submit ──
@@ -6508,6 +6544,7 @@ function renderAdminPanel(authToken) {
     const safeName    = (app['First Name'] + ' ' + app['Last Name']).replace(/'/g, "\\\\'");
     const safeContact = contactMethod.replace(/'/g, "\\\\'");
     const safeTimes   = contactTimes.replace(/'/g, "\\\\'");
+    const safeAddr    = (app['Property Address'] || '').replace(/'/g, "\\\\'");
     const canMarkPaid   = app['Payment Status'] === 'unpaid';
     const canApprove    = app['Payment Status'] === 'paid' && app['Status'] === 'pending';
     const canDeny       = canApprove;
@@ -6559,7 +6596,7 @@ function renderAdminPanel(authToken) {
             <button class="act-btn btn-pay"   onclick="showConfirmModal('markPaid','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canMarkPaid?'':'disabled'} aria-label="Mark as paid"><i class="fas fa-coins"></i> Mark Paid</button>
             <button class="act-btn btn-appr"  onclick="showConfirmModal('approve','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canApprove?'':'disabled'} aria-label="Approve"><i class="fas fa-circle-check"></i> Approve</button>
             <button class="act-btn btn-deny"  onclick="showConfirmModal('deny','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canDeny?'':'disabled'} aria-label="Deny"><i class="fas fa-circle-xmark"></i> Deny</button>
-            <button class="act-btn btn-lease" onclick="showLeaseModal('\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canSendLease?'':'disabled'} aria-label="Send lease"><i class="fas fa-file-signature"></i> Send Lease</button>
+            <button class="act-btn btn-lease" onclick="showLeaseModal('\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}','\${safeAddr}')" \${canSendLease?'':'disabled'} aria-label="Send lease"><i class="fas fa-file-signature"></i> Send Lease</button>
             <button class="act-btn btn-hold-req"  onclick="showHoldingFeeModal('\${app['App ID']}','\${safeName}','\${safeContact}')" \${canRequestHF?'':'disabled'} aria-label="Request holding fee"><i class="fas fa-hand-holding-dollar"></i> Request Hold Fee</button>
             <button class="act-btn btn-hold-paid" onclick="showConfirmModal('holdFeePaid','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canConfirmHF?'':'disabled'} aria-label="Mark holding fee received"><i class="fas fa-circle-check"></i> Hold Fee Received</button>
             <button class="act-btn btn-countersign" onclick="showConfirmModal('countersign','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canCountersign?'':'disabled'} aria-label="Countersign lease"><i class="fas fa-file-signature"></i> Countersign Lease</button>
@@ -6759,6 +6796,7 @@ function buildAdminCard(app, baseUrl) {
   const safeName    = (app['First Name'] + ' ' + app['Last Name']).replace(/'/g, "\\'");
   const safeContact = contactMethod.replace(/'/g, "\\'");
   const safeTimes   = contactTimes.replace(/'/g, "\\'");
+  const safeAddr    = (app['Property Address'] || '').replace(/'/g, "\\'");
   const canMarkPaid   = app['Payment Status'] === 'unpaid';
   const canApprove    = app['Payment Status'] === 'paid' && app['Status'] === 'pending';
   const canDeny       = canApprove;
@@ -6809,7 +6847,7 @@ function buildAdminCard(app, baseUrl) {
           <button class="act-btn btn-pay"   onclick="showConfirmModal('markPaid','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canMarkPaid?'':'disabled'} aria-label="Mark as paid"><i class="fas fa-coins"></i> Mark Paid</button>
           <button class="act-btn btn-appr"  onclick="showConfirmModal('approve','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canApprove?'':'disabled'} aria-label="Approve"><i class="fas fa-circle-check"></i> Approve</button>
           <button class="act-btn btn-deny"  onclick="showConfirmModal('deny','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canDeny?'':'disabled'} aria-label="Deny"><i class="fas fa-circle-xmark"></i> Deny</button>
-          <button class="act-btn btn-lease" onclick="showLeaseModal('${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canSendLease?'':'disabled'} aria-label="Send lease"><i class="fas fa-file-signature"></i> Send Lease</button>
+          <button class="act-btn btn-lease" onclick="showLeaseModal('${app['App ID']}','${safeName}','${safeContact}','${safeTimes}','${safeAddr}')" ${canSendLease?'':'disabled'} aria-label="Send lease"><i class="fas fa-file-signature"></i> Send Lease</button>
           <button class="act-btn btn-hold-req"  onclick="showHoldingFeeModal('${app['App ID']}','${safeName}','${safeContact}')" ${canRequestHF?'':'disabled'} aria-label="Request holding fee"><i class="fas fa-hand-holding-dollar"></i> Request Hold Fee</button>
           <button class="act-btn btn-hold-paid" onclick="showConfirmModal('holdFeePaid','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canConfirmHF?'':'disabled'} aria-label="Mark holding fee received"><i class="fas fa-circle-check"></i> Hold Fee Received</button>
           <button class="act-btn btn-countersign" onclick="showConfirmModal('countersign','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canCountersign?'':'disabled'} aria-label="Countersign lease"><i class="fas fa-file-signature"></i> Countersign Lease</button>
