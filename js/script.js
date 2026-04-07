@@ -955,6 +955,46 @@ class RentalApplication {
             vehicleYes.addEventListener('change', toggleVehicle);
             vehicleNo.addEventListener('change', toggleVehicle);
         }
+
+        // ── Employment status: hide/un-require employer fields when not applicable ──
+        // Unemployed, Retired, and Student applicants have no employer to list.
+        // Hiding these fields prevents a hard block at Step 3 validation.
+        const NON_EMPLOYED = ['Unemployed', 'Retired', 'Student'];
+        const employerFieldIds = ['employer', 'jobTitle', 'employmentDuration', 'supervisorName', 'supervisorPhone'];
+
+        const toggleEmployerSection = (status) => {
+            const isEmployed = !NON_EMPLOYED.includes(status);
+            // Track which .form-row elements have already been toggled this pass
+            // (employer+jobTitle share one row, supervisorName+Phone share another)
+            const rowsSeen = new Set();
+            employerFieldIds.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                if (isEmployed) {
+                    el.setAttribute('required', 'required');
+                    el.classList.remove('is-invalid');
+                    this.clearError(el);
+                } else {
+                    el.removeAttribute('required');
+                    el.value = '';
+                    el.classList.remove('is-invalid');
+                    this.clearError(el);
+                }
+                // Hide/show the parent .form-row (covers 2-column rows correctly)
+                const row = el.closest('.form-row') || el.closest('.form-group');
+                if (row && !rowsSeen.has(row)) {
+                    row.style.display = isEmployed ? '' : 'none';
+                    rowsSeen.add(row);
+                }
+            });
+        };
+
+        const empStatusEl = document.getElementById('employmentStatus');
+        if (empStatusEl) {
+            empStatusEl.addEventListener('change', () => toggleEmployerSection(empStatusEl.value));
+            // Apply on load in case saved/pre-filled state is non-employed
+            toggleEmployerSection(empStatusEl.value);
+        }
     }
 
     setupFileUploads() {}

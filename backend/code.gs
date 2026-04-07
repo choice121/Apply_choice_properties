@@ -144,7 +144,7 @@ function initializeSheets() {
       'Co-Applicant First Name', 'Co-Applicant Last Name', 'Co-Applicant Email', 'Co-Applicant Phone',
       'Co-Applicant DOB', 'Co-Applicant SSN', 'Co-Applicant Employer', 'Co-Applicant Job Title',
       'Co-Applicant Monthly Income', 'Co-Applicant Employment Duration', 'Co-Applicant Consent',
-      'Vehicle Make', 'Vehicle Model', 'Vehicle Year', 'Vehicle License Plate',
+      'Vehicle Make', 'Vehicle Model', 'Vehicle Year', 'Vehicle License Plate', 'Has Vehicle',
       'Emergency Contact Relationship', 'Preferred Contact Method', 'Preferred Time', 'Preferred Time Specific',
       // ── NEW: Property context columns (from URL params, D-001) ────
       'Property ID', 'Property Name', 'Property City', 'Property State', 'Listed Rent',
@@ -213,7 +213,9 @@ function addMissingLeaseColumns(sheet) {
     'Pet Deposit Amount', 'Monthly Pet Rent',
     'Tenant Signature', 'Signature Timestamp', 'Lease IP Address',
     // Session 037: Holding Fee columns
-    'Holding Fee Amount', 'Holding Fee Status', 'Holding Fee Date', 'Holding Fee Notes'
+    'Holding Fee Amount', 'Holding Fee Status', 'Holding Fee Date', 'Holding Fee Notes',
+    // Session 043: Has Vehicle (previously uncaptured)
+    'Has Vehicle'
   ];
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   newColumns.forEach(col => {
