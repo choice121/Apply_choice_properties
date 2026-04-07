@@ -221,7 +221,9 @@ function addMissingLeaseColumns(sheet) {
     // Phase 1: Management countersignature columns
     'Management Signature', 'Management Signature Date', 'Management Signer Name',
     // Phase 5 (Implementation Plan): new columns
-    'Verified Property Address', 'Renter Insurance Agreed'
+    'Verified Property Address', 'Renter Insurance Agreed',
+    // Phase 6: payment tracking and holding fee deadline
+    'Payment Method Used', 'Transaction Reference', 'Holding Fee Deadline'
   ];
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   newColumns.forEach(col => {
@@ -2736,7 +2738,7 @@ const EmailTemplates = {
 `,
 
   // ── 3. Payment Confirmation ───────────────────────────────
-  paymentConfirmation: (appId, applicantName, phone, dashboardLink, propertyAddress, propertyName, fee) => `
+  paymentConfirmation: (appId, applicantName, phone, dashboardLink, propertyAddress, propertyName, fee, actualMethod, transactionRef) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2769,11 +2771,14 @@ const EmailTemplates = {
       <div class="section-label">Payment Confirmation</div>
       <div class="callout green">
         <h4>✓ Payment Successfully Received</h4>
+        <div class="financial-row"><span class="f-label">Receipt ID</span><span class="f-value">${appId}-PMT</span></div>
         <div class="financial-row"><span class="f-label">Application ID</span><span class="f-value">${appId}</span></div>
         <div class="financial-row"><span class="f-label">Applicant</span><span class="f-value">${applicantName}</span></div>
         ${(propertyAddress || propertyName) ? `<div class="financial-row"><span class="f-label">Property</span><span class="f-value">${propertyName || propertyAddress}</span></div>` : ''}
         <div class="financial-row"><span class="f-label">Amount Paid</span><span class="f-value">$${fee || APPLICATION_FEE}.00</span></div>
         <div class="financial-row"><span class="f-label">Payment Date</span><span class="f-value">${new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</span></div>
+        ${actualMethod ? `<div class="financial-row"><span class="f-label">Payment Method</span><span class="f-value">${actualMethod}</span></div>` : ''}
+        ${transactionRef ? `<div class="financial-row"><span class="f-label">Reference / Note</span><span class="f-value">${transactionRef}</span></div>` : ''}
         <div class="financial-row"><span class="f-label">Status</span><span class="f-value" style="color:#059669;">Under Review</span></div>
       </div>
     </div>
@@ -3690,7 +3695,7 @@ function sendAdminReviewSummary(appId) {
   }
 }
 
-function sendPaymentConfirmation(appId, applicantEmail, applicantName, phone) {
+function sendPaymentConfirmation(appId, applicantEmail, applicantName, phone, actualMethod, transactionRef) {
   try {
     const baseUrl       = ScriptApp.getService().getUrl();
     const dashboardLink = baseUrl + '?path=dashboard&id=' + appId;
@@ -3711,7 +3716,7 @@ function sendPaymentConfirmation(appId, applicantEmail, applicantName, phone) {
     MailApp.sendEmail({
       to: applicantEmail,
       subject: `✅ Payment Confirmed${propertySnippet} | Application ${appId}`,
-      htmlBody: EmailTemplates.paymentConfirmation(appId, applicantName, phone, dashboardLink, propertyAddress, propertyName, applicationFee),
+      htmlBody: EmailTemplates.paymentConfirmation(appId, applicantName, phone, dashboardLink, propertyAddress, propertyName, applicationFee, actualMethod, transactionRef),
       name: 'Choice Properties'
     });
     return true;
@@ -3833,7 +3838,7 @@ function buildPaymentMethodList(data, withEmoji) {
 // Admin requests a holding fee from an approved applicant.
 // Sets Holding Fee Status → 'requested', emails the tenant.
 // ============================================================
-function requestHoldingFee(appId, amount, adminNotes) {
+function requestHoldingFee(appId, amount, adminNotes, deadline) {
   try {
     const ss    = getSpreadsheet();
     const sheet = ss.getSheetByName(SHEET_NAME);
@@ -3863,7 +3868,10 @@ function requestHoldingFee(appId, amount, adminNotes) {
     // Write to sheet
     sheet.getRange(rowIndex, col['Holding Fee Amount']).setValue(feeAmount);
     sheet.getRange(rowIndex, col['Holding Fee Status']).setValue('requested');
-    const noteText = `[${new Date().toLocaleString()}] Holding fee of $${feeAmount} requested.${adminNotes ? ' ' + adminNotes : ''}`;
+    if (deadline && col['Holding Fee Deadline']) {
+      sheet.getRange(rowIndex, col['Holding Fee Deadline']).setValue(deadline.trim());
+    }
+    const noteText = `[${new Date().toLocaleString()}] Holding fee of $${feeAmount} requested.${deadline ? ' Deadline: ' + deadline + '.' : ''}${adminNotes ? ' ' + adminNotes : ''}`;
     const existing = sheet.getRange(rowIndex, col['Holding Fee Notes']).getValue();
     sheet.getRange(rowIndex, col['Holding Fee Notes']).setValue(existing ? existing + '\n' + noteText : noteText);
 
@@ -3882,7 +3890,7 @@ function requestHoldingFee(appId, amount, adminNotes) {
     const fullName  = firstName + ' ' + lastName;
 
     // Send holding fee request email to tenant
-    sendHoldingFeeRequestEmail(appId, email, fullName, phone, feeAmount, property);
+    sendHoldingFeeRequestEmail(appId, email, fullName, phone, feeAmount, property, deadline);
     logEmail('holding_fee_request', email, 'success', appId);
 
     return { success: true, message: `Holding fee of $${feeAmount} requested. Tenant has been emailed.` };
@@ -3998,9 +4006,10 @@ function managementCountersign(appId, signerName, notes) {
 // sendHoldingFeeRequestEmail()  — Session 037
 // Emails the tenant with holding fee amount and payment instructions.
 // ============================================================
-function sendHoldingFeeRequestEmail(appId, email, fullName, phone, feeAmount, property) {
+function sendHoldingFeeRequestEmail(appId, email, fullName, phone, feeAmount, property, deadline) {
   try {
-    const firstName = fullName.split(' ')[0] || fullName;
+    const firstName   = fullName.split(' ')[0] || fullName;
+    const deadlineText = (deadline && deadline.trim()) ? deadline.trim() : '48 hours';
     const subject   = `Action Required — Holding Fee to Reserve Your Unit | ${property || 'Choice Properties'}`;
     const body = `
 <!DOCTYPE html><html><head><meta charset="UTF-8">
@@ -4056,7 +4065,7 @@ function sendHoldingFeeRequestEmail(appId, email, fullName, phone, feeAmount, pr
     </div>
 
     <div class="notice">
-      ⏱ <strong>Please respond within 48 hours.</strong> Unit availability is time-sensitive. If the holding fee is not received within this window, the unit may be offered to other qualified applicants.
+      ⏱ <strong>Deadline: ${deadlineText}.</strong> Unit availability is time-sensitive. If the holding fee is not received within this window, the unit may be offered to other qualified applicants.
     </div>
 
     <p style="font-size:13px;color:#475569;line-height:1.7;">
@@ -4082,7 +4091,7 @@ function sendHoldingFeeRequestEmail(appId, email, fullName, phone, feeAmount, pr
 // ============================================================
 // markAsPaid()
 // ============================================================
-function markAsPaid(appId, notes) {
+function markAsPaid(appId, notes, actualMethod, transactionRef) {
   try {
     const ss    = getSpreadsheet();
     const sheet = ss.getSheetByName(SHEET_NAME);
@@ -4099,16 +4108,26 @@ function markAsPaid(appId, notes) {
     }
     sheet.getRange(rowIndex, col['Payment Status']).setValue('paid');
     sheet.getRange(rowIndex, col['Payment Date']).setValue(new Date());
-    if (notes) {
+    if (actualMethod && col['Payment Method Used']) {
+      sheet.getRange(rowIndex, col['Payment Method Used']).setValue(actualMethod.trim());
+    }
+    if (transactionRef && col['Transaction Reference']) {
+      sheet.getRange(rowIndex, col['Transaction Reference']).setValue(transactionRef.trim());
+    }
+    const noteLines = [];
+    if (actualMethod)   noteLines.push('Method: ' + actualMethod);
+    if (transactionRef) noteLines.push('Ref: ' + transactionRef);
+    if (notes)          noteLines.push(notes);
+    if (noteLines.length) {
       const curr = sheet.getRange(rowIndex, col['Admin Notes']).getValue();
-      const note = `[${new Date().toLocaleString()}] Payment marked as paid. ${notes}`;
+      const note = `[${new Date().toLocaleString()}] Payment marked as paid. ${noteLines.join(' | ')}`;
       sheet.getRange(rowIndex, col['Admin Notes']).setValue(curr ? curr + '\n' + note : note);
     }
     const email     = sheet.getRange(rowIndex, col['Email']).getValue();
     const firstName = sheet.getRange(rowIndex, col['First Name']).getValue();
     const lastName  = sheet.getRange(rowIndex, col['Last Name']).getValue();
     const phone     = sheet.getRange(rowIndex, col['Phone']).getValue();
-    sendPaymentConfirmation(appId, email, firstName + ' ' + lastName, phone);
+    sendPaymentConfirmation(appId, email, firstName + ' ' + lastName, phone, actualMethod, transactionRef);
     logEmail('payment_confirmation', email, 'success', appId);
     // ── Task 4.9: Send admin review summary now that fee is confirmed ──
     sendAdminReviewSummary(appId);
@@ -4116,6 +4135,36 @@ function markAsPaid(appId, notes) {
   } catch (error) {
     console.error('markAsPaid error:', error);
     logEmail('payment_confirmation', 'admin', 'failed', appId, error.toString());
+    return { success: false, error: error.toString() };
+  }
+}
+
+// ============================================================
+// markAsRefunded()  — Phase 6 Task 6.2
+// Admin marks a paid application fee as refunded.
+// Sets Payment Status → 'refunded'. No email is sent automatically.
+// ============================================================
+function markAsRefunded(appId, notes) {
+  try {
+    const ss    = getSpreadsheet();
+    const sheet = ss.getSheetByName(SHEET_NAME);
+    if (!sheet) throw new Error('Applications sheet not found');
+    const col  = getColumnMap(sheet);
+    const data = sheet.getDataRange().getValues();
+    let rowIndex = -1;
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][col['App ID'] - 1] === appId) { rowIndex = i + 1; break; }
+    }
+    if (rowIndex === -1) throw new Error('Application not found');
+    const payStatus = sheet.getRange(rowIndex, col['Payment Status']).getValue();
+    if (payStatus !== 'paid') throw new Error('Only applications with Payment Status "paid" can be refunded.');
+    sheet.getRange(rowIndex, col['Payment Status']).setValue('refunded');
+    const noteText = `[${new Date().toLocaleString()}] Payment marked as refunded.${notes ? ' ' + notes : ''}`;
+    const curr = sheet.getRange(rowIndex, col['Admin Notes']).getValue();
+    sheet.getRange(rowIndex, col['Admin Notes']).setValue(curr ? curr + '\n' + noteText : noteText);
+    return { success: true, message: 'Payment marked as refunded.' };
+  } catch (error) {
+    console.error('markAsRefunded error:', error);
     return { success: false, error: error.toString() };
   }
 }
@@ -5976,8 +6025,27 @@ function renderAdminPanel(authToken) {
     </div>
     <div class="modal-body">
       <div class="contact-info-box" id="contactInfo"></div>
+      <div id="paymentFields" style="display:none;">
+        <div class="form-group" style="margin-bottom:12px;">
+          <label class="form-label" for="actualPaymentMethod">Payment Method <span style="color:#ef4444;">*</span></label>
+          <select class="form-control" id="actualPaymentMethod">
+            <option value="">— select —</option>
+            <option value="Cash">Cash</option>
+            <option value="Venmo">Venmo</option>
+            <option value="Zelle">Zelle</option>
+            <option value="PayPal">PayPal</option>
+            <option value="Check">Check</option>
+            <option value="Money Order">Money Order</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:12px;">
+          <label class="form-label" for="transactionRef">Transaction Reference / Note (optional)</label>
+          <input type="text" class="form-control" id="transactionRef" placeholder="e.g., Venmo confirmation #12345, check #001...">
+        </div>
+      </div>
       <div id="notesField" style="display:none;">
-        <label class="form-label">Reason / Notes (optional)</label>
+        <label class="form-label" id="notesLabel">Reason / Notes (optional)</label>
         <textarea class="form-control" id="actionNotes" rows="3" placeholder="Provide a reason for this action..."></textarea>
       </div>
     </div>
@@ -6002,6 +6070,16 @@ function renderAdminPanel(authToken) {
         <label class="form-label" for="hfAmount">Holding Fee Amount ($) <span style="color:#ef4444;">*</span></label>
         <input type="number" class="form-control" id="hfAmount" placeholder="e.g., 500" min="1" step="1">
         <p style="font-size:12px;color:#64748b;margin-top:6px;">This amount will be credited toward the tenant's move-in total once received.</p>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="hfDeadline">Payment Deadline <span style="color:#ef4444;">*</span></label>
+        <select class="form-control" id="hfDeadline">
+          <option value="24 hours">24 hours</option>
+          <option value="48 hours" selected>48 hours</option>
+          <option value="72 hours">72 hours</option>
+          <option value="7 days">7 days</option>
+        </select>
+        <p style="font-size:12px;color:#64748b;margin-top:6px;">Tenant will see this deadline in their email and on their dashboard.</p>
       </div>
       <div class="form-group">
         <label class="form-label" for="hfNotes">Admin Notes (optional)</label>
@@ -6401,10 +6479,16 @@ function renderAdminPanel(authToken) {
       btn.disabled = false;
       showToast('Error: ' + err, 'error');
     };
-    if      (currentAction === 'markPaid')    google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).markAsPaid(currentAppId, notes);
+    if (currentAction === 'markPaid') {
+      const actualMethod  = document.getElementById('actualPaymentMethod').value.trim();
+      const transactionRef = document.getElementById('transactionRef').value.trim();
+      if (!actualMethod) { onFail('Please select a payment method.'); btn.disabled = false; btn.textContent = 'Confirm Payment'; _actionInProgress = false; return; }
+      google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).markAsPaid(currentAppId, notes, actualMethod, transactionRef);
+    }
     else if (currentAction === 'approve')     google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).updateStatus(currentAppId, 'approved', notes);
     else if (currentAction === 'deny')        google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).updateStatus(currentAppId, 'denied', notes);
     else if (currentAction === 'holdFeePaid') google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).markHoldingFeePaid(currentAppId, notes);
+    else if (currentAction === 'markRefund')  google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).markAsRefunded(currentAppId, notes);
     else if (currentAction === 'countersign') {
       if (!notes || notes.trim().length < 2) {
         onFail('Please enter your full legal name to countersign.');
@@ -6423,6 +6507,7 @@ function renderAdminPanel(authToken) {
     document.getElementById('hfContactInfo').innerHTML     = '<strong>Contact:</strong> ' + contactMethod;
     document.getElementById('hfAmountField').style.display = 'block';
     document.getElementById('hfAmount').value              = '';
+    document.getElementById('hfDeadline').value            = '48 hours';
     document.getElementById('hfNotes').value               = '';
     document.getElementById('hfAlertArea').innerHTML       = '';
     document.getElementById('hfConfirmBtn').textContent    = 'Send Request';
@@ -6437,8 +6522,9 @@ function renderAdminPanel(authToken) {
     resumePolling();
   }
   document.getElementById('hfConfirmBtn').onclick = function() {
-    const amount = parseFloat(document.getElementById('hfAmount').value);
-    const notes  = document.getElementById('hfNotes').value.trim();
+    const amount   = parseFloat(document.getElementById('hfAmount').value);
+    const deadline = document.getElementById('hfDeadline').value;
+    const notes    = document.getElementById('hfNotes').value.trim();
     const alertArea = document.getElementById('hfAlertArea');
     alertArea.innerHTML = '';
     if (!amount || amount <= 0) {
@@ -6465,7 +6551,7 @@ function renderAdminPanel(authToken) {
         btn.disabled = false; btn.textContent = 'Send Request';
         alertArea.innerHTML = '<div class="alert alert-danger">Error: ' + err + '</div>';
       })
-      .requestHoldingFee(currentAppId, amount, notes);
+      .requestHoldingFee(currentAppId, amount, notes, deadline);
   };
 
   // ── Close modals on backdrop click ──
@@ -6480,21 +6566,27 @@ function renderAdminPanel(authToken) {
     });
   });
 
-  // ── showConfirmModal — extended for holdFeePaid ──
+  // ── showConfirmModal — extended for holdFeePaid, markRefund ──
   function showConfirmModal(action, appId, applicantName, contactMethod, contactTimes) {
     currentAction = action; currentAppId = appId;
     pausePolling();
     const config = {
-      markPaid    : { title: 'Mark as Paid',             sub: 'A payment confirmation email will be sent to the applicant.', btn: 'Confirm Payment',   notes: false, notesLabel: 'Notes (optional)' },
-      approve     : { title: 'Approve Application',       sub: 'An approval email will be sent to the applicant.',            btn: 'Approve',           notes: false, notesLabel: 'Notes (optional)' },
-      deny        : { title: 'Deny Application',           sub: 'The applicant will be notified by email.',                    btn: 'Deny Application',  notes: true,  notesLabel: 'Reason for denial (optional — sent to applicant)' },
-      holdFeePaid : { title: 'Mark Hold Fee Received',     sub: 'Holding fee will be credited toward move-in total.',          btn: 'Confirm Receipt',   notes: true,  notesLabel: 'Notes (optional)' },
-      countersign : { title: 'Countersign Lease',          sub: 'Enter your full legal name to countersign this lease. Lease status will update to Executed.', btn: 'Countersign Lease', notes: true, notesLabel: 'Your Full Legal Name (required)' }
+      markPaid    : { title: 'Mark as Paid',             sub: 'A payment confirmation receipt email will be sent to the applicant.', btn: 'Confirm Payment',   notes: false, notesLabel: 'Notes (optional)', payFields: true },
+      approve     : { title: 'Approve Application',       sub: 'An approval email will be sent to the applicant.',                   btn: 'Approve',           notes: false, notesLabel: 'Notes (optional)', payFields: false },
+      deny        : { title: 'Deny Application',           sub: 'The applicant will be notified by email.',                           btn: 'Deny Application',  notes: true,  notesLabel: 'Reason for denial (optional — sent to applicant)', payFields: false },
+      holdFeePaid : { title: 'Mark Hold Fee Received',     sub: 'Holding fee will be credited toward move-in total.',                 btn: 'Confirm Receipt',   notes: true,  notesLabel: 'Notes (optional)', payFields: false },
+      countersign : { title: 'Countersign Lease',          sub: 'Enter your full legal name to countersign this lease. Lease status will update to Executed.', btn: 'Countersign Lease', notes: true, notesLabel: 'Your Full Legal Name (required)', payFields: false },
+      markRefund  : { title: 'Mark as Refunded',           sub: 'Payment Status will be set to "refunded". No email is sent automatically.', btn: 'Mark Refunded', notes: true, notesLabel: 'Refund reason / notes (optional)', payFields: false }
     };
     const c = config[action];
     document.getElementById('modalTitle').textContent    = c.title;
     document.getElementById('modalSubtitle').textContent = applicantName + ' · ' + appId;
     document.getElementById('contactInfo').innerHTML     = '<strong>' + (action === 'deny' ? 'Applicant:' : 'Contact:') + '</strong> ' + contactMethod + ' · ' + contactTimes;
+    document.getElementById('paymentFields').style.display = c.payFields ? 'block' : 'none';
+    if (c.payFields) {
+      document.getElementById('actualPaymentMethod').value = '';
+      document.getElementById('transactionRef').value = '';
+    }
     document.getElementById('notesField').style.display = c.notes ? 'block' : 'none';
     const notesLabelEl = document.getElementById('notesLabel');
     if (notesLabelEl) notesLabelEl.textContent = c.notesLabel || 'Notes (optional)';
@@ -6545,16 +6637,17 @@ function renderAdminPanel(authToken) {
     const safeContact = contactMethod.replace(/'/g, "\\\\'");
     const safeTimes   = contactTimes.replace(/'/g, "\\\\'");
     const safeAddr    = (app['Property Address'] || '').replace(/'/g, "\\\\'");
-    const canMarkPaid   = app['Payment Status'] === 'unpaid';
-    const canApprove    = app['Payment Status'] === 'paid' && app['Status'] === 'pending';
-    const canDeny       = canApprove;
-    const canSendLease  = app['Status'] === 'approved' && leaseStatus !== 'signed' && leaseStatus !== 'active';
-    const dateStr       = app['Timestamp'] ? new Date(app['Timestamp']).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
-    const phoneClean    = (app['Phone'] || '').replace(/\\D/g, '');
-    const hfStatus      = app['Holding Fee Status'] || 'none';
-    const hfAmt         = parseFloat(app['Holding Fee Amount']) || 0;
-    const canRequestHF  = app['Status'] === 'approved' && hfStatus === 'none';
-    const canConfirmHF  = hfStatus === 'requested';
+    const canMarkPaid    = app['Payment Status'] === 'unpaid';
+    const canMarkRefund  = app['Payment Status'] === 'paid';
+    const canApprove     = app['Payment Status'] === 'paid' && app['Status'] === 'pending';
+    const canDeny        = canApprove;
+    const canSendLease   = app['Status'] === 'approved' && leaseStatus !== 'signed' && leaseStatus !== 'active';
+    const dateStr        = app['Timestamp'] ? new Date(app['Timestamp']).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+    const phoneClean     = (app['Phone'] || '').replace(/\\D/g, '');
+    const hfStatus       = app['Holding Fee Status'] || 'none';
+    const hfAmt          = parseFloat(app['Holding Fee Amount']) || 0;
+    const canRequestHF   = app['Status'] === 'approved' && hfStatus === 'none';
+    const canConfirmHF   = hfStatus === 'requested';
     const canCountersign = leaseStatus === 'signed' && !app['Management Signature'];
     const hfBadgeHtml   = hfStatus === 'paid'
       ? \`<span class="status-badge badge-hold-paid" style="margin-left:6px;" title="Holding fee $\{hfAmt} received"><i class="fas fa-hand-holding-dollar"></i> Hold Fee Paid</span>\`
@@ -6594,6 +6687,7 @@ function renderAdminPanel(authToken) {
           \${payPrefsHtml}
           <div class="card-actions">
             <button class="act-btn btn-pay"   onclick="showConfirmModal('markPaid','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canMarkPaid?'':'disabled'} aria-label="Mark as paid"><i class="fas fa-coins"></i> Mark Paid</button>
+            <button class="act-btn btn-deny"  onclick="showConfirmModal('markRefund','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canMarkRefund?'':'disabled'} aria-label="Mark as refunded" style="background:linear-gradient(to right,#7c3aed,#a855f7);"><i class="fas fa-rotate-left"></i> Refunded</button>
             <button class="act-btn btn-appr"  onclick="showConfirmModal('approve','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canApprove?'':'disabled'} aria-label="Approve"><i class="fas fa-circle-check"></i> Approve</button>
             <button class="act-btn btn-deny"  onclick="showConfirmModal('deny','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canDeny?'':'disabled'} aria-label="Deny"><i class="fas fa-circle-xmark"></i> Deny</button>
             <button class="act-btn btn-lease" onclick="showLeaseModal('\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}','\${safeAddr}')" \${canSendLease?'':'disabled'} aria-label="Send lease"><i class="fas fa-file-signature"></i> Send Lease</button>
@@ -6797,13 +6891,14 @@ function buildAdminCard(app, baseUrl) {
   const safeContact = contactMethod.replace(/'/g, "\\'");
   const safeTimes   = contactTimes.replace(/'/g, "\\'");
   const safeAddr    = (app['Property Address'] || '').replace(/'/g, "\\'");
-  const canMarkPaid   = app['Payment Status'] === 'unpaid';
-  const canApprove    = app['Payment Status'] === 'paid' && app['Status'] === 'pending';
-  const canDeny       = canApprove;
-  const canSendLease  = app['Status'] === 'approved' && leaseStatus !== 'signed' && leaseStatus !== 'active';
-  const dateStr       = app['Timestamp'] ? new Date(app['Timestamp']).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
-  const hfStatus      = app['Holding Fee Status'] || 'none';
-  const hfAmt         = parseFloat(app['Holding Fee Amount']) || 0;
+  const canMarkPaid    = app['Payment Status'] === 'unpaid';
+  const canMarkRefund  = app['Payment Status'] === 'paid';
+  const canApprove     = app['Payment Status'] === 'paid' && app['Status'] === 'pending';
+  const canDeny        = canApprove;
+  const canSendLease   = app['Status'] === 'approved' && leaseStatus !== 'signed' && leaseStatus !== 'active';
+  const dateStr        = app['Timestamp'] ? new Date(app['Timestamp']).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+  const hfStatus       = app['Holding Fee Status'] || 'none';
+  const hfAmt          = parseFloat(app['Holding Fee Amount']) || 0;
   const canRequestHF   = app['Status'] === 'approved' && hfStatus === 'none';
   const canConfirmHF   = hfStatus === 'requested';
   const canCountersign = leaseStatus === 'signed' && !app['Management Signature'];
