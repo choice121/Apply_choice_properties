@@ -163,7 +163,9 @@ function initializeSheets() {
       // ── ISSUE-002 fix: extended property context columns ──
       'Property Zip', 'Application Fee', 'Available Date', 'Lease Terms',
       'Min Lease Months', 'Pets Allowed', 'Pet Types Allowed', 'Pet Weight Limit',
-      'Pet Deposit', 'Smoking Allowed', 'Utilities Included', 'Parking', 'Parking Fee'
+      'Pet Deposit', 'Smoking Allowed', 'Utilities Included', 'Parking', 'Parking Fee',
+      // Phase 1: Management countersignature
+      'Management Signature', 'Management Signature Date', 'Management Signer Name'
     ];
     sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
     sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold').setBackground('#1a5276').setFontColor('#ffffff');
@@ -215,7 +217,9 @@ function addMissingLeaseColumns(sheet) {
     // Session 037: Holding Fee columns
     'Holding Fee Amount', 'Holding Fee Status', 'Holding Fee Date', 'Holding Fee Notes',
     // Session 043: Has Vehicle (previously uncaptured)
-    'Has Vehicle'
+    'Has Vehicle',
+    // Phase 1: Management countersignature columns
+    'Management Signature', 'Management Signature Date', 'Management Signer Name'
   ];
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   newColumns.forEach(col => {
@@ -522,21 +526,31 @@ function validateAdminPassword(username, password) {
   } catch (e) { return { success: false, error: 'Login failed: ' + e.toString() }; }
 }
 
-// Run this ONCE manually in the GAS editor to set your admin credentials:
+// Run this ONCE manually in the GAS editor to set your admin credentials.
+// SECURITY: Never hardcode credentials here. Set username and password
+// directly in this function body locally, run it once, then remove the values.
+// The values are stored securely in GAS Script Properties and never in source.
+//
+// HOW TO USE:
+//   1. Open this file in the GAS editor (script.google.com)
+//   2. Temporarily set your credentials below
+//   3. Click Run → setupAdminPassword
+//   4. Delete the credential values again before saving
+//   5. Verify setup by running: Logger.log(PropertiesService.getScriptProperties().getProperty('ADMIN_USERNAME'))
 function setupAdminPassword() {
-  const username = 'choiceproperties404@gmail.com';
-  const password = 'Choice123$..';
+  const username = ''; // Set your admin email here temporarily, then remove
+  const password = ''; // Set your password here temporarily, then remove
   if (!username || !password) {
-    Logger.log('❌ Set your username and password in this function before running it.');
+    Logger.log('❌ Set your username and password in this function body before running it. Remove them after running.');
     return;
   }
-  const props    = PropertiesService.getScriptProperties();
+  const props = PropertiesService.getScriptProperties();
   props.setProperty('ADMIN_USERNAME', username);
   const hash = Utilities.base64Encode(
     Utilities.computeHmacSha256Signature(password, username)
   );
   props.setProperty('ADMIN_PASSWORD_HASH', hash);
-  Logger.log('✅ Admin credentials set. Username: ' + username);
+  Logger.log('✅ Admin credentials set. Username: ' + username + '. IMPORTANT: Remove the credential values from this function now.');
 }
 
 // ============================================================
@@ -1080,14 +1094,30 @@ function generateAndSendLease(appId, monthlyRent, securityDeposit, leaseStartDat
     const currentLeaseStatus = sheet.getRange(rowIndex, col['Lease Status']).getValue();
     if (currentLeaseStatus === 'signed') throw new Error('Lease already signed by tenant.');
 
-    // Calculate lease end date from term
+    // ── Task 1.5: Validate required financial fields before proceeding ──
+    const rentVal = parseFloat(monthlyRent);
+    if (!monthlyRent || isNaN(rentVal) || rentVal <= 0) {
+      return { success: false, error: 'Monthly rent is required and must be greater than $0. Please enter the rent amount before sending the lease.' };
+    }
+    if (!leaseStartDate || leaseStartDate.toString().trim() === '') {
+      return { success: false, error: 'Lease start date is required. Please select a start date before sending the lease.' };
+    }
+    const startDateTest = new Date(leaseStartDate);
+    if (isNaN(startDateTest.getTime())) {
+      return { success: false, error: 'Lease start date is invalid. Please enter a valid date (e.g., 2026-06-01).' };
+    }
+
+    // ── Task 1.4: Calculate lease end date — handles month-to-month ──
     const desiredTerm   = sheet.getRange(rowIndex, col['Desired Lease Term']).getValue() || '12 months';
     const startDate     = new Date(leaseStartDate);
-    const endDate       = calculateLeaseEndDate(startDate, desiredTerm);
-    const endDateStr    = Utilities.formatDate(endDate, Session.getScriptTimeZone(), 'MMMM dd, yyyy');
+    const endDateObj    = calculateLeaseEndDate(startDate, desiredTerm);
+    const isMtm         = (endDateObj === null);
+    const endDateStr    = isMtm
+      ? 'Month-to-Month — No Fixed Expiration'
+      : Utilities.formatDate(endDateObj, Session.getScriptTimeZone(), 'MMMM dd, yyyy');
 
     // Move-in costs = first month + deposit
-    const rent          = parseFloat(monthlyRent)      || 0;
+    const rent          = rentVal;
     const deposit       = parseFloat(securityDeposit)  || 0;
     const moveInCosts   = rent + deposit;
     const rentDue       = parseInt(rentDueDay)          || 1;
@@ -1158,14 +1188,19 @@ function generateAndSendLease(appId, monthlyRent, securityDeposit, leaseStartDat
 }
 
 // ── calculateLeaseEndDate() ───────────────────────────────
+// Returns a Date for fixed terms, or null for month-to-month.
+// Callers must check: if (endDate === null) treat as month-to-month.
 function calculateLeaseEndDate(startDate, termString) {
+  const term = (termString || '').toLowerCase();
+  if (term.includes('month-to-month') || term.includes('month to month') || term === 'mtm') {
+    return null; // month-to-month has no fixed expiration
+  }
   const end = new Date(startDate);
-  const term = termString.toLowerCase();
   if      (term.includes('6'))  end.setMonth(end.getMonth() + 6);
   else if (term.includes('12')) end.setMonth(end.getMonth() + 12);
   else if (term.includes('18')) end.setMonth(end.getMonth() + 18);
   else if (term.includes('24')) end.setMonth(end.getMonth() + 24);
-  else                          end.setMonth(end.getMonth() + 1);  // month-to-month default
+  else                          end.setMonth(end.getMonth() + 12); // default to 12 months
   end.setDate(end.getDate() - 1); // end = day before next period
   return end;
 }
@@ -1675,7 +1710,7 @@ function renderLeaseSigningPage(appId) {
       <tr><td>Tenant(s)</td><td>${fullName}</td></tr>
       <tr><td>Lease Term</td><td>${term}</td></tr>
       <tr><td>Commencement Date</td><td><b>${startDate}</b></td></tr>
-      <tr><td>Expiration Date</td><td><b>${endDate}</b></td></tr>
+      <tr><td>${endDate === 'Month-to-Month — No Fixed Expiration' ? 'Tenancy Type' : 'Expiration Date'}</td><td><b>${endDate}</b></td></tr>
       <tr><td>Application ID</td><td>${appId}</td></tr>
       <tr><td>Authorized Occupants</td><td>${totalOccupants} person(s) — as listed in the rental application</td></tr>
     </table>
@@ -1787,13 +1822,19 @@ function renderLeaseSigningPage(appId) {
       </li>
 
       <li>
-        <b>14. Lease Renewal & Month-to-Month.</b>
-        This Lease shall expire on the date listed in Article II. If neither party provides written notice at least ${jur.earlyTermNoticeDays} days prior to the expiration date, the Lease will automatically convert to a month-to-month tenancy under the same terms. Month-to-month rent is subject to adjustment with ${jur.mtmNoticeDays} days' written notice from Management. Either party may terminate a month-to-month tenancy with ${jur.mtmNoticeDays} days' written notice.
+        <b>14. Lease Renewal & Termination.</b>
+        ${endDate === 'Month-to-Month — No Fixed Expiration'
+          ? `This is a month-to-month tenancy with no fixed expiration date. Either party may terminate this tenancy by providing at least ${jur.mtmNoticeDays} days' prior written notice to the other party. Month-to-month rent is subject to adjustment with ${jur.mtmNoticeDays} days' written notice from Management.`
+          : `This Lease shall expire on the date listed in Article II. If neither party provides written notice at least ${jur.earlyTermNoticeDays} days prior to the expiration date, the Lease will automatically convert to a month-to-month tenancy under the same terms. Month-to-month rent is subject to adjustment with ${jur.mtmNoticeDays} days' written notice from Management. Either party may terminate a month-to-month tenancy with ${jur.mtmNoticeDays} days' written notice.`
+        }
       </li>
 
       <li>
         <b>15. Early Termination.</b>
-        Tenant may terminate this Lease prior to the expiration date by providing a minimum of ${jur.earlyTermNoticeDays} days' written notice to Management and paying an early termination fee equal to two (2) months' rent, unless a different arrangement is agreed upon in writing. Notice must be submitted in writing to choicepropertygroup@hotmail.com or via text to 707-706-3137. Early termination does not relieve the Tenant of any outstanding financial obligations.
+        ${endDate === 'Month-to-Month — No Fixed Expiration'
+          ? `Either party may terminate this month-to-month tenancy by providing a minimum of ${jur.mtmNoticeDays} days' written notice. Notice must be submitted in writing to choicepropertygroup@hotmail.com or via text to 707-706-3137. Termination does not relieve Tenant of any outstanding financial obligations accrued prior to the termination date.`
+          : `Tenant may terminate this Lease prior to the expiration date by providing a minimum of ${jur.earlyTermNoticeDays} days' written notice to Management and paying an early termination fee equal to two (2) months' rent, unless a different arrangement is agreed upon in writing. Notice must be submitted in writing to choicepropertygroup@hotmail.com or via text to 707-706-3137. Early termination does not relieve the Tenant of any outstanding financial obligations.`
+        }
       </li>
 
       <li>
@@ -1818,7 +1859,7 @@ function renderLeaseSigningPage(appId) {
 
       <li>
         <b>20. Lead Paint Disclosure (Pre-1978 Properties).</b>
-        If the property was built prior to 1978, Tenant acknowledges receipt of the federal Lead-Based Paint Disclosure form, where applicable. Tenant should contact Management if they have questions regarding the age of the property or lead-paint status.
+        Tenant has been informed that properties built prior to 1978 may contain lead-based paint and lead-based paint hazards. Tenant should inquire with Management about the year of construction prior to move-in and is encouraged to conduct their own independent investigation. The Landlord's property insurance does not cover lead-related personal injury claims. Tenant is advised to seek information from the U.S. Environmental Protection Agency (EPA) regarding lead-based paint hazards if concerned.
       </li>
 
       <li>
@@ -3314,6 +3355,53 @@ function markHoldingFeePaid(appId, adminNotes) {
 }
 
 // ============================================================
+// managementCountersign()  — Phase 1
+// Records the management countersignature on an executed lease.
+// Called from the admin panel after the tenant has signed.
+// ============================================================
+function managementCountersign(appId, signerName, notes) {
+  try {
+    if (!signerName || signerName.trim().length < 2) {
+      return { success: false, error: 'Signer name is required.' };
+    }
+    const ss    = getSpreadsheet();
+    const sheet = ss.getSheetByName(SHEET_NAME);
+    if (!sheet) throw new Error('Applications sheet not found');
+    const col  = getColumnMap(sheet);
+    const data = sheet.getDataRange().getValues();
+    let rowIndex = -1;
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][col['App ID'] - 1] === appId) { rowIndex = i + 1; break; }
+    }
+    if (rowIndex === -1) throw new Error('Application not found: ' + appId);
+
+    const leaseStatus = sheet.getRange(rowIndex, col['Lease Status']).getValue();
+    if (leaseStatus !== 'signed') {
+      return { success: false, error: 'Lease must be signed by the tenant before management can countersign.' };
+    }
+    const existingSig = col['Management Signature'] ? sheet.getRange(rowIndex, col['Management Signature']).getValue() : '';
+    if (existingSig) {
+      return { success: false, error: 'This lease has already been countersigned by management.' };
+    }
+
+    const now = new Date();
+    if (col['Management Signature'])      sheet.getRange(rowIndex, col['Management Signature']).setValue(signerName.trim());
+    if (col['Management Signature Date']) sheet.getRange(rowIndex, col['Management Signature Date']).setValue(now);
+    if (col['Management Signer Name'])    sheet.getRange(rowIndex, col['Management Signer Name']).setValue(signerName.trim());
+    sheet.getRange(rowIndex, col['Lease Status']).setValue('executed');
+
+    const currentNotes = sheet.getRange(rowIndex, col['Admin Notes']).getValue();
+    const noteText = `[${now.toLocaleString()}] Lease countersigned by management. Signer: ${signerName.trim()}.${notes ? ' Note: ' + notes : ''}`;
+    sheet.getRange(rowIndex, col['Admin Notes']).setValue(currentNotes ? currentNotes + '\n' + noteText : noteText);
+
+    return { success: true, message: 'Lease countersigned. Status updated to Executed.' };
+  } catch (error) {
+    console.error('managementCountersign error:', error);
+    return { success: false, error: error.toString() };
+  }
+}
+
+// ============================================================
 // sendHoldingFeeRequestEmail()  — Session 037
 // Emails the tenant with holding fee amount and payment instructions.
 // ============================================================
@@ -4540,7 +4628,8 @@ function renderAdminPanel(authToken) {
   let userEmail    = 'Admin';
   if (authToken && validateAdminToken(authToken)) {
     isAuthorized = true;
-    userEmail    = 'choiceproperties404@gmail.com';
+    const storedUsername = PropertiesService.getScriptProperties().getProperty('ADMIN_USERNAME');
+    userEmail = storedUsername || 'Admin';
   } else {
     const authorizedEmails = getAdminEmails();
     const googleEmail      = Session.getActiveUser().getEmail();
@@ -5715,6 +5804,13 @@ function renderAdminPanel(authToken) {
     else if (currentAction === 'approve')     google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).updateStatus(currentAppId, 'approved', notes);
     else if (currentAction === 'deny')        google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).updateStatus(currentAppId, 'denied', notes);
     else if (currentAction === 'holdFeePaid') google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).markHoldingFeePaid(currentAppId, notes);
+    else if (currentAction === 'countersign') {
+      if (!notes || notes.trim().length < 2) {
+        onFail('Please enter your full legal name to countersign.');
+        return;
+      }
+      google.script.run.withSuccessHandler(onSuccess).withFailureHandler(onFail).managementCountersign(currentAppId, notes, '');
+    }
   };
 
   // ── Holding Fee Modal open/close ──
@@ -5788,16 +5884,19 @@ function renderAdminPanel(authToken) {
     currentAction = action; currentAppId = appId;
     pausePolling();
     const config = {
-      markPaid    : { title: 'Mark as Paid',          sub: 'A payment confirmation email will be sent to the applicant.', btn: 'Confirm Payment',  notes: false },
-      approve     : { title: 'Approve Application',    sub: 'An approval email will be sent to the applicant.',            btn: 'Approve',          notes: false },
-      deny        : { title: 'Deny Application',        sub: 'The applicant will be notified by email.',                    btn: 'Deny Application', notes: true  },
-      holdFeePaid : { title: 'Mark Hold Fee Received',  sub: 'Holding fee will be credited toward move-in total.',          btn: 'Confirm Receipt',  notes: true  }
+      markPaid    : { title: 'Mark as Paid',             sub: 'A payment confirmation email will be sent to the applicant.', btn: 'Confirm Payment',   notes: false, notesLabel: 'Notes (optional)' },
+      approve     : { title: 'Approve Application',       sub: 'An approval email will be sent to the applicant.',            btn: 'Approve',           notes: false, notesLabel: 'Notes (optional)' },
+      deny        : { title: 'Deny Application',           sub: 'The applicant will be notified by email.',                    btn: 'Deny Application',  notes: true,  notesLabel: 'Reason for denial (optional — sent to applicant)' },
+      holdFeePaid : { title: 'Mark Hold Fee Received',     sub: 'Holding fee will be credited toward move-in total.',          btn: 'Confirm Receipt',   notes: true,  notesLabel: 'Notes (optional)' },
+      countersign : { title: 'Countersign Lease',          sub: 'Enter your full legal name to countersign this lease. Lease status will update to Executed.', btn: 'Countersign Lease', notes: true, notesLabel: 'Your Full Legal Name (required)' }
     };
     const c = config[action];
     document.getElementById('modalTitle').textContent    = c.title;
     document.getElementById('modalSubtitle').textContent = applicantName + ' · ' + appId;
     document.getElementById('contactInfo').innerHTML     = '<strong>' + (action === 'deny' ? 'Applicant:' : 'Contact:') + '</strong> ' + contactMethod + ' · ' + contactTimes;
     document.getElementById('notesField').style.display = c.notes ? 'block' : 'none';
+    const notesLabelEl = document.getElementById('notesLabel');
+    if (notesLabelEl) notesLabelEl.textContent = c.notesLabel || 'Notes (optional)';
     document.getElementById('actionNotes').value        = '';
     document.getElementById('modalConfirmBtn').textContent = c.btn;
     document.getElementById('confirmModal').classList.add('open');
@@ -5854,6 +5953,7 @@ function renderAdminPanel(authToken) {
     const hfAmt         = parseFloat(app['Holding Fee Amount']) || 0;
     const canRequestHF  = app['Status'] === 'approved' && hfStatus === 'none';
     const canConfirmHF  = hfStatus === 'requested';
+    const canCountersign = leaseStatus === 'signed' && !app['Management Signature'];
     const hfBadgeHtml   = hfStatus === 'paid'
       ? \`<span class="status-badge badge-hold-paid" style="margin-left:6px;" title="Holding fee $\{hfAmt} received"><i class="fas fa-hand-holding-dollar"></i> Hold Fee Paid</span>\`
       : hfStatus === 'requested'
@@ -5897,6 +5997,7 @@ function renderAdminPanel(authToken) {
             <button class="act-btn btn-lease" onclick="showLeaseModal('\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canSendLease?'':'disabled'} aria-label="Send lease"><i class="fas fa-file-signature"></i> Send Lease</button>
             <button class="act-btn btn-hold-req"  onclick="showHoldingFeeModal('\${app['App ID']}','\${safeName}','\${safeContact}')" \${canRequestHF?'':'disabled'} aria-label="Request holding fee"><i class="fas fa-hand-holding-dollar"></i> Request Hold Fee</button>
             <button class="act-btn btn-hold-paid" onclick="showConfirmModal('holdFeePaid','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canConfirmHF?'':'disabled'} aria-label="Mark holding fee received"><i class="fas fa-circle-check"></i> Hold Fee Received</button>
+            <button class="act-btn btn-countersign" onclick="showConfirmModal('countersign','\${app['App ID']}','\${safeName}','\${safeContact}','\${safeTimes}')" \${canCountersign?'':'disabled'} aria-label="Countersign lease"><i class="fas fa-file-signature"></i> Countersign Lease</button>
             <a href="?path=dashboard&id=\${app['App ID']}" target="_blank" class="act-btn btn-view" aria-label="View dashboard"><i class="fas fa-eye"></i> View</a>
             <a href="sms:7077063137?body=Hi%20\${encodeURIComponent(app['First Name']||'')}%2C%20this%20is%20Choice%20Properties%20re%20app%20\${app['App ID']}" class="act-btn btn-text" aria-label="Text applicant"><i class="fas fa-comment-sms"></i> Text</a>
           </div>
@@ -6100,8 +6201,9 @@ function buildAdminCard(app, baseUrl) {
   const dateStr       = app['Timestamp'] ? new Date(app['Timestamp']).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
   const hfStatus      = app['Holding Fee Status'] || 'none';
   const hfAmt         = parseFloat(app['Holding Fee Amount']) || 0;
-  const canRequestHF  = app['Status'] === 'approved' && hfStatus === 'none';
-  const canConfirmHF  = hfStatus === 'requested';
+  const canRequestHF   = app['Status'] === 'approved' && hfStatus === 'none';
+  const canConfirmHF   = hfStatus === 'requested';
+  const canCountersign = leaseStatus === 'signed' && !app['Management Signature'];
   const hfBadgeHtml   = hfStatus === 'paid'
     ? `<span class="status-badge badge-hold-paid" style="margin-left:6px;" title="Holding fee $${hfAmt} received"><i class="fas fa-hand-holding-dollar"></i> Hold Fee Paid</span>`
     : hfStatus === 'requested'
@@ -6145,6 +6247,7 @@ function buildAdminCard(app, baseUrl) {
           <button class="act-btn btn-lease" onclick="showLeaseModal('${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canSendLease?'':'disabled'} aria-label="Send lease"><i class="fas fa-file-signature"></i> Send Lease</button>
           <button class="act-btn btn-hold-req"  onclick="showHoldingFeeModal('${app['App ID']}','${safeName}','${safeContact}')" ${canRequestHF?'':'disabled'} aria-label="Request holding fee"><i class="fas fa-hand-holding-dollar"></i> Request Hold Fee</button>
           <button class="act-btn btn-hold-paid" onclick="showConfirmModal('holdFeePaid','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canConfirmHF?'':'disabled'} aria-label="Mark holding fee received"><i class="fas fa-circle-check"></i> Hold Fee Received</button>
+          <button class="act-btn btn-countersign" onclick="showConfirmModal('countersign','${app['App ID']}','${safeName}','${safeContact}','${safeTimes}')" ${canCountersign?'':'disabled'} aria-label="Countersign lease"><i class="fas fa-file-signature"></i> Countersign Lease</button>
           <a href="${baseUrl}?path=dashboard&id=${app['App ID']}" target="_blank" class="act-btn btn-view" aria-label="View dashboard"><i class="fas fa-eye"></i> View</a>
           <a href="sms:7077063137?body=Hi%20${encodeURIComponent(app['First Name']||'')}%2C%20this%20is%20Choice%20Properties%20re%20app%20${app['App ID']}" class="act-btn btn-text" aria-label="Text applicant"><i class="fas fa-comment-sms"></i> Text</a>
         </div>
