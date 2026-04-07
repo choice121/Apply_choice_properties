@@ -1072,7 +1072,13 @@
                 </div>
                 <p class="submit-disclaimer" data-i18n="submitDisclaimer">By clicking submit, your application will be securely transmitted to Choice Properties.</p>
             </div>
-        </form>
+
+          <!-- HONEYPOT — do not remove. Hidden from real users, catches bots. -->
+          <div style="position:absolute;left:-9999px;top:-9999px;opacity:0;pointer-events:none;aria-hidden:true">
+              <label for="website">Leave this empty</label>
+              <input type="text" id="website" name="website" tabindex="-1" autocomplete="off" value="">
+          </div>
+          </form>
     </div>
 
     <!-- Footer -->
