@@ -130,20 +130,23 @@ Do not attempt to "set up" or "optimize" this project for your environment.
 
 ---
 
-## 🤖 DYNAMIC DATA IMPLEMENTATION PLAN
+## 🤖 ACTIVE IMPLEMENTATION PLAN
 
-A full audit of hardcoded vs. data-driven values was completed in Session 031.
-21 issues across 6 phases were identified and documented.
+A comprehensive product flow audit was completed in April 2026.
+41 issues across 8 phases were identified and documented.
 
-**The implementation plan is in: `DYNAMIC_DATA_PLAN.md` (project root)**
+**Reading order for any AI starting a new session:**
 
-Any AI assistant starting a new session MUST read `DYNAMIC_DATA_PLAN.md`
-immediately after this file. It contains:
-- All identified issues with root causes
-- Phase-by-phase fix plan with exact implementation instructions
-- Completion status for every issue
-- AI session protocol (what to do on start, during, and end of session)
+1. `PROJECT_RULES.md` (this file) — architecture constraints
+2. `PROJECT_STATUS.md` — current phase, completed tasks, what to do next
+3. `docs/IMPLEMENTATION_PLAN.md` — full task breakdown with root causes and acceptance criteria
+4. `docs/ARCHITECTURE.md` — system architecture, function map, database schema
+5. `AUDIT_REPORT.md` — original audit findings (reference only)
 
-**Current active phase: Phase 1 — read the plan for details.**
+**Current active phase: Phase 1 — read `PROJECT_STATUS.md` for details.**
 
 Do not ask the user what to fix. The plan is self-sufficient.
+
+Note: The older `DYNAMIC_DATA_PLAN.md` in the project root is superseded by the
+documents above. Do not use it as a reference for new work — it covered an earlier
+partial audit. The new `docs/IMPLEMENTATION_PLAN.md` is the authoritative source.

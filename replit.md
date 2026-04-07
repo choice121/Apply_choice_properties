@@ -24,6 +24,22 @@ A static web application for managing rental applications for Choice Properties.
 - Configured as a static deployment (publicDir: ".")
 - Originally designed for Cloudflare Pages hosting
 
+## Documentation System (April 2026)
+
+A full product flow audit was completed. 41 issues identified across security, legal, UX, backend, emails, lease, and payment systems.
+
+**Key docs:**
+- `PROJECT_STATUS.md` — Current phase status and task checklist (start here)
+- `docs/IMPLEMENTATION_PLAN.md` — Full 8-phase fix plan with root causes and acceptance criteria
+- `docs/ARCHITECTURE.md` — System architecture, function map, database schema
+- `docs/IMPROVEMENTS.md` — Recommendations log updated after each phase
+- `AUDIT_REPORT.md` — Full original audit findings
+- `PROJECT_RULES.md` — Architecture constraints (non-negotiable)
+
+**Active phase:** Phase 1 — Critical Security & Legal fixes
+
+---
+
 ## Changes Applied (UX/Bug Fix Pass)
 
 ### Global Removals
