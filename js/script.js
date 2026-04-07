@@ -164,18 +164,27 @@ class RentalApplication {
 
     // ─────────────────────────────────────────────────────────────────────
     // APPLICATION FEE — read from URL param before translations are built.
-    // Falls back to 50 if not provided by the listing platform.
+    // Falls back to 50 if the param is absent from the URL.
+    // Zero-fee fix: fee=0 is a valid value (free application). The old
+    // check `if (fee && fee > 0)` treated 0 as falsy and fell back to $50,
+    // so applicants for free-application properties saw the wrong fee.
     // ─────────────────────────────────────────────────────────────────────
     _readApplicationFee() {
         try {
-            const p   = new URLSearchParams(window.location.search);
-            const fee = parseFloat(p.get('fee'));
-            if (fee && fee > 0) {
-                this.state.applicationFee = fee;
+            const p      = new URLSearchParams(window.location.search);
+            const rawFee = p.get('fee');
+            if (rawFee === null) return; // param absent — keep default of 50
+            const fee = parseFloat(rawFee);
+            if (isNaN(fee)) return;      // unparseable — keep default
+            this.state.applicationFee = fee;
+            const feeTitle  = document.querySelector('[data-i18n="feeTitle"]');
+            const feeAmount = document.querySelector('.fee-amount');
+            if (fee <= 0) {
+                if (feeTitle)  feeTitle.textContent  = 'Application Fee: Free';
+                if (feeAmount) feeAmount.textContent = 'Free';
+            } else {
                 const formatted = '$' + fee.toFixed(2);
-                const feeTitle = document.querySelector('[data-i18n="feeTitle"]');
-                if (feeTitle) feeTitle.textContent = 'Application Fee: ' + formatted;
-                const feeAmount = document.querySelector('.fee-amount');
+                if (feeTitle)  feeTitle.textContent  = 'Application Fee: ' + formatted;
                 if (feeAmount) feeAmount.textContent = '$' + fee.toFixed(0);
             }
         } catch (e) {}
@@ -1206,7 +1215,8 @@ class RentalApplication {
 
     // ---------- Language toggle ----------
     setupLanguageToggle() {
-        const fee = this.state.applicationFee;
+        const fee     = this.state.applicationFee;
+        const freeApp = fee <= 0; // zero-fee: no payment step needed
         const translations = {
             en: {
                 langText: 'Español',
@@ -1234,14 +1244,22 @@ class RentalApplication {
                 appId: 'Your Application ID',
                 clickToCopy: 'Copy ID',
                 immediateNextSteps: 'Immediate Next Steps',
-                paymentRequiredTitle: 'Payment Required Before Review',
-                paymentRequiredDesc: `Our team will contact you shortly at the phone number provided to arrange the $${fee} application fee.`,
-                completePaymentTitle: 'Complete Payment',
-                completePaymentDesc: `Your application is not complete until the $${fee} fee has been paid. We'll discuss payment options you're familiar with.`,
+                paymentRequiredTitle: freeApp ? 'No Application Fee' : 'Payment Required Before Review',
+                paymentRequiredDesc: freeApp
+                    ? 'Great news — there is no application fee for this property. Your application will go straight to review.'
+                    : `Our team will contact you shortly at the phone number provided to arrange the $${fee} application fee.`,
+                completePaymentTitle: freeApp ? 'Application Complete' : 'Complete Payment',
+                completePaymentDesc: freeApp
+                    ? 'No payment is needed. Your application will be reviewed as submitted.'
+                    : `Your application is not complete until the $${fee} fee has been paid. We'll discuss payment options you're familiar with.`,
                 reviewBeginsTitle: 'Review Begins',
-                reviewBeginsDesc: 'Once payment is confirmed, your application enters the formal review process. You can track status online with your ID.',
+                reviewBeginsDesc: freeApp
+                    ? 'Your application has been received and will enter the formal review process right away. You can track status online with your ID.'
+                    : 'Once payment is confirmed, your application enters the formal review process. You can track status online with your ID.',
                 importantNote: 'Important:',
-                paymentUrgentText: `Your application is not complete until the $${fee} fee has been paid. Please keep your phone nearby.`,
+                paymentUrgentText: freeApp
+                    ? 'There is no application fee for this property — your application goes straight to review.'
+                    : `Your application is not complete until the $${fee} fee has been paid. Please keep your phone nearby.`,
                 yourPreferences: 'Your Preferences',
                 contactMethod: 'Contact Method:',
                 bestTimes: 'Best Times:',
@@ -1256,10 +1274,10 @@ class RentalApplication {
                 reapplicationPolicyText: 'If your application is denied, you may apply for any other available property within 30 days — no new application fee. Your screening results remain valid for 60 days.',
                 step1YouSubmit: '1. You Submit',
                 step1Desc: 'Fill out your application completely',
-                step2PaymentArranged: '2. Payment Arranged',
-                step2Desc: `We contact you for the $${fee} fee`,
+                step2PaymentArranged: freeApp ? '2. Application Received' : '2. Payment Arranged',
+                step2Desc: freeApp ? 'No fee required — review starts right away' : `We contact you for the $${fee} fee`,
                 step3ReviewBegins: '3. Review Begins',
-                step3Desc: 'After payment, we review your application',
+                step3Desc: freeApp ? 'We review your application promptly' : 'After payment, we review your application',
                 propertyHeader: 'Property & Applicant Details',
                 propertyInfo: 'Property Information',
                 propertyAddressLabel: 'Property Address Applying For',
@@ -1396,8 +1414,12 @@ class RentalApplication {
                 evictedLabel: 'Have you ever been evicted?',
                 smokerLabel: 'Do you smoke?',
                 paymentHeader: 'Payment Preferences',
-                paymentIntro: `Tell us which payment services you use. When we contact you about the $${fee} application fee, we'll discuss options you're familiar with.`,
-                paymentImportant: 'Payment must be completed before your application can be reviewed. Our team will contact you promptly after submission to arrange this.',
+                paymentIntro: freeApp
+                    ? 'There is no application fee for this property. Please share your contact preferences so our team can reach you during the review process.'
+                    : `Tell us which payment services you use. When we contact you about the $${fee} application fee, we'll discuss options you're familiar with.`,
+                paymentImportant: freeApp
+                    ? 'There is no application fee — your application will be reviewed promptly after submission.'
+                    : 'Payment must be completed before your application can be reviewed. Our team will contact you promptly after submission to arrange this.',
                 primaryPref: 'Primary Preference',
                 mainPaymentMethod: 'Your Main Payment Method',
                 mainPaymentDesc: 'Which payment service do you use most often?',
@@ -1413,12 +1435,18 @@ class RentalApplication {
                 selectAnother: '— Select another (optional) —',
                 duplicateWarning: 'Please select different payment methods for each choice.',
                 reviewHeader: 'Review & Submit',
-                feeTitle: `Application Fee: $${fee}.00`,
-                feeDesc: 'This fee is required before review can begin. Our team will contact you immediately after submission to arrange payment.',
-                paymentReminderTitle: 'Payment Required Before Review',
-                paymentReminderDesc: `Your application is not complete until the $${fee} fee has been paid. Our team will contact you shortly after submission to arrange this.`,
+                feeTitle: freeApp ? 'Application Fee: Free' : `Application Fee: $${fee}.00`,
+                feeDesc: freeApp
+                    ? 'Great news — this property has no application fee. Your application goes straight to review.'
+                    : 'This fee is required before review can begin. Our team will contact you immediately after submission to arrange payment.',
+                paymentReminderTitle: freeApp ? 'No Application Fee' : 'Payment Required Before Review',
+                paymentReminderDesc: freeApp
+                    ? 'This property has no application fee. Your submission is complete and will go straight to review.'
+                    : `Your application is not complete until the $${fee} fee has been paid. Our team will contact you shortly after submission to arrange this.`,
                 verificationTitle: 'Verify Your Contact Information',
-                verificationDesc: `Please confirm your email and phone number are correct. This is how our team will reach you about the $${fee} fee.`,
+                verificationDesc: freeApp
+                    ? 'Please confirm your email and phone number are correct. This is how our team will contact you during the review process.'
+                    : `Please confirm your email and phone number are correct. This is how our team will reach you about the $${fee} fee.`,
                 reapplicationPolicyTextShort: 'If denied, apply again within 30 days with no new fee. Screening results valid for 60 days.',
                 legalDeclaration: 'Legal Declaration',
                 legalCertify: 'I certify that the information provided in this application is true and correct to the best of my knowledge.',
@@ -1494,14 +1522,22 @@ class RentalApplication {
                 appId: 'Su ID de Solicitud',
                 clickToCopy: 'Copiar ID',
                 immediateNextSteps: 'Próximos Pasos Inmediatos',
-                paymentRequiredTitle: 'Pago Requerido Antes de la Revisión',
-                paymentRequiredDesc: `Nuestro equipo se comunicará con usted en breve al número proporcionado para coordinar el pago de $${fee}.`,
-                completePaymentTitle: 'Completar el Pago',
-                completePaymentDesc: `Su solicitud no está completa hasta que se haya pagado la tarifa de $${fee}. Discutiremos opciones de pago que conozca.`,
+                paymentRequiredTitle: freeApp ? 'Sin Tarifa de Solicitud' : 'Pago Requerido Antes de la Revisión',
+                paymentRequiredDesc: freeApp
+                    ? 'Buenas noticias: no hay tarifa de solicitud para esta propiedad. Su solicitud pasará directamente a revisión.'
+                    : `Nuestro equipo se comunicará con usted en breve al número proporcionado para coordinar el pago de $${fee}.`,
+                completePaymentTitle: freeApp ? 'Solicitud Completa' : 'Completar el Pago',
+                completePaymentDesc: freeApp
+                    ? 'No se requiere pago. Su solicitud será revisada tal como fue enviada.'
+                    : `Su solicitud no está completa hasta que se haya pagado la tarifa de $${fee}. Discutiremos opciones de pago que conozca.`,
                 reviewBeginsTitle: 'Comienza la Revisión',
-                reviewBeginsDesc: 'Una vez que se confirme el pago, su solicitud entra en el proceso de revisión formal. Puede seguir el estado en línea con su ID.',
+                reviewBeginsDesc: freeApp
+                    ? 'Su solicitud ha sido recibida y entrará de inmediato al proceso de revisión formal. Puede seguir el estado en línea con su ID.'
+                    : 'Una vez que se confirme el pago, su solicitud entra en el proceso de revisión formal. Puede seguir el estado en línea con su ID.',
                 importantNote: 'Importante:',
-                paymentUrgentText: `Su solicitud no está completa hasta que se haya pagado la tarifa de $${fee}. Por favor mantenga su teléfono cerca.`,
+                paymentUrgentText: freeApp
+                    ? 'No hay tarifa de solicitud para esta propiedad — su solicitud pasa directamente a revisión.'
+                    : `Su solicitud no está completa hasta que se haya pagado la tarifa de $${fee}. Por favor mantenga su teléfono cerca.`,
                 yourPreferences: 'Sus Preferencias',
                 contactMethod: 'Método de Contacto:',
                 bestTimes: 'Mejores Horarios:',
@@ -1516,10 +1552,10 @@ class RentalApplication {
                 reapplicationPolicyText: 'Si su solicitud es denegada, puede solicitar cualquier otra propiedad disponible dentro de los 30 días sin pagar otra tarifa de solicitud. Sus resultados de evaluación siguen siendo válidos por 60 días.',
                 step1YouSubmit: '1. Usted Envía',
                 step1Desc: 'Complete su solicitud completamente',
-                step2PaymentArranged: '2. Pago Acordado',
-                step2Desc: `Lo contactamos para la tarifa de $${fee}`,
+                step2PaymentArranged: freeApp ? '2. Solicitud Recibida' : '2. Pago Acordado',
+                step2Desc: freeApp ? 'Sin tarifa — la revisión comienza de inmediato' : `Lo contactamos para la tarifa de $${fee}`,
                 step3ReviewBegins: '3. Comienza la Revisión',
-                step3Desc: 'Después del pago, revisamos su solicitud',
+                step3Desc: freeApp ? 'Revisamos su solicitud de inmediato' : 'Después del pago, revisamos su solicitud',
                 propertyHeader: 'Detalles de la Propiedad y el Solicitante',
                 propertyInfo: 'Información de la Propiedad',
                 propertyAddressLabel: 'Dirección de la Propiedad que Solicita',
@@ -1656,8 +1692,12 @@ class RentalApplication {
                 evictedLabel: '¿Ha sido desalojado alguna vez?',
                 smokerLabel: '¿Fuma?',
                 paymentHeader: 'Preferencias de Pago',
-                paymentIntro: `Díganos qué servicios de pago utiliza. Cuando lo contactemos acerca de la tarifa de solicitud de $${fee}, discutiremos opciones con las que esté familiarizado.`,
-                paymentImportant: 'El pago debe completarse antes de que su solicitud pueda ser revisada. Nuestro equipo lo contactará rápidamente después del envío para organizar esto.',
+                paymentIntro: freeApp
+                    ? 'No hay tarifa de solicitud para esta propiedad. Por favor comparta sus preferencias de contacto para que nuestro equipo pueda comunicarse con usted durante el proceso de revisión.'
+                    : `Díganos qué servicios de pago utiliza. Cuando lo contactemos acerca de la tarifa de solicitud de $${fee}, discutiremos opciones con las que esté familiarizado.`,
+                paymentImportant: freeApp
+                    ? 'No hay tarifa de solicitud — su solicitud será revisada rápidamente después del envío.'
+                    : 'El pago debe completarse antes de que su solicitud pueda ser revisada. Nuestro equipo lo contactará rápidamente después del envío para organizar esto.',
                 primaryPref: 'Preferencia Principal',
                 mainPaymentMethod: 'Su Método de Pago Principal',
                 mainPaymentDesc: '¿Qué servicio de pago usa con más frecuencia?',
@@ -1673,12 +1713,18 @@ class RentalApplication {
                 selectAnother: '— Seleccione otro (opcional) —',
                 duplicateWarning: 'Por favor seleccione diferentes métodos de pago para cada opción.',
                 reviewHeader: 'Revisar y Enviar',
-                feeTitle: `Tarifa de Solicitud: $${fee}.00`,
-                feeDesc: 'Esta tarifa es requerida antes de que la revisión pueda comenzar. Nuestro equipo lo contactará inmediatamente después del envío para organizar el pago.',
-                paymentReminderTitle: 'Pago Requerido Antes de la Revisión',
-                paymentReminderDesc: `Su solicitud no está completa hasta que se haya pagado la tarifa de $${fee}. Nuestro equipo lo contactará poco después del envío para organizar esto.`,
+                feeTitle: freeApp ? 'Tarifa de Solicitud: Gratis' : `Tarifa de Solicitud: $${fee}.00`,
+                feeDesc: freeApp
+                    ? 'Buenas noticias: esta propiedad no tiene tarifa de solicitud. Su solicitud pasa directamente a revisión.'
+                    : 'Esta tarifa es requerida antes de que la revisión pueda comenzar. Nuestro equipo lo contactará inmediatamente después del envío para organizar el pago.',
+                paymentReminderTitle: freeApp ? 'Sin Tarifa de Solicitud' : 'Pago Requerido Antes de la Revisión',
+                paymentReminderDesc: freeApp
+                    ? 'Esta propiedad no tiene tarifa de solicitud. Su envío está completo y pasará directamente a revisión.'
+                    : `Su solicitud no está completa hasta que se haya pagado la tarifa de $${fee}. Nuestro equipo lo contactará poco después del envío para organizar esto.`,
                 verificationTitle: 'Verifique Su Información de Contacto',
-                verificationDesc: `Por favor confirme que su correo electrónico y número de teléfono sean correctos. Así es como nuestro equipo lo contactará acerca de la tarifa de $${fee}.`,
+                verificationDesc: freeApp
+                    ? 'Por favor confirme que su correo electrónico y número de teléfono sean correctos. Así es como nuestro equipo lo contactará durante el proceso de revisión.'
+                    : `Por favor confirme que su correo electrónico y número de teléfono sean correctos. Así es como nuestro equipo lo contactará acerca de la tarifa de $${fee}.`,
                 reapplicationPolicyTextShort: 'Si es denegado, puede aplicar nuevamente dentro de 30 días sin nueva tarifa. Resultados de evaluación válidos por 60 días.',
                 legalDeclaration: 'Declaración Legal',
                 legalCertify: 'Certifico que la información proporcionada en esta solicitud es verdadera y correcta a mi leal saber y entender.',
