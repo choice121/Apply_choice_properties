@@ -372,7 +372,7 @@ All 5 verification checks passed:
 
   ## Phase 9 — Bug Fixes & Integration Improvements
 
-  **Status:** Phase 9B COMPLETE — April 8, 2026
+  **Status:** ALL PHASES COMPLETE — April 8, 2026
   **Triggered by:** Deep scan of both repos (Apply_choice_properties + Choice)
   **Full detail:** See `PHASE9_BUG_FIXES.md` in this repo and `KNOWN_ISSUES.md` in the Choice repo
 
@@ -387,8 +387,8 @@ All 5 verification checks passed:
   - [x] **9B-3** Verified safe — no truthy `if (pets)` / `if (smoking)` conditionals found; values go directly to hidden inputs (`js/script.js`, `Choice/property.html`)
   - [x] **9B-4** Rent swap guard added to `fetchAndRender()` — min/max are silently corrected before query fires (`Choice/listings.html`)
 
-  ### Phase 9C — Improvements (After bugs are fixed)
-  - [ ] **9C-1** Application fee fully dynamic — remove `APPLICATION_FEE` hardcoded fallback; fee must always come from property data via URL param (`backend/code.gs`)
-  - [ ] **9C-2** Add "Back to listing" link on application success screen (`js/script.js`, `index.html`)
-  - [ ] **9C-3** Email-based App ID recovery on applicant dashboard login (`backend/code.gs`)
+  ### Phase 9C — Improvements (COMPLETE — April 8, 2026)
+  - [x] **9C-1** Application fee switch case now falls back to 0 (free); fee always sent from cp-api.js (`backend/code.gs`, `Choice/js/cp-api.js`)
+  - [x] **9C-2** Source URL param added to buildApplyURL; back link shown on success screen (`js/script.js`, `Choice/js/cp-api.js`)
+  - [x] **9C-3** lookupAppIdByEmail() added; forgot link in login page; doPost route wired (`backend/code.gs`)
   
