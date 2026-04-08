@@ -17,55 +17,55 @@ const APPLICATION_FEE = 50; // D-014: single source of truth for the application
 
 // ============================================================
 // D-002/D-003/D-004: JURISDICTION MAP
-// Maps 2-letter state codes → lease legal language.
+// Maps 2-letter state codes â lease legal language.
 // Used by renderLeaseSigningPage() so the lease reflects the
-// correct state law for the property — not just Michigan.
+// correct state law for the property â not just Michigan.
 // Add states as Choice Properties expands into new markets.
 // ============================================================
 const JURISDICTION_MAP = {
   'AL': { stateName: 'Alabama',       county: 'applicable county', depositReturnDays: 60, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
-          eSignAct: 'Alabama Uniform Electronic Transactions Act (Ala. Code § 8-1A-1 et seq.) and the federal' },
+          eSignAct: 'Alabama Uniform Electronic Transactions Act (Ala. Code Â§ 8-1A-1 et seq.) and the federal' },
   'AK': { stateName: 'Alaska',        county: 'applicable borough', depositReturnDays: 14, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
-          eSignAct: 'Alaska Uniform Electronic Transactions Act (AS § 09.80) and the federal' },
+          eSignAct: 'Alaska Uniform Electronic Transactions Act (AS Â§ 09.80) and the federal' },
   'AZ': { stateName: 'Arizona',       county: 'applicable county', depositReturnDays: 14, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
-          eSignAct: 'Arizona Uniform Electronic Transactions Act (A.R.S. § 44-7001 et seq.) and the federal' },
+          eSignAct: 'Arizona Uniform Electronic Transactions Act (A.R.S. Â§ 44-7001 et seq.) and the federal' },
   'CA': { stateName: 'California',    county: 'applicable county', depositReturnDays: 21, earlyTermNoticeDays: 60, moveOutNoticeDays: 30, mtmNoticeDays: 60,
-          eSignAct: 'California Uniform Electronic Transactions Act (Cal. Civ. Code § 1633.1 et seq.) and the federal' },
+          eSignAct: 'California Uniform Electronic Transactions Act (Cal. Civ. Code Â§ 1633.1 et seq.) and the federal' },
   'CO': { stateName: 'Colorado',      county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 21, moveOutNoticeDays: 21, mtmNoticeDays: 21,
-          eSignAct: 'Colorado Uniform Electronic Transactions Act (C.R.S. § 24-71.3-101 et seq.) and the federal' },
+          eSignAct: 'Colorado Uniform Electronic Transactions Act (C.R.S. Â§ 24-71.3-101 et seq.) and the federal' },
   'FL': { stateName: 'Florida',       county: 'applicable county', depositReturnDays: 15, earlyTermNoticeDays: 60, moveOutNoticeDays: 30, mtmNoticeDays: 30,
-          eSignAct: 'Florida Electronic Signature Act (F.S. § 668.001 et seq.) and the federal' },
+          eSignAct: 'Florida Electronic Signature Act (F.S. Â§ 668.001 et seq.) and the federal' },
   'GA': { stateName: 'Georgia',       county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 60, moveOutNoticeDays: 30, mtmNoticeDays: 30,
-          eSignAct: 'Georgia Electronic Records and Signatures Act (O.C.G.A. § 10-12-1 et seq.) and the federal' },
+          eSignAct: 'Georgia Electronic Records and Signatures Act (O.C.G.A. Â§ 10-12-1 et seq.) and the federal' },
   'IL': { stateName: 'Illinois',      county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 60, moveOutNoticeDays: 30, mtmNoticeDays: 30,
           eSignAct: 'Illinois Electronic Commerce Security Act (5 ILCS 175) and the federal' },
   'MI': { stateName: 'Michigan',      county: 'Oakland County',    depositReturnDays: 30, earlyTermNoticeDays: 60, moveOutNoticeDays: 60, mtmNoticeDays: 30,
-          eSignAct: 'Michigan Electronic Signature Act (MCL § 450.832 et seq.) and the federal' },
+          eSignAct: 'Michigan Electronic Signature Act (MCL Â§ 450.832 et seq.) and the federal' },
   'MN': { stateName: 'Minnesota',     county: 'applicable county', depositReturnDays: 21, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
-          eSignAct: 'Minnesota Uniform Electronic Transactions Act (Minn. Stat. § 325L) and the federal' },
+          eSignAct: 'Minnesota Uniform Electronic Transactions Act (Minn. Stat. Â§ 325L) and the federal' },
   'NV': { stateName: 'Nevada',        county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
-          eSignAct: 'Nevada Electronic Transactions Act (NRS § 719) and the federal' },
+          eSignAct: 'Nevada Electronic Transactions Act (NRS Â§ 719) and the federal' },
   'NJ': { stateName: 'New Jersey',    county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 60, moveOutNoticeDays: 30, mtmNoticeDays: 30,
-          eSignAct: 'New Jersey Uniform Electronic Transactions Act (N.J.S.A. § 12A:12-1 et seq.) and the federal' },
+          eSignAct: 'New Jersey Uniform Electronic Transactions Act (N.J.S.A. Â§ 12A:12-1 et seq.) and the federal' },
   'NY': { stateName: 'New York',      county: 'applicable county', depositReturnDays: 14, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
-          eSignAct: 'New York Electronic Signatures and Records Act (State Technology Law §§ 301-309) and the federal' },
+          eSignAct: 'New York Electronic Signatures and Records Act (State Technology Law Â§Â§ 301-309) and the federal' },
   'NC': { stateName: 'North Carolina',county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 7,
-          eSignAct: 'North Carolina Uniform Electronic Transactions Act (N.C.G.S. § 66-311 et seq.) and the federal' },
+          eSignAct: 'North Carolina Uniform Electronic Transactions Act (N.C.G.S. Â§ 66-311 et seq.) and the federal' },
   'OH': { stateName: 'Ohio',          county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
-          eSignAct: 'Ohio Uniform Electronic Transactions Act (R.C. § 1306) and the federal' },
+          eSignAct: 'Ohio Uniform Electronic Transactions Act (R.C. Â§ 1306) and the federal' },
   'OR': { stateName: 'Oregon',        county: 'applicable county', depositReturnDays: 31, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
-          eSignAct: 'Oregon Uniform Electronic Transactions Act (ORS § 84.001 et seq.) and the federal' },
+          eSignAct: 'Oregon Uniform Electronic Transactions Act (ORS Â§ 84.001 et seq.) and the federal' },
   'PA': { stateName: 'Pennsylvania',  county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 15,
-          eSignAct: 'Pennsylvania Electronic Transactions Act (73 P.S. § 2260.101 et seq.) and the federal' },
+          eSignAct: 'Pennsylvania Electronic Transactions Act (73 P.S. Â§ 2260.101 et seq.) and the federal' },
   'TN': { stateName: 'Tennessee',     county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
-          eSignAct: 'Tennessee Uniform Electronic Transactions Act (T.C.A. § 47-10-101 et seq.) and the federal' },
+          eSignAct: 'Tennessee Uniform Electronic Transactions Act (T.C.A. Â§ 47-10-101 et seq.) and the federal' },
   'TX': { stateName: 'Texas',         county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
-          eSignAct: 'Texas Uniform Electronic Transactions Act (Tex. Bus. & Com. Code § 322) and the federal' },
+          eSignAct: 'Texas Uniform Electronic Transactions Act (Tex. Bus. & Com. Code Â§ 322) and the federal' },
   'VA': { stateName: 'Virginia',      county: 'applicable county', depositReturnDays: 45, earlyTermNoticeDays: 60, moveOutNoticeDays: 30, mtmNoticeDays: 30,
-          eSignAct: 'Virginia Electronic Transactions Act (Va. Code § 59.1-479 et seq.) and the federal' },
+          eSignAct: 'Virginia Electronic Transactions Act (Va. Code Â§ 59.1-479 et seq.) and the federal' },
   'WA': { stateName: 'Washington',    county: 'applicable county', depositReturnDays: 21, earlyTermNoticeDays: 20, moveOutNoticeDays: 20, mtmNoticeDays: 20,
-          eSignAct: 'Washington Uniform Electronic Transactions Act (RCW § 19.360) and the federal' },
-  // ── DEFAULT — used when state is unknown or not yet mapped ──
+          eSignAct: 'Washington Uniform Electronic Transactions Act (RCW Â§ 19.360) and the federal' },
+  // ââ DEFAULT â used when state is unknown or not yet mapped ââ
   'DEFAULT': { stateName: 'the applicable state', county: 'the applicable county',
                depositReturnDays: 30, earlyTermNoticeDays: 60,
                moveOutNoticeDays: 30, mtmNoticeDays: 30,
@@ -85,7 +85,7 @@ function getJurisdiction(stateCode) {
 // For all other states: cites the state UETA equivalent + federal E-SIGN.
 function getESignText(stateCode) {
   const j = getJurisdiction(stateCode);
-  return j.eSignAct + ' Electronic Signatures in Global and National Commerce Act (E-SIGN Act, 15 U.S.C. § 7001 et seq.)';
+  return j.eSignAct + ' Electronic Signatures in Global and National Commerce Act (E-SIGN Act, 15 U.S.C. Â§ 7001 et seq.)';
 }
 
 // ============================================================
@@ -119,7 +119,7 @@ function getSpreadsheet() {
 }
 
 // ============================================================
-// Initialize sheets — now includes lease columns
+// Initialize sheets â now includes lease columns
 // ============================================================
 function initializeSheets() {
   const ss = getSpreadsheet();
@@ -128,7 +128,7 @@ function initializeSheets() {
   if (!sheet) {
     sheet = ss.insertSheet(SHEET_NAME);
     const headers = [
-      // ── Original columns ─────────────────────────────────
+      // ââ Original columns âââââââââââââââââââââââââââââââââ
       'Timestamp', 'App ID', 'Status', 'Payment Status', 'Payment Date', 'Admin Notes',
       'First Name', 'Last Name', 'Email', 'Phone', 'Property Address', 'Requested Move-in Date',
       'Desired Lease Term', 'DOB', 'SSN', 'Current Address', 'Residency Duration',
@@ -146,27 +146,27 @@ function initializeSheets() {
       'Co-Applicant Monthly Income', 'Co-Applicant Employment Duration', 'Co-Applicant Consent',
       'Vehicle Make', 'Vehicle Model', 'Vehicle Year', 'Vehicle License Plate', 'Has Vehicle',
       'Emergency Contact Relationship', 'Preferred Contact Method', 'Preferred Time', 'Preferred Time Specific',
-      // ── NEW: Property context columns (from URL params, D-001) ────
+      // ââ NEW: Property context columns (from URL params, D-001) ââââ
       'Property ID', 'Property Name', 'Property City', 'Property State', 'Listed Rent', 'Property Address URL',
-      // ── NEW: Lease columns ────────────────────────────────
+      // ââ NEW: Lease columns ââââââââââââââââââââââââââââââââ
       'Property Owner', 'Managed By',
       'Lease Status', 'Lease Sent Date', 'Lease Signed Date',
       'Lease Start Date', 'Lease End Date', 'Monthly Rent',
       'Security Deposit', 'Move-in Costs', 'Lease Notes',
       'Rent Due Day', 'Grace Period Days', 'Late Fee Amount',
-      // ── NEW: Phase 5 lease property-specific columns (D-017, D-018) ──
+      // ââ NEW: Phase 5 lease property-specific columns (D-017, D-018) ââ
       'Unit Type', 'Bedrooms', 'Bathrooms', 'Parking Space', 'Included Utilities',
       'Pet Deposit Amount', 'Monthly Pet Rent',
       'Tenant Signature', 'Signature Timestamp', 'Lease IP Address',
-      // ── NEW: Holding Fee columns (Session 037) ──
+      // ââ NEW: Holding Fee columns (Session 037) ââ
       'Holding Fee Amount', 'Holding Fee Status', 'Holding Fee Date', 'Holding Fee Notes',
-      // ── Phase 6: Precise payment timestamp for refund window ──
+      // ââ Phase 6: Precise payment timestamp for refund window ââ
       'Holding Fee Payment Timestamp',
-      // ── ISSUE-002 fix: extended property context columns ──
+      // ââ ISSUE-002 fix: extended property context columns ââ
       'Property Zip', 'Application Fee', 'Available Date', 'Lease Terms',
       'Min Lease Months', 'Pets Allowed', 'Pet Types Allowed', 'Pet Weight Limit',
       'Pet Deposit', 'Smoking Allowed', 'Utilities Included', 'Parking', 'Parking Fee',
-      // 2026-04-07: Extended property context — new data-collection fields
+      // 2026-04-07: Extended property context â new data-collection fields
       'Garage Spaces', 'EV Charging', 'Laundry Type', 'Heating Type', 'Cooling Type',
       'Last Months Rent', 'Admin Fee', 'Move-in Special',
       // Phase 1: Management countersignature
@@ -176,7 +176,7 @@ function initializeSheets() {
     sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold').setBackground('#1a5276').setFontColor('#ffffff');
     sheet.setFrozenRows(1);
   } else {
-    // ── Safely add missing lease columns to an existing sheet ──
+    // ââ Safely add missing lease columns to an existing sheet ââ
     addMissingLeaseColumns(sheet);
   }
 
@@ -201,7 +201,7 @@ function initializeSheets() {
     ]]).setFontWeight('bold').setBackground('#1a5276').setFontColor('#ffffff');
   }
 
-  // ── Credits sheet (Phase 5) ──
+  // ââ Credits sheet (Phase 5) ââ
   const CREDITS_SHEET = 'Credits';
   let creditsSheet = ss.getSheetByName(CREDITS_SHEET);
   if (!creditsSheet) {
@@ -212,7 +212,7 @@ function initializeSheets() {
   }
 }
 
-// ── Add property context + lease columns to sheets that existed before this update ──
+// ââ Add property context + lease columns to sheets that existed before this update ââ
 function addMissingLeaseColumns(sheet) {
   const newColumns = [
     // Reference relationship fields (missed in original schema)
@@ -241,7 +241,7 @@ function addMissingLeaseColumns(sheet) {
     'Payment Method Used', 'Transaction Reference', 'Amount Collected', 'Holding Fee Deadline',
     // Phase 8: UX & flow completion
     'Last Contacted', 'Document URLs',
-    // 2026-04-07: Extended property context — new data-collection fields
+    // 2026-04-07: Extended property context â new data-collection fields
     'Garage Spaces', 'EV Charging', 'Laundry Type', 'Heating Type', 'Cooling Type',
     'Last Months Rent', 'Admin Fee', 'Move-in Special'
   ];
@@ -277,7 +277,7 @@ function getCheckboxValues(formData, fieldName) {
 }
 
 // ============================================================
-// doGet() — Serve web pages (lease routes added)
+// doGet() â Serve web pages (lease routes added)
 // ============================================================
 function doGet(e) {
   initializeSheets();
@@ -308,17 +308,17 @@ function doGet(e) {
   } else if (path === 'login') {
     return renderLoginPage();
 
-  // ── NEW lease routes ──────────────────────────────────────
+  // ââ NEW lease routes ââââââââââââââââââââââââââââââââââââââ
   } else if (path === 'lease' && id) {
     return renderLeaseSigningPage(id);
   } else if (path === 'lease_confirm' && id) {
     return renderLeaseConfirmPage(id);
-    // [FIXED-B3] Health check endpoint — allows listing platform to verify backend is alive
+    // [FIXED-B3] Health check endpoint â allows listing platform to verify backend is alive
     } else if (path === 'health') {
       return ContentService
         .createTextOutput(JSON.stringify({ status: 'ok', timestamp: new Date().toISOString(), version: '10.0' }))
         .setMimeType(ContentService.MimeType.JSON);
-    // ─────────────────────────────────────────────────────────
+    // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
     } else {
     const gasLandingUrl = ScriptApp.getService().getUrl();
@@ -361,7 +361,7 @@ function doGet(e) {
               var raw = localStorage.getItem(_SK);
               if (raw) {
                 var sess = JSON.parse(raw);
-                if (sess && sess.token && (Date.now()-sess.savedAt < 30*24*60*60*1000) && sess.fp === _fp()) {
+                if (sess && sess.token && (Date.now()-sess.savedAt < 8*60*60*1000) && sess.fp === _fp()) {
                   window.location.href = _GAS + '?path=admin&token=' + encodeURIComponent(sess.token);
                   return;
                 }
@@ -446,7 +446,7 @@ function renderLoginPage(errorMsg) {
           const em=document.getElementById('lookupEmail').value.trim();
           const msg=document.getElementById('lookupMsg');
           if(!em){msg.textContent='Please enter your email address.';msg.style.display='block';return;}
-          msg.textContent='Sending…';msg.style.display='block';
+          msg.textContent='Sendingâ¦';msg.style.display='block';
           fetch(_BASE,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
             body:'_action=lookupAppId&email='+encodeURIComponent(em)})
             .then(function(){msg.textContent='If we have a matching application, you will receive an email shortly.';})
@@ -460,7 +460,7 @@ function renderLoginPage(errorMsg) {
 
 
   // ============================================================
-  // lookupAppIdByEmail() — 9C-3: Email-based App ID recovery
+  // lookupAppIdByEmail() â 9C-3: Email-based App ID recovery
   // ============================================================
   function lookupAppIdByEmail(email) {
     try {
@@ -488,9 +488,9 @@ function renderLoginPage(errorMsg) {
         }).join('\n\n');
         MailApp.sendEmail({
           to: email,
-          subject: 'Choice Properties — Your Application ID(s)',
+          subject: 'Choice Properties â Your Application ID(s)',
           body: 'Hello,\n\nYou requested your Application ID(s).\n\nActive applications:\n\n' +
-                listLines + '\n\nIf you did not request this, ignore this email.\n\n— Choice Properties Team'
+                listLines + '\n\nIf you did not request this, ignore this email.\n\nâ Choice Properties Team'
         });
       }
       return { success: true };
@@ -501,7 +501,7 @@ function renderLoginPage(errorMsg) {
   }
 
   // ============================================================
-// ADMIN AUTH — Token + OTP + Password System
+// ADMIN AUTH â Token + OTP + Password System
 // ============================================================
 
 function generateAdminToken() {
@@ -558,13 +558,13 @@ function sendAdminOTP(email) {
     PropertiesService.getScriptProperties().setProperty('ADMIN_OTP_' + normalized, otp + ':' + expiry);
     MailApp.sendEmail({
       to: email.trim(),
-      subject: 'Admin Login Code — Choice Properties',
+      subject: 'Admin Login Code â Choice Properties',
       htmlBody: `
         <div style="font-family:sans-serif;max-width:420px;margin:auto;padding:32px;background:#fff;border-radius:16px;">
           <h2 style="color:#1e293b;margin-bottom:8px;">Admin Login Code</h2>
           <p style="color:#475569;margin-bottom:24px;">Use the code below to access the Choice Properties admin panel.</p>
           <div style="font-size:40px;font-weight:700;letter-spacing:10px;color:#4f46e5;background:#f1f5f9;border-radius:12px;padding:24px;text-align:center;">${otp}</div>
-          <p style="color:#94a3b8;font-size:13px;margin-top:20px;">⏱ Expires in 10 minutes. Do not share this code with anyone.</p>
+          <p style="color:#94a3b8;font-size:13px;margin-top:20px;">â± Expires in 10 minutes. Do not share this code with anyone.</p>
         </div>`,
       name: 'Choice Properties Security'
     });
@@ -628,14 +628,14 @@ function validateAdminPassword(username, password) {
 // HOW TO USE:
 //   1. Open this file in the GAS editor (script.google.com)
 //   2. Temporarily set your credentials below
-//   3. Click Run → setupAdminPassword
+//   3. Click Run â setupAdminPassword
 //   4. Delete the credential values again before saving
 //   5. Verify setup by running: Logger.log(PropertiesService.getScriptProperties().getProperty('ADMIN_USERNAME'))
 function setupAdminPassword() {
   const username = ''; // Set your admin email here temporarily, then remove
   const password = ''; // Set your password here temporarily, then remove
   if (!username || !password) {
-    Logger.log('❌ Set your username and password in this function body before running it. Remove them after running.');
+    Logger.log('â Set your username and password in this function body before running it. Remove them after running.');
     return;
   }
   const props = PropertiesService.getScriptProperties();
@@ -644,7 +644,7 @@ function setupAdminPassword() {
     Utilities.computeHmacSha256Signature(password, username)
   );
   props.setProperty('ADMIN_PASSWORD_HASH', hash);
-  Logger.log('✅ Admin credentials set. Username: ' + username + '. IMPORTANT: Remove the credential values from this function now.');
+  Logger.log('â Admin credentials set. Username: ' + username + '. IMPORTANT: Remove the credential values from this function now.');
 }
 
 // ============================================================
@@ -660,7 +660,7 @@ function renderAdminLoginPage(errorMsg) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Admin Login — Choice Properties</title>
+  <title>Admin Login â Choice Properties</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -727,10 +727,10 @@ function renderAdminLoginPage(errorMsg) {
   <div class="logo">
     <div class="logo-icon">CP</div>
     <h1>Choice Properties</h1>
-    <p>Admin Portal — Secure Login</p>
+    <p>Admin Portal â Secure Login</p>
   </div>
 
-  ${errorMsg ? '<div class="alert alert-error">⚠️ ' + errorMsg + '</div>' : ''}
+  ${errorMsg ? '<div class="alert alert-error">â ï¸ ' + errorMsg + '</div>' : ''}
 
   <div class="section-title">Sign in with authorized email</div>
   <label for="otpEmail">Email Address</label>
@@ -753,13 +753,13 @@ function renderAdminLoginPage(errorMsg) {
   <input type="text" id="upUser" placeholder="Username" autocomplete="username">
   <label for="upPass">Password</label>
   <div class="pass-wrap">
-    <input type="password" id="upPass" placeholder="••••••••" autocomplete="current-password">
-    <button class="pass-toggle" type="button" onclick="togglePass()" id="passToggleBtn" aria-label="Show password">👁</button>
+    <input type="password" id="upPass" placeholder="â¢â¢â¢â¢â¢â¢â¢â¢" autocomplete="current-password">
+    <button class="pass-toggle" type="button" onclick="togglePass()" id="passToggleBtn" aria-label="Show password">ð</button>
   </div>
   <button class="btn btn-primary" onclick="passwordLogin()">Sign In</button>
   <div class="msg" id="upMsg"></div>
   ` : `
-  <p style="text-align:center;color:#94a3b8;font-size:13px;padding:8px 0;">Password login not configured — use email code above.</p>
+  <p style="text-align:center;color:#94a3b8;font-size:13px;padding:8px 0;">Password login not configured â use email code above.</p>
   `}
 </div>
 
@@ -776,7 +776,7 @@ function renderAdminLoginPage(errorMsg) {
     const btn = document.getElementById('passToggleBtn');
     if (!inp) return;
     inp.type = inp.type === 'password' ? 'text' : 'password';
-    btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+    btn.textContent = inp.type === 'password' ? 'ð' : 'ð';
   }
 
   function requestOTP() {
@@ -784,12 +784,12 @@ function renderAdminLoginPage(errorMsg) {
     if (!email) { setMsg('otpMsg', 'Please enter your email address.', 'error'); return; }
     const btn = document.getElementById('otpSendBtn');
     btn.disabled = true; btn.textContent = 'Sending...';
-    setMsg('otpMsg', 'Sending code…', 'info');
+    setMsg('otpMsg', 'Sending codeâ¦', 'info');
     google.script.run
       .withSuccessHandler(function(data) {
         if (data.success) {
           document.getElementById('otpCodeSection').style.display = 'block';
-          setMsg('otpMsg', '✅ Code sent! Check your inbox (and spam folder).', 'success');
+          setMsg('otpMsg', 'â Code sent! Check your inbox (and spam folder).', 'success');
           btn.textContent = 'Resend Code'; btn.disabled = false;
         } else {
           setMsg('otpMsg', data.error || 'Failed to send code.', 'error');
@@ -806,7 +806,7 @@ function renderAdminLoginPage(errorMsg) {
   var GAS_BASE = '${gasUrl}';
   var CP_SESSION_KEY = 'cp_admin_session_v2';
 
-  /* ── Device fingerprint ── */
+  /* ââ Device fingerprint ââ */
   function getDeviceFingerprint() {
     var parts = [
       navigator.userAgent || '',
@@ -824,7 +824,7 @@ function renderAdminLoginPage(errorMsg) {
     return Math.abs(h).toString(36);
   }
 
-  /* ── Save session to localStorage after successful login ── */
+  /* ââ Save session to localStorage after successful login ââ */
   function saveAdminSession(token) {
     try {
       localStorage.setItem(CP_SESSION_KEY, JSON.stringify({
@@ -835,27 +835,27 @@ function renderAdminLoginPage(errorMsg) {
     } catch(e) {}
   }
 
-  /* ── On load: check if this device already has a valid session ── */
+  /* ââ On load: check if this device already has a valid session ââ */
   function checkExistingSession() {
     try {
       var raw = localStorage.getItem(CP_SESSION_KEY);
       if (!raw) return;
       var session = JSON.parse(raw);
       if (!session || !session.token) return;
-      // Reject if older than 30 days
-      if (Date.now() - session.savedAt > 30 * 24 * 60 * 60 * 1000) {
+      // Reject if older than 8 hours (M2: reduced from 30 days for security)
+      if (Date.now() - session.savedAt > 8 * 60 * 60 * 1000) {
         localStorage.removeItem(CP_SESSION_KEY); return;
       }
       // Reject if fingerprint doesn't match this device
       if (session.fp !== getDeviceFingerprint()) {
         localStorage.removeItem(CP_SESSION_KEY); return;
       }
-      // Show subtle "checking…" indicator
+      // Show subtle "checkingâ¦" indicator
       var card = document.querySelector('.card');
       if (card) {
         var notice = document.createElement('div');
         notice.style.cssText = 'text-align:center;padding:10px 0 4px;font-size:13px;color:#6366f1;font-weight:500;';
-        notice.textContent = '🔄 Detecting your session…';
+        notice.textContent = 'ð Detecting your sessionâ¦';
         card.insertBefore(notice, card.firstChild);
       }
       // Validate token server-side
@@ -884,11 +884,11 @@ function renderAdminLoginPage(errorMsg) {
     const email = document.getElementById('otpEmail').value.trim();
     const otp   = document.getElementById('otpCode').value.trim();
     if (!otp) { setMsg('otpMsg', 'Please enter the verification code.', 'error'); return; }
-    setMsg('otpMsg', 'Verifying…', 'info');
+    setMsg('otpMsg', 'Verifyingâ¦', 'info');
     google.script.run
       .withSuccessHandler(function(data) {
         if (data.success) {
-          setMsg('otpMsg', '✅ Verified! Redirecting…', 'success');
+          setMsg('otpMsg', 'â Verified! Redirectingâ¦', 'success');
           saveAdminSession(data.token);
           window.top.location.href = GAS_BASE + '?path=admin&token=' + encodeURIComponent(data.token);
         } else {
@@ -905,11 +905,11 @@ function renderAdminLoginPage(errorMsg) {
     const user = document.getElementById('upUser').value.trim();
     const pass = document.getElementById('upPass').value;
     if (!user || !pass) { setMsg('upMsg', 'Please enter both username and password.', 'error'); return; }
-    setMsg('upMsg', 'Signing in…', 'info');
+    setMsg('upMsg', 'Signing inâ¦', 'info');
     google.script.run
       .withSuccessHandler(function(data) {
         if (data.success) {
-          setMsg('upMsg', '✅ Success! Redirecting…', 'success');
+          setMsg('upMsg', 'â Success! Redirectingâ¦', 'success');
           saveAdminSession(data.token);
           window.top.location.href = GAS_BASE + '?path=admin&token=' + encodeURIComponent(data.token);
         } else {
@@ -932,11 +932,11 @@ function renderAdminLoginPage(errorMsg) {
 </script>
 </body>
 </html>
-  `).setTitle('Admin Login — Choice Properties');
+  `).setTitle('Admin Login â Choice Properties');
 }
 
 // ============================================================
-// doPost() — Handle form submissions
+// doPost() â Handle form submissions
 // ============================================================
 function doPost(e) {
   try {
@@ -975,7 +975,7 @@ function doPost(e) {
       formData = e.parameter;
     }
 
-    // ── Route: lease e-signature submission ──
+    // ââ Route: lease e-signature submission ââ
     if (formData['_action'] === 'signLease') {
       const result = signLease(formData['appId'], formData['tenantSignature'], formData['ipAddress'] || '');
       return ContentService
@@ -983,7 +983,7 @@ function doPost(e) {
         .setMimeType(ContentService.MimeType.JSON);
     }
 
-    // ── Route: admin auth ──
+    // ââ Route: admin auth ââ
     if (formData['_action'] === 'adminSendOTP') {
       const result = sendAdminOTP(formData['email'] || '');
       return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
@@ -1001,13 +1001,13 @@ function doPost(e) {
         return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
       }
 
-      // ── Route: 9C-3 — email-based App ID lookup ──
+      // ââ Route: 9C-3 â email-based App ID lookup ââ
       if (formData['_action'] === 'lookupAppId') {
         const result = lookupAppIdByEmail(formData['email'] || '');
         return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
       }
 
-    // ── Honeypot check — bots fill this field, real users don't ──────────────
+    // ââ Honeypot check â bots fill this field, real users don't ââââââââââââââ
       if (formData['website'] && formData['website'].trim() !== '') {
         // Return fake success to avoid revealing the honeypot mechanism
         return ContentService
@@ -1015,7 +1015,15 @@ function doPost(e) {
           .setMimeType(ContentService.MimeType.JSON);
       }
 
-      // ── Rate limiting via CacheService (max 5 submissions per email per day) ─
+        // M4: CSRF token format check (adds friction against scripted abuse)
+        const _csrfVal = formData['_cp_csrf'] || '';
+        if (!_csrfVal || _csrfVal.length < 10) {
+          return ContentService
+            .createTextOutput(JSON.stringify({ success: false, error: 'Invalid request.' }))
+            .setMimeType(ContentService.MimeType.JSON);
+        }
+
+      // ââ Rate limiting via CacheService (max 5 submissions per email per day) â
       try {
         const email = (formData['Email'] || '').toLowerCase().trim();
         if (email) {
@@ -1031,7 +1039,7 @@ function doPost(e) {
           cache.put(cacheKey, String(count + 1), 86400); // 24-hour window
         }
       } catch (rateErr) {
-        // CacheService unavailable — allow the submission through
+        // CacheService unavailable â allow the submission through
         console.error('Rate limit check failed (non-blocking):', rateErr.toString());
       }
 
@@ -1053,7 +1061,7 @@ function doPost(e) {
 // ============================================================
 function processApplication(formData, fileBlob) {
   try {
-    // ── Policy consent checkboxes (Phase 4) ──
+    // ââ Policy consent checkboxes (Phase 4) ââ
       if (!formData['feeAcknowledge']) { // Fixed: HTML checkboxes send 'on' string, not boolean true
         return { success: false, error: 'You must acknowledge the application fee policy before submitting.' };
       }
@@ -1071,7 +1079,7 @@ function processApplication(formData, fileBlob) {
       }
     }
 
-    // ── Task 2.3: Server-side minimum age validation (18+) ──
+    // ââ Task 2.3: Server-side minimum age validation (18+) ââ
     if (formData['DOB'] && formData['DOB'].trim()) {
       const dob = new Date(formData['DOB']);
       if (!isNaN(dob.getTime())) {
@@ -1085,14 +1093,14 @@ function processApplication(formData, fileBlob) {
       }
     }
 
-    // ── Task 3.1: Phone format validation ──
+    // ââ Task 3.1: Phone format validation ââ
     const rawPhone = formData['Phone'] || '';
     const phoneDigits = rawPhone.replace(/\D/g, '');
     if (phoneDigits.length < 10) {
       return { success: false, error: 'Phone number must contain at least 10 digits. Please check the number you entered.' };
     }
 
-    // ── Task 3.1: Monthly income — warn only, never reject ──
+    // ââ Task 3.1: Monthly income â warn only, never reject ââ
     if (formData['Monthly Income'] && formData['Monthly Income'].toString().trim()) {
       const income = parseFloat(formData['Monthly Income'].toString().replace(/[^0-9.]/g, ''));
       if (isNaN(income)) {
@@ -1100,7 +1108,7 @@ function processApplication(formData, fileBlob) {
       }
     }
 
-    // ── Task 3.5: Normalize all phone fields before storing ──
+    // ââ Task 3.5: Normalize all phone fields before storing ââ
     const phoneFields = ['Phone', 'Co-Applicant Phone', 'Supervisor Phone', 'Reference 1 Phone', 'Reference 2 Phone', 'Emergency Contact Phone', 'Landlord Phone'];
     phoneFields.forEach(field => {
       if (formData[field]) formData[field] = normalizePhone(formData[field]);
@@ -1111,7 +1119,7 @@ function processApplication(formData, fileBlob) {
     const sheet = ss.getSheetByName(SHEET_NAME);
     const col   = getColumnMap(sheet);
 
-    // ── Task 3.2: Duplicate application detection ──
+    // ââ Task 3.2: Duplicate application detection ââ
     // [FIXED-I5] Use Property ID as primary duplicate key; address string as fallback only
       const incomingEmail      = (formData['Email']            || '').toLowerCase().trim();
       const incomingPropertyId = (formData['Property ID']      || '').trim();
@@ -1133,7 +1141,7 @@ function processApplication(formData, fileBlob) {
           if (rowStatus === 'denied' || rowStatus === 'withdrawn') continue;
           // Primary: Property ID (exact, immutable) beats address-string matching
           const idMatch   = incomingPropertyId && rowPropId && (incomingPropertyId === rowPropId);
-          // Fallback: address string — only when no Property ID present
+          // Fallback: address string â only when no Property ID present
           const addrMatch = !incomingPropertyId && incomingProperty && (rowProperty === incomingProperty);
           if (idMatch || addrMatch) {
             return {
@@ -1177,10 +1185,10 @@ function processApplication(formData, fileBlob) {
         }
       }
 
-      // ── Task 3.3: Generate a unique App ID ──
+      // ââ Task 3.3: Generate a unique App ID ââ
       const appId = formData.appId || generateUniqueAppId(sheet, col);
 
-    // ── Resolve "Other" payment text into the main payment columns ──
+    // ââ Resolve "Other" payment text into the main payment columns ââ
     // If the user selected "Other" and typed a value, store that text directly
     // so the Sheet never contains the bare word "Other".
     ['Primary Payment Method', 'Alternative Payment Method', 'Third Choice Payment Method'].forEach(field => {
@@ -1211,14 +1219,14 @@ function processApplication(formData, fileBlob) {
         case 'Document URL':          rowData.push(fileUrl); break;
         case 'Preferred Contact Method': rowData.push(getCheckboxValues(formData, 'Preferred Contact Method')); break;
         case 'Preferred Time':        rowData.push(getCheckboxValues(formData, 'Preferred Time')); break;
-        // ── D-001: Property context from URL params ──
+        // ââ D-001: Property context from URL params ââ
         case 'Property ID':           rowData.push(formData['Property ID']    || ''); break;
         case 'Property Name':         rowData.push(formData['Property Name']  || ''); break;
         case 'Property City':         rowData.push(formData['Property City']  || ''); break;
         case 'Property State':        rowData.push(formData['Property State'] || ''); break;
         case 'Listed Rent':           rowData.push(formData['Listed Rent']    || ''); break;
         case 'Property Address URL':  rowData.push(formData['Property Address URL'] || ''); break;
-          // ── D-001 extension: Additional property context params (ISSUE-002 fix) ──
+          // ââ D-001 extension: Additional property context params (ISSUE-002 fix) ââ
           case 'Property Zip':        rowData.push(formData['Property Zip']        || ''); break;
           case 'Property Address':    rowData.push(formData['Property Address']    || ''); break;
           case 'Security Deposit':    rowData.push(formData['Security Deposit']    || ''); break;
@@ -1246,23 +1254,23 @@ function processApplication(formData, fileBlob) {
             case 'Last Months Rent':    rowData.push(formData['Last Months Rent']    || ''); break;
             case 'Admin Fee':           rowData.push(formData['Admin Fee']           || ''); break;
             case 'Move-in Special':     rowData.push(formData['Move-in Special']     || ''); break;
-          // ── Ownership columns ──
+          // ââ Ownership columns ââ
         case 'Property Owner':        rowData.push(formData['Property Owner'] || 'Choice Properties'); break;
         case 'Managed By':            rowData.push('Choice Properties'); break;
-        // ── Lease columns default empty on submission ──
+        // ââ Lease columns default empty on submission ââ
         case 'Lease Status':          rowData.push('none'); break;
         case 'Lease Sent Date':       rowData.push(''); break;
         case 'Lease Signed Date':     rowData.push(''); break;
         case 'Lease Start Date':      rowData.push(''); break;
         case 'Lease End Date':        rowData.push(''); break;
         case 'Monthly Rent':          rowData.push(''); break;
-        // [FIXED-C1] Duplicate 'Security Deposit' case removed — was silently overwriting property-context Security Deposit with empty string.
+        // [FIXED-C1] Duplicate 'Security Deposit' case removed â was silently overwriting property-context Security Deposit with empty string.
         case 'Move-in Costs':         rowData.push(''); break;
         case 'Lease Notes':           rowData.push(''); break;
         case 'Tenant Signature':      rowData.push(''); break;
         case 'Signature Timestamp':   rowData.push(''); break;
         case 'Lease IP Address':      rowData.push(''); break;
-        // Phase 8 columns — populated after row insert
+        // Phase 8 columns â populated after row insert
         case 'Last Contacted':        rowData.push(''); break;
         case 'Document URLs':         rowData.push(''); break;
         default:
@@ -1272,7 +1280,7 @@ function processApplication(formData, fileBlob) {
 
     sheet.appendRow(rowData);
 
-    // ── Phase 8: Save attached documents to Google Drive ──────
+    // ââ Phase 8: Save attached documents to Google Drive ââââââ
     const docUrls = [];
     let docIdx = 0;
     while (formData[`_docFile_${docIdx}_name`] && formData[`_docFile_${docIdx}_data`]) {
@@ -1280,7 +1288,7 @@ function processApplication(formData, fileBlob) {
         const fileName  = formData[`_docFile_${docIdx}_name`];
         const mimeType  = formData[`_docFile_${docIdx}_type`] || 'application/octet-stream';
         const b64Data   = formData[`_docFile_${docIdx}_data`];
-        // ── File type validation — allowlist of safe document/image types ──
+        // ââ File type validation â allowlist of safe document/image types ââ
         const ALLOWED_MIME_TYPES = [
           'application/pdf',
           'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif',
@@ -1319,7 +1327,7 @@ function processApplication(formData, fileBlob) {
         sheet.getRange(newLastRow, newCol['Document URLs']).setValue(docUrls.join('\n'));
       }
     }
-    // ─────────────────────────────────────────────────────────
+    // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
     const lastRow = sheet.getLastRow();
     if (lastRow > 1) {
@@ -1358,7 +1366,7 @@ function generateAppId() {
   return `CP-${year}${month}${day}-${random}${ms}`;
 }
 
-// ── Task 3.3: generateUniqueAppId() ──────────────────────────
+// ââ Task 3.3: generateUniqueAppId() ââââââââââââââââââââââââââ
 // Generates an App ID and verifies it does not already exist in
 // the sheet. Retries up to 5 times before returning an error.
 function generateUniqueAppId(sheet, col) {
@@ -1373,7 +1381,7 @@ function generateUniqueAppId(sheet, col) {
   throw new Error('Failed to generate a unique App ID after ' + maxAttempts + ' attempts.');
 }
 
-// ── Task 3.5: normalizePhone() ────────────────────────────────
+// ââ Task 3.5: normalizePhone() ââââââââââââââââââââââââââââââââ
 // Strips formatting and returns a consistent digit-only string.
 // Handles 10-digit US numbers and 11-digit numbers starting with 1.
 function normalizePhone(phone) {
@@ -1385,19 +1393,19 @@ function normalizePhone(phone) {
 }
 
 // ============================================================
-//  ██╗     ███████╗ █████╗ ███████╗███████╗
-//  ██║     ██╔════╝██╔══██╗██╔════╝██╔════╝
-//  ██║     █████╗  ███████║███████╗█████╗
-//  ██║     ██╔══╝  ██╔══██║╚════██║██╔══╝
-//  ███████╗███████╗██║  ██║███████║███████╗
-//  ╚══════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝
+//  âââ     ââââââââ ââââââ ââââââââââââââââ
+//  âââ     ââââââââââââââââââââââââââââââââ
+//  âââ     ââââââ  ââââââââââââââââââââââ
+//  âââ     ââââââ  ââââââââââââââââââââââ
+//  âââââââââââââââââââ  âââââââââââââââââââ
+//  âââââââââââââââââââ  âââââââââââââââââââ
 //  FLOW FUNCTIONS
 // ============================================================
 
-// ── generateAndSendLease() ────────────────────────────────
+// ââ generateAndSendLease() ââââââââââââââââââââââââââââââââ
 // Called from admin panel. Populates lease data, then emails
 // the tenant a link to sign.
-// ─────────────────────────────────────────────────────────
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function generateAndSendLease(appId, monthlyRent, securityDeposit, leaseStartDate, leaseNotes, rentDueDay, gracePeriodDays, lateFeeAmount, unitType, bedrooms, bathrooms, parkingSpace, includedUtilities, petDeposit, monthlyPetRent, verifiedPropertyAddress) {
   try {
     const ss    = getSpreadsheet();
@@ -1417,13 +1425,13 @@ function generateAndSendLease(appId, monthlyRent, securityDeposit, leaseStartDat
     // Validate applicant is approved & paid
     const paymentStatus = sheet.getRange(rowIndex, col['Payment Status']).getValue();
     const appStatus     = sheet.getRange(rowIndex, col['Status']).getValue();
-    if (paymentStatus !== 'paid')      throw new Error('Cannot send lease — payment not confirmed.');
-    if (appStatus !== 'approved')      throw new Error('Cannot send lease — application not yet approved.');
+    if (paymentStatus !== 'paid')      throw new Error('Cannot send lease â payment not confirmed.');
+    if (appStatus !== 'approved')      throw new Error('Cannot send lease â application not yet approved.');
 
     const currentLeaseStatus = sheet.getRange(rowIndex, col['Lease Status']).getValue();
     if (currentLeaseStatus === 'signed') throw new Error('Lease already signed by tenant.');
 
-    // ── Task 1.5: Validate required financial fields before proceeding ──
+    // ââ Task 1.5: Validate required financial fields before proceeding ââ
     const rentVal = parseFloat(monthlyRent);
     if (!monthlyRent || isNaN(rentVal) || rentVal <= 0) {
       return { success: false, error: 'Monthly rent is required and must be greater than $0. Please enter the rent amount before sending the lease.' };
@@ -1436,13 +1444,13 @@ function generateAndSendLease(appId, monthlyRent, securityDeposit, leaseStartDat
       return { success: false, error: 'Lease start date is invalid. Please enter a valid date (e.g., 2026-06-01).' };
     }
 
-    // ── Task 1.4: Calculate lease end date — handles month-to-month ──
+    // ââ Task 1.4: Calculate lease end date â handles month-to-month ââ
     const desiredTerm   = sheet.getRange(rowIndex, col['Desired Lease Term']).getValue() || '12 months';
     const startDate     = new Date(leaseStartDate);
     const endDateObj    = calculateLeaseEndDate(startDate, desiredTerm);
     const isMtm         = (endDateObj === null);
     const endDateStr    = isMtm
-      ? 'Month-to-Month — No Fixed Expiration'
+      ? 'Month-to-Month â No Fixed Expiration'
       : Utilities.formatDate(endDateObj, Session.getScriptTimeZone(), 'MMMM dd, yyyy');
 
     // Move-in costs = first month + deposit
@@ -1520,7 +1528,7 @@ function generateAndSendLease(appId, monthlyRent, securityDeposit, leaseStartDat
   }
 }
 
-// ── calculateLeaseEndDate() ───────────────────────────────
+// ââ calculateLeaseEndDate() âââââââââââââââââââââââââââââââ
 // Returns a Date for fixed terms, or null for month-to-month.
 // Callers must check: if (endDate === null) treat as month-to-month.
 function calculateLeaseEndDate(startDate, termString) {
@@ -1538,9 +1546,9 @@ function calculateLeaseEndDate(startDate, termString) {
   return end;
 }
 
-// ── signLease() ───────────────────────────────────────────
+// ââ signLease() âââââââââââââââââââââââââââââââââââââââââââ
 // Called via google.script.run from the lease signing page.
-// ─────────────────────────────────────────────────────────
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function signLease(appId, tenantSignature, ipAddress, rentersInsuranceAgreed) {
   try {
     if (!tenantSignature || tenantSignature.trim().length < 2) {
@@ -1592,7 +1600,7 @@ function signLease(appId, tenantSignature, ipAddress, rentersInsuranceAgreed) {
     const startDate     = sheet.getRange(rowIndex, col['Lease Start Date']).getValue();
     const endDate       = sheet.getRange(rowIndex, col['Lease End Date']).getValue();
     const moveInCost    = sheet.getRange(rowIndex, col['Move-in Costs']).getValue();
-    // Bug fix: read propertyState from the sheet row directly — `app` was never
+    // Bug fix: read propertyState from the sheet row directly â `app` was never
     // defined in signLease(), causing a ReferenceError that silently swallowed emails.
     const propertyState = col['Property State']
       ? sheet.getRange(rowIndex, col['Property State']).getValue() || 'MI'
@@ -1615,7 +1623,7 @@ function signLease(appId, tenantSignature, ipAddress, rentersInsuranceAgreed) {
 
     sendLeaseSignedAdminAlert(appId, firstName + ' ' + lastName, email, phone, tenantSignature.trim(), property);
 
-    // ── Task 4.4: Send move-in preparation guide to tenant ──
+    // ââ Task 4.4: Send move-in preparation guide to tenant ââ
     sendMoveInPreparationGuide(appId, email, firstName, {
       property  : property,
       rent      : rent,
@@ -1635,10 +1643,10 @@ function signLease(appId, tenantSignature, ipAddress, rentersInsuranceAgreed) {
   }
 }
 
-// ── getLeaseSummary() ─────────────────────────────────────
-// Returns lease data for a given appId — used by the
+// ââ getLeaseSummary() âââââââââââââââââââââââââââââââââââââ
+// Returns lease data for a given appId â used by the
 // applicant dashboard to show lease status card.
-// ─────────────────────────────────────────────────────────
+// âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 function getLeaseSummary(appId) {
   try {
     const result = getApplication(appId);
@@ -1663,7 +1671,7 @@ function getLeaseSummary(appId) {
 }
 
 // ============================================================
-// renderLeaseSigningPage()  —  ?path=lease&id=APP_ID
+// renderLeaseSigningPage()  â  ?path=lease&id=APP_ID
 // Full lease document + e-signature block
 // ============================================================
 function renderLeaseSigningPage(appId) {
@@ -1671,7 +1679,7 @@ function renderLeaseSigningPage(appId) {
   if (!result.success) {
     return HtmlService.createHtmlOutput(`
       <html><body style="font-family:sans-serif;text-align:center;padding:60px;">
-      <h2>⚠️ Lease Not Found</h2>
+      <h2>â ï¸ Lease Not Found</h2>
       <p>This link is invalid or has expired. Please text us at <strong>707-706-3137</strong>.</p>
       </body></html>
     `).setTitle('Lease Not Found');
@@ -1684,7 +1692,7 @@ function renderLeaseSigningPage(appId) {
     return HtmlService.createHtmlOutput(`
       <html><body style="font-family:sans-serif;text-align:center;padding:60px;background:#f5f7fa;">
       <div style="max-width:600px;margin:auto;background:white;border-radius:16px;padding:40px;box-shadow:0 4px 20px rgba(0,0,0,.1);">
-        <div style="font-size:64px;">✅</div>
+        <div style="font-size:64px;">â</div>
         <h2 style="color:#27ae60;">Lease Already Signed</h2>
         <p>This lease has already been signed. Please check your email for your copy, or log in to your dashboard.</p>
         <a href="?path=dashboard&id=${appId}" style="display:inline-block;margin-top:20px;background:#1a5276;color:white;padding:14px 32px;border-radius:50px;text-decoration:none;font-weight:600;">View My Dashboard</a>
@@ -1694,7 +1702,7 @@ function renderLeaseSigningPage(appId) {
   if (leaseStatus !== 'sent') {
     return HtmlService.createHtmlOutput(`
       <html><body style="font-family:sans-serif;text-align:center;padding:60px;">
-      <h2>⚠️ No Lease Ready</h2>
+      <h2>â ï¸ No Lease Ready</h2>
       <p>No lease is currently available for signing. Please contact us at <strong>707-706-3137</strong>.</p>
       </body></html>
     `).setTitle('No Lease Available');
@@ -1724,7 +1732,7 @@ function renderLeaseSigningPage(appId) {
   const baseUrl       = ScriptApp.getService().getUrl();
   const todayStr      = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MMMM dd, yyyy');
 
-  // ── D-005/D-006: Lease financial config (admin-set, defaults for existing rows) ──
+  // ââ D-005/D-006: Lease financial config (admin-set, defaults for existing rows) ââ
   const rentDueDay     = parseInt(app['Rent Due Day'])      || 1;
   const gracePeriodDays= parseInt(app['Grace Period Days']) || 5;
   const lateFeeAmount  = parseFloat(app['Late Fee Amount']) || 50;
@@ -1733,10 +1741,10 @@ function renderLeaseSigningPage(appId) {
   const rentDueStr     = `${rentDueDay}${rentDueSuffix} day of each calendar month`;
   const graceLateDay   = rentDueDay + gracePeriodDays;
   const graceDateSfx   = graceLateDay === 1 ? 'st' : graceLateDay === 2 ? 'nd' : graceLateDay === 3 ? 'rd' : 'th';
-  const graceStr       = `${gracePeriodDays} days — rent is considered late after the ${graceLateDay}${graceDateSfx} of the month`;
+  const graceStr       = `${gracePeriodDays} days â rent is considered late after the ${graceLateDay}${graceDateSfx} of the month`;
   const lateFeeStr     = `$${lateFeeAmount.toFixed(2)} assessed on the ${graceLateDay}${graceDateSfx}; $10.00 per day thereafter`;
 
-  // ── D-002/D-003/D-004: Jurisdiction derived from property state ──
+  // ââ D-002/D-003/D-004: Jurisdiction derived from property state ââ
   // Property State is stored on the sheet row from D-001. Falls back to MI
   // (Choice Properties HQ state) so existing rows before the D-001 fix still work.
   const propertyState = app['Property State'] || 'MI';
@@ -1755,7 +1763,7 @@ function renderLeaseSigningPage(appId) {
     ? ''
     : `<li><b>Property Manager:</b> Choice Properties, 2265 Livernois Suite 500, Troy, MI 48083 | 707-706-3137 (acting as authorized management agent)</li>`;
 
-  // Utilities clause — dynamic (D-019): list included utilities if specified, else generic
+  // Utilities clause â dynamic (D-019): list included utilities if specified, else generic
   const includedUtilities = app['Included Utilities'] || '';
   const utilitiesNote = includedUtilities.trim()
     ? `The following utilities are included in the monthly rent: <strong>${includedUtilities.trim()}</strong>. All other utilities and services not listed are the sole responsibility of the Tenant and must be established in Tenant's name prior to move-in.`
@@ -1779,12 +1787,12 @@ function renderLeaseSigningPage(appId) {
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
   <style>
-    /* ── Base ── */
+    /* ââ Base ââ */
     *{box-sizing:border-box;margin:0;padding:0;}
     body{font-family:'Inter',Arial,sans-serif;background:#f0f2f5;color:#2c3e50;line-height:1.7;}
     .wrapper{max-width:860px;margin:30px auto;padding:0 15px 60px;}
 
-    /* ── Header ── */
+    /* ââ Header ââ */
     .lease-header{
       background:linear-gradient(135deg,#0a1628 0%,#1a3050 60%,#0d2240 100%);
       color:white;padding:40px 48px 36px;border-radius:16px 16px 0 0;
@@ -1811,27 +1819,27 @@ function renderLeaseSigningPage(appId) {
       padding:6px 16px;font-size:11px;font-weight:600;
       color:rgba(212,175,55,.9);letter-spacing:1.5px;}
 
-    /* ── Doc ref bar ── */
+    /* ââ Doc ref bar ââ */
     .doc-ref-bar{background:#1a5276;color:rgba(255,255,255,.85);
       padding:10px 48px;font-size:12px;font-family:'Inter',monospace;
       display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;
       border-left:1px solid #144066;border-right:1px solid #144066;}
 
-    /* ── Managed-by notice (external properties only) ── */
+    /* ââ Managed-by notice (external properties only) ââ */
     .mgmt-notice{background:#fffbeb;border-left:4px solid #f59e0b;padding:12px 20px;
       font-size:13px;color:#78350f;border-right:1px solid #e5c07a;
       border-bottom:1px solid #e5c07a;}
 
-    /* ── Lease body ── */
+    /* ââ Lease body ââ */
     .lease-body{background:white;padding:40px 48px;
       border-left:1px solid #dde3ea;border-right:1px solid #dde3ea;}
 
-    /* ── Personalization banner ── */
+    /* ââ Personalization banner ââ */
     .personal-banner{background:linear-gradient(135deg,#eff6ff,#dbeafe);
       border:1px solid #93c5fd;border-radius:10px;padding:14px 20px;
       margin-bottom:28px;font-size:13px;color:#1e40af;font-weight:500;}
 
-    /* ── Article headers ── */
+    /* ââ Article headers ââ */
     .article-header{font-size:10px;font-weight:700;text-transform:uppercase;
       letter-spacing:2px;color:#94a3b8;margin:36px 0 6px;padding-bottom:6px;
       border-bottom:1px solid #f1f5f9;}
@@ -1839,26 +1847,26 @@ function renderLeaseSigningPage(appId) {
       letter-spacing:1px;color:white;background:#1a5276;
       padding:8px 16px;border-radius:6px;margin:8px 0 14px;}
 
-    /* ── Key-value table ── */
+    /* ââ Key-value table ââ */
     .kv-table{width:100%;border-collapse:collapse;margin-bottom:8px;}
     .kv-table td{padding:9px 14px;border:1px solid #dde3ea;font-size:14px;vertical-align:top;}
     .kv-table td:first-child{width:38%;background:#f8f9fb;font-weight:600;color:#1a5276;}
 
-    /* ── Highlight boxes ── */
+    /* ââ Highlight boxes ââ */
     .highlight-box{background:#fff3cd;border:1px solid #f39c12;border-radius:10px;padding:18px 22px;margin:20px 0;}
     .highlight-box.blue{background:#e8f4fc;border-color:#3498db;}
     .highlight-box.green{background:#d4edda;border-color:#27ae60;}
     .highlight-box.slate{background:#f8fafc;border-left:4px solid #64748b;border-radius:4px;border-top:none;border-right:none;border-bottom:none;}
     .highlight-box.red{background:#fff0f0;border-left:4px solid #e74c3c;border-radius:4px;border-top:none;border-right:none;border-bottom:none;}
 
-    /* ── Clause text ── */
+    /* ââ Clause text ââ */
     .clause{margin-bottom:18px;font-size:14px;}
     .clause b{color:#1a5276;}
     ol.clauses{padding-left:20px;}
     ol.clauses > li{margin-bottom:18px;font-size:14px;line-height:1.75;}
     ol.clauses > li > b{color:#1a5276;display:block;margin-bottom:4px;}
 
-    /* ── Signature section ── */
+    /* ââ Signature section ââ */
     .signature-section{
       background:linear-gradient(135deg,#f8f9fb,#f0f4f8);
       border:2px solid #1a5276;border-radius:20px;
@@ -1872,18 +1880,18 @@ function renderLeaseSigningPage(appId) {
     .sig-section-header h3{color:#1a5276;font-size:20px;font-weight:700;line-height:1.2;}
     .sig-section-header p{color:#64748b;font-size:13px;margin-top:2px;}
 
-    /* ── Step progress ── */
+    /* ââ Step progress ââ */
     .sig-steps{display:flex;gap:0;margin:24px 0 28px;border-radius:12px;overflow:hidden;border:1px solid #e2e8f0;}
     .sig-step{flex:1;padding:12px 10px;text-align:center;background:#f8fafc;
       font-size:12px;font-weight:600;color:#94a3b8;transition:all .3s;
       border-right:1px solid #e2e8f0;position:relative;}
     .sig-step:last-child{border-right:none;}
     .sig-step.done{background:#d1fae5;color:#065f46;}
-    .sig-step.done::after{content:'✓';margin-left:4px;}
+    .sig-step.done::after{content:'â';margin-left:4px;}
     .sig-step.active{background:linear-gradient(135deg,#1a5276,#2980b9);color:white;font-weight:700;}
     .sig-step-num{display:block;font-size:18px;margin-bottom:2px;}
 
-    /* ── Signature input ── */
+    /* ââ Signature input ââ */
     .sig-label{display:block;font-weight:700;font-size:13px;color:#1e293b;
       margin:0 0 8px;letter-spacing:.3px;}
     .sig-input{width:100%;padding:16px 18px;font-size:28px;
@@ -1895,7 +1903,7 @@ function renderLeaseSigningPage(appId) {
     .sig-input.has-value{border-color:#27ae60;
       box-shadow:0 0 0 3px rgba(39,174,96,.1);}
 
-    /* ── Live preview ── */
+    /* ââ Live preview ââ */
     .sig-preview-wrap{margin-top:12px;border-radius:12px;overflow:hidden;
       border:1px solid #e2e8f0;background:white;}
     .sig-preview-label{background:#f8fafc;padding:8px 16px;font-size:11px;
@@ -1912,13 +1920,13 @@ function renderLeaseSigningPage(appId) {
       padding:6px 0 12px;display:flex;justify-content:space-between;
       font-size:11px;color:#94a3b8;}
 
-    /* ── Legal badge ── */
+    /* ââ Legal badge ââ */
     .legal-badge{background:#f0fdf4;border:1px solid #86efac;border-radius:8px;
       padding:10px 14px;font-size:12px;color:#15803d;font-weight:500;
       display:flex;align-items:center;gap:8px;margin-top:14px;}
     .legal-badge-icon{font-size:16px;flex-shrink:0;}
 
-    /* ── Checkboxes ── */
+    /* ââ Checkboxes ââ */
     .checkbox-group{margin:20px 0;display:flex;flex-direction:column;gap:2px;}
     .checkbox-row{display:flex;align-items:flex-start;gap:12px;
       padding:12px 14px;border-radius:10px;font-size:14px;
@@ -1930,7 +1938,7 @@ function renderLeaseSigningPage(appId) {
       accent-color:#1a5276;flex-shrink:0;cursor:pointer;}
     .checkbox-row label{cursor:pointer;line-height:1.5;}
 
-    /* ── Sign button ── */
+    /* ââ Sign button ââ */
     .btn-sign-wrap{margin-top:28px;}
     .btn-sign{display:block;width:100%;padding:20px;
       background:linear-gradient(to right,#27ae60,#2ecc71);
@@ -1945,24 +1953,24 @@ function renderLeaseSigningPage(appId) {
       cursor:not-allowed;transform:none;box-shadow:none;}
     .btn-sign-sub{text-align:center;font-size:12px;color:#94a3b8;margin-top:10px;}
 
-    /* ── Spinner ── */
+    /* ââ Spinner ââ */
     .spinner{display:none;text-align:center;padding:20px;}
     .spinner-ring{display:inline-block;width:40px;height:40px;
       border:4px solid rgba(26,82,118,.15);border-top-color:#1a5276;
       border-radius:50%;animation:spin .8s linear infinite;}
     @keyframes spin{to{transform:rotate(360deg);}}
 
-    /* ── Alert ── */
+    /* ââ Alert ââ */
     .alert{padding:14px 18px;border-radius:10px;margin:14px 0;font-size:14px;}
     .alert-danger{background:#fee2e2;color:#991b1b;border:1px solid #fecaca;}
 
-    /* ── Success overlay ── */
+    /* ââ Success overlay ââ */
     .success-overlay{display:none;text-align:center;padding:32px 20px;}
     .success-overlay .check{font-size:64px;margin-bottom:12px;}
     .success-overlay h4{color:#059669;font-size:20px;font-weight:700;margin-bottom:6px;}
     .success-overlay p{color:#64748b;font-size:14px;}
 
-    /* ── Footer ── */
+    /* ââ Footer ââ */
     .lease-footer{background:#0a1628;color:white;padding:28px 40px;
       border-radius:0 0 16px 16px;text-align:center;font-size:13px;}
     .lease-footer .footer-logo{font-family:'Playfair Display',serif;
@@ -1990,14 +1998,14 @@ function renderLeaseSigningPage(appId) {
 
   <!-- HEADER -->
   <div class="lease-header">
-    <div class="hdr-eyebrow">Choice Properties · Leasing Division</div>
+    <div class="hdr-eyebrow">Choice Properties Â· Leasing Division</div>
     <div class="hdr-logo">Choice Properties</div>
     <div class="hdr-sub">Professional Property Management</div>
     <div class="hdr-divider"></div>
     <div class="hdr-title">Residential Lease Agreement</div>
     <div class="hdr-badges">
       <span class="hdr-badge">REF: ${appId}</span>
-      <span class="hdr-badge">🔒 CONFIDENTIAL</span>
+      <span class="hdr-badge">ð CONFIDENTIAL</span>
       <span class="hdr-badge">E-SIGN ACT COMPLIANT</span>
     </div>
   </div>
@@ -2007,12 +2015,12 @@ function renderLeaseSigningPage(appId) {
     <span>Document: CP-LEASE-${appId}</span>
     <span>Prepared: ${todayStr}</span>
     <span>Jurisdiction: State of ${jur.stateName}</span>
-    <span>Prepared for: ${fullName} — Exclusively</span>
+    <span>Prepared for: ${fullName} â Exclusively</span>
   </div>
 
   ${!isChoiceOwned ? `
   <div class="mgmt-notice">
-    <strong>📋 Management Notice:</strong> This property is owned by <strong>${landlordName}</strong> and managed by <strong>Choice Properties</strong> as the authorized management agent. All lease administration, communications, and tenant services are handled by Choice Properties on behalf of the property owner.
+    <strong>ð Management Notice:</strong> This property is owned by <strong>${landlordName}</strong> and managed by <strong>Choice Properties</strong> as the authorized management agent. All lease administration, communications, and tenant services are handled by Choice Properties on behalf of the property owner.
   </div>` : ''}
 
   <!-- LEASE BODY -->
@@ -2020,33 +2028,33 @@ function renderLeaseSigningPage(appId) {
 
     <!-- Personalization notice -->
     <div class="personal-banner">
-      🔒 This lease agreement was prepared exclusively for <strong>${fullName}</strong>
+      ð This lease agreement was prepared exclusively for <strong>${fullName}</strong>
       and is linked to Application ID <strong>${appId}</strong>.
       Please read every section carefully before signing.
     </div>
 
-    <!-- ═══════════════════════════════════════
-         ARTICLE I — PARTIES TO THE AGREEMENT
-    ═══════════════════════════════════════ -->
-    <div class="article-header">Article I — Parties to the Agreement</div>
-    <div class="section-title">📋 Parties</div>
+    <!-- âââââââââââââââââââââââââââââââââââââââ
+         ARTICLE I â PARTIES TO THE AGREEMENT
+    âââââââââââââââââââââââââââââââââââââââ -->
+    <div class="article-header">Article I â Parties to the Agreement</div>
+    <div class="section-title">ð Parties</div>
     <p class="clause">This Residential Lease Agreement ("Agreement" or "Lease") is entered into as of <b>${todayStr}</b>, by and between the following parties:</p>
     <ul style="margin:10px 0 20px 20px;font-size:14px;line-height:2;">
       <li><b>Landlord:</b> ${landlordName}${landlordAddr ? ', ' + landlordAddr : ''}</li>
       ${managedByLine}
       <li><b>Tenant(s):</b> ${fullName}</li>
-      <li><b>Contact / Text:</b> ${phone} &nbsp;·&nbsp; ${email}</li>
+      <li><b>Contact / Text:</b> ${phone} &nbsp;Â·&nbsp; ${email}</li>
     </ul>
     <p class="clause" style="font-size:13px;color:#555;">
       Where this Agreement refers to the "Landlord," it refers to <b>${landlordName}</b>.
       Where it refers to "Management" or "Choice Properties," it refers to Choice Properties acting as the authorized management agent responsible for day-to-day operations, communications, and administration on behalf of the Landlord.
     </p>
 
-    <!-- ═══════════════════════════════════════
-         ARTICLE II — PROPERTY & LEASE TERM
-    ═══════════════════════════════════════ -->
-    <div class="article-header">Article II — Property & Lease Term</div>
-    <div class="section-title">🏠 Rental Property & Term</div>
+    <!-- âââââââââââââââââââââââââââââââââââââââ
+         ARTICLE II â PROPERTY & LEASE TERM
+    âââââââââââââââââââââââââââââââââââââââ -->
+    <div class="article-header">Article II â Property & Lease Term</div>
+    <div class="section-title">ð  Rental Property & Term</div>
     <table class="kv-table">
       <tr><td>Rental Property Address</td><td><b>${property}</b></td></tr>
       ${unitType      ? `<tr><td>Unit Type</td><td>${unitType}</td></tr>` : ''}
@@ -2056,19 +2064,19 @@ function renderLeaseSigningPage(appId) {
       <tr><td>Tenant(s)</td><td>${fullName}</td></tr>
       <tr><td>Lease Term</td><td>${term}</td></tr>
       <tr><td>Commencement Date</td><td><b>${startDate}</b></td></tr>
-      <tr><td>${endDate === 'Month-to-Month — No Fixed Expiration' ? 'Tenancy Type' : 'Expiration Date'}</td><td><b>${endDate}</b></td></tr>
+      <tr><td>${endDate === 'Month-to-Month â No Fixed Expiration' ? 'Tenancy Type' : 'Expiration Date'}</td><td><b>${endDate}</b></td></tr>
       <tr><td>Application ID</td><td>${appId}</td></tr>
-      <tr><td>Authorized Occupants</td><td>${totalOccupants} person(s) — as listed in the rental application</td></tr>
+      <tr><td>Authorized Occupants</td><td>${totalOccupants} person(s) â as listed in the rental application</td></tr>
     </table>
     <p class="clause" style="font-size:13px;color:#555;margin-top:12px;">
       The Tenant is granted the right to occupy the above-referenced property as a private residence for the duration of this Lease. Occupancy is limited to the person(s) listed in the approved rental application. Any additional occupant not listed must receive prior written approval from Management.
     </p>
 
-    <!-- ═══════════════════════════════════════
-         ARTICLE III — FINANCIAL TERMS
-    ═══════════════════════════════════════ -->
-    <div class="article-header">Article III — Financial Terms</div>
-    <div class="section-title">💰 Rent, Deposit & Move-In Costs</div>
+    <!-- âââââââââââââââââââââââââââââââââââââââ
+         ARTICLE III â FINANCIAL TERMS
+    âââââââââââââââââââââââââââââââââââââââ -->
+    <div class="article-header">Article III â Financial Terms</div>
+    <div class="section-title">ð° Rent, Deposit & Move-In Costs</div>
     <table class="kv-table">
       <tr><td>Monthly Rent</td><td><b>$${rent.toLocaleString()}.00</b></td></tr>
       <tr><td>Rent Due Date</td><td>${rentDueStr}</td></tr>
@@ -2076,23 +2084,23 @@ function renderLeaseSigningPage(appId) {
       <tr><td>Late Fee</td><td>${lateFeeStr}</td></tr>
       <tr><td>Returned Payment Fee</td><td>$35.00 for any returned check or failed electronic payment</td></tr>
       <tr><td>Security Deposit</td><td><b>$${deposit.toLocaleString()}.00</b></td></tr>
-      ${holdingFeePaid ? `<tr><td>Holding Fee Credit</td><td style="color:#059669;"><b>− $${holdingFeeAmt.toLocaleString()}.00</b> (applied from holding deposit received)</td></tr>` : ''}
-      ${holdingFeePending ? `<tr><td>Holding Fee (Pending)</td><td style="color:#b45309;"><b>$${holdingFeeAmt.toLocaleString()}.00</b> requested — credit will apply upon receipt</td></tr>` : ''}
-      <tr><td>Total Due at Move-In</td><td><b>$${moveInCost.toLocaleString()}.00</b> (${holdingFeePaid ? 'first month\'s rent + security deposit − holding fee credit' : 'first month\'s rent + security deposit'})</td></tr>
+      ${holdingFeePaid ? `<tr><td>Holding Fee Credit</td><td style="color:#059669;"><b>â $${holdingFeeAmt.toLocaleString()}.00</b> (applied from holding deposit received)</td></tr>` : ''}
+      ${holdingFeePending ? `<tr><td>Holding Fee (Pending)</td><td style="color:#b45309;"><b>$${holdingFeeAmt.toLocaleString()}.00</b> requested â credit will apply upon receipt</td></tr>` : ''}
+      <tr><td>Total Due at Move-In</td><td><b>$${moveInCost.toLocaleString()}.00</b> (${holdingFeePaid ? 'first month\'s rent + security deposit â holding fee credit' : 'first month\'s rent + security deposit'})</td></tr>
     </table>
 
     <div class="highlight-box blue">
-      <b>📅 Move-In Payment:</b>${holdingFeePaid
+      <b>ð Move-In Payment:</b>${holdingFeePaid
         ? ` A holding deposit of <b>$${holdingFeeAmt.toLocaleString()}.00</b> was previously received and has been credited toward your move-in total. Your remaining balance due at move-in is <b>$${moveInCost.toLocaleString()}.00</b>. This must be paid in full prior to receiving keys.`
         : ` A total of <b>$${moveInCost.toLocaleString()}.00</b> is due in full prior to receiving keys and taking possession of the property. This amount covers your first month's rent ($${rent.toLocaleString()}) and security deposit ($${deposit.toLocaleString()}). No keys will be released until this payment is confirmed in writing by Management.`
       }
     </div>
 
-    <!-- ═══════════════════════════════════════
-         ARTICLE IV — TERMS & CONDITIONS
-    ═══════════════════════════════════════ -->
-    <div class="article-header">Article IV — Terms & Conditions</div>
-    <div class="section-title">📜 Lease Terms & Tenant Obligations</div>
+    <!-- âââââââââââââââââââââââââââââââââââââââ
+         ARTICLE IV â TERMS & CONDITIONS
+    âââââââââââââââââââââââââââââââââââââââ -->
+    <div class="article-header">Article IV â Terms & Conditions</div>
+    <div class="section-title">ð Lease Terms & Tenant Obligations</div>
     <ol class="clauses">
 
       <li>
@@ -2125,12 +2133,12 @@ function renderLeaseSigningPage(appId) {
 
       <li>
         <b>6. Alterations & Improvements.</b>
-        Tenant shall not make any alterations, improvements, modifications, or additions to the property — including painting, installing fixtures, removing hardware, or modifying utilities — without prior written consent from Management. Any approved alterations become the property of the Landlord upon move-out, unless otherwise agreed in writing. Unauthorized alterations must be restored to the original condition at Tenant's expense.
+        Tenant shall not make any alterations, improvements, modifications, or additions to the property â including painting, installing fixtures, removing hardware, or modifying utilities â without prior written consent from Management. Any approved alterations become the property of the Landlord upon move-out, unless otherwise agreed in writing. Unauthorized alterations must be restored to the original condition at Tenant's expense.
       </li>
 
       <li>
         <b>7. Right of Entry.</b>
-        Management and/or the Landlord may enter the premises with at least 24 hours' advance written notice for purposes including but not limited to inspections, repairs, maintenance, and showing the unit to prospective tenants or buyers. In the event of an emergency — including fire, flood, gas leak, or a threat to health and safety — entry may be made without prior notice. Tenant shall not unreasonably withhold consent to entry.
+        Management and/or the Landlord may enter the premises with at least 24 hours' advance written notice for purposes including but not limited to inspections, repairs, maintenance, and showing the unit to prospective tenants or buyers. In the event of an emergency â including fire, flood, gas leak, or a threat to health and safety â entry may be made without prior notice. Tenant shall not unreasonably withhold consent to entry.
       </li>
 
       <li>
@@ -2142,7 +2150,7 @@ function renderLeaseSigningPage(appId) {
         <b>9. Smoking & Controlled Substances.</b>
         ${smoker === 'Yes' || smoker === 'yes'
           ? `Smoking has been disclosed by the Tenant. Any smoking is strictly limited to designated outdoor areas only, as identified by Management. Smoking inside the unit, in common areas, hallways, or within 25 feet of building entrances is strictly prohibited.`
-          : `Smoking of any substance — including cigarettes, cigars, e-cigarettes, vaporizers, marijuana, or any other product — is strictly prohibited inside the property and in all common areas. Violation of this clause may result in lease termination and cleaning or remediation costs deducted from the deposit.`
+          : `Smoking of any substance â including cigarettes, cigars, e-cigarettes, vaporizers, marijuana, or any other product â is strictly prohibited inside the property and in all common areas. Violation of this clause may result in lease termination and cleaning or remediation costs deducted from the deposit.`
         }
         Use, possession, or distribution of illegal controlled substances on the premises is grounds for immediate lease termination.
       </li>
@@ -2169,7 +2177,7 @@ function renderLeaseSigningPage(appId) {
 
       <li>
         <b>14. Lease Renewal & Termination.</b>
-        ${endDate === 'Month-to-Month — No Fixed Expiration'
+        ${endDate === 'Month-to-Month â No Fixed Expiration'
           ? `This is a month-to-month tenancy with no fixed expiration date. Either party may terminate this tenancy by providing at least ${jur.mtmNoticeDays} days' prior written notice to the other party. Month-to-month rent is subject to adjustment with ${jur.mtmNoticeDays} days' written notice from Management.`
           : `This Lease shall expire on the date listed in Article II. If neither party provides written notice at least ${jur.earlyTermNoticeDays} days prior to the expiration date, the Lease will automatically convert to a month-to-month tenancy under the same terms. Month-to-month rent is subject to adjustment with ${jur.mtmNoticeDays} days' written notice from Management. Either party may terminate a month-to-month tenancy with ${jur.mtmNoticeDays} days' written notice.`
         }
@@ -2177,7 +2185,7 @@ function renderLeaseSigningPage(appId) {
 
       <li>
         <b>15. Early Termination.</b>
-        ${endDate === 'Month-to-Month — No Fixed Expiration'
+        ${endDate === 'Month-to-Month â No Fixed Expiration'
           ? `Either party may terminate this month-to-month tenancy by providing a minimum of ${jur.mtmNoticeDays} days' written notice. Notice must be submitted in writing to choicepropertygroup@hotmail.com or via text to 707-706-3137. Termination does not relieve Tenant of any outstanding financial obligations accrued prior to the termination date.`
           : `Tenant may terminate this Lease prior to the expiration date by providing a minimum of ${jur.earlyTermNoticeDays} days' written notice to Management and paying an early termination fee equal to two (2) months' rent, unless a different arrangement is agreed upon in writing. Notice must be submitted in writing to choicepropertygroup@hotmail.com or via text to 707-706-3137. Early termination does not relieve the Tenant of any outstanding financial obligations.`
         }
@@ -2237,12 +2245,12 @@ function renderLeaseSigningPage(appId) {
 
     <!-- Legal notice -->
     <div class="highlight-box slate">
-      <b>⚖️ Electronic Signature Legal Notice:</b> By signing below, you confirm that you have read, understood, and agreed to all 25 articles and provisions of this Residential Lease Agreement. Your electronic signature is legally binding under the <em>${eSignText}</em>. Your full legal name, IP address, and timestamp will be permanently recorded as part of the execution record of this Agreement.
+      <b>âï¸ Electronic Signature Legal Notice:</b> By signing below, you confirm that you have read, understood, and agreed to all 25 articles and provisions of this Residential Lease Agreement. Your electronic signature is legally binding under the <em>${eSignText}</em>. Your full legal name, IP address, and timestamp will be permanently recorded as part of the execution record of this Agreement.
     </div>
 
-    <!-- ═══════════════════════════════════════
+    <!-- âââââââââââââââââââââââââââââââââââââââ
          MANAGEMENT COUNTERSIGNATURE BLOCK
-    ═══════════════════════════════════════ -->
+    âââââââââââââââââââââââââââââââââââââââ -->
     <div style="margin:32px 0;padding:24px 28px;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc;">
       <div style="font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:#64748b;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid #e2e8f0;">
         Management Countersignature
@@ -2272,17 +2280,17 @@ function renderLeaseSigningPage(appId) {
         </div>
       </div>
       <div style="margin-top:14px;font-size:12px;color:#64748b;background:#f1f5f9;padding:10px 14px;border-radius:6px;">
-        📋 This lease becomes fully executed upon management countersignature. You will receive a confirmation email once both parties have signed.
+        ð This lease becomes fully executed upon management countersignature. You will receive a confirmation email once both parties have signed.
       </div>
     </div>
 
-    <!-- ═══════════════════════════════════════
+    <!-- âââââââââââââââââââââââââââââââââââââââ
          E-SIGNATURE BLOCK
-    ═══════════════════════════════════════ -->
+    âââââââââââââââââââââââââââââââââââââââ -->
     <div class="signature-section" id="signatureSection">
 
       <div class="sig-section-header">
-        <div class="sig-icon-wrap">✍️</div>
+        <div class="sig-icon-wrap">âï¸</div>
         <div>
           <h3>Electronic Signature</h3>
           <p>Complete all steps below to execute this lease agreement</p>
@@ -2301,7 +2309,7 @@ function renderLeaseSigningPage(appId) {
         <!-- Phase 10: E-signature legal notice -->
         <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:16px 20px;margin-bottom:20px;">
           <h4 style="font-size:14px;font-weight:700;color:#0c4a6e;margin:0 0 8px;display:flex;align-items:center;gap:8px;"><i class="fas fa-gavel" style="color:#0284c7;"></i> Legally Binding Electronic Signature</h4>
-          <p style="font-size:13px;color:#0c4a6e;line-height:1.6;margin:0 0 10px;">By signing below, you agree that your electronic signature is legally binding and has the same effect as a handwritten signature, pursuant to the federal Electronic Signatures in Global and National Commerce Act (ESIGN Act, 15 U.S.C. § 7001) and applicable state law.</p>
+          <p style="font-size:13px;color:#0c4a6e;line-height:1.6;margin:0 0 10px;">By signing below, you agree that your electronic signature is legally binding and has the same effect as a handwritten signature, pursuant to the federal Electronic Signatures in Global and National Commerce Act (ESIGN Act, 15 U.S.C. Â§ 7001) and applicable state law.</p>
           <p style="font-size:12px;color:#0369a1;margin:0;"><strong>Please read the full lease agreement above carefully before signing.</strong> By signing, you confirm that you have read, understood, and agree to be bound by all terms of the lease.</p>
           <div style="margin-top:12px;">
             <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:#0c4a6e;line-height:1.5;">
@@ -2315,7 +2323,7 @@ function renderLeaseSigningPage(appId) {
       <div id="step1Panel">
         <label class="sig-label">Your Full Legal Name
           <span style="font-weight:400;color:#64748b;font-size:12px;margin-left:6px;">
-            — Type exactly as it appears on your government-issued ID
+            â Type exactly as it appears on your government-issued ID
           </span>
         </label>
         <input type="text"
@@ -2338,7 +2346,7 @@ function renderLeaseSigningPage(appId) {
             </div>
           </div>
           <div class="sig-preview-footer">
-            <span>Signed by: <span id="previewSigName">—</span></span>
+            <span>Signed by: <span id="previewSigName">â</span></span>
             <span>Date: ${todayStr}</span>
             <span>Ref: ${appId}</span>
           </div>
@@ -2346,7 +2354,7 @@ function renderLeaseSigningPage(appId) {
 
         <!-- Legal / IP badge -->
         <div class="legal-badge" id="legalBadge">
-          <span class="legal-badge-icon">🔒</span>
+          <span class="legal-badge-icon">ð</span>
           <span id="legalBadgeText">Detecting your session details for the execution record...</span>
         </div>
       </div>
@@ -2385,7 +2393,7 @@ function renderLeaseSigningPage(appId) {
           </p>
         </div>
         <button class="btn-sign" id="signBtn" disabled onclick="submitSignature()">
-          ✍️ Execute Lease Agreement
+          âï¸ Execute Lease Agreement
         </button>
         <div class="btn-sign-sub" id="signBtnSub">
           Complete your name and all 5 checkboxes to activate
@@ -2394,13 +2402,13 @@ function renderLeaseSigningPage(appId) {
 
       <!-- Inline success state -->
       <div class="success-overlay" id="successOverlay">
-        <div class="check" style="animation:checkDraw .5s ease;">✅</div>
+        <div class="check" style="animation:checkDraw .5s ease;">â</div>
         <h4>Signature Accepted!</h4>
         <p>Redirecting you to your confirmation page...</p>
       </div>
 
       <p style="font-size:12px;color:#95a5a6;text-align:center;margin-top:20px;padding-top:16px;border-top:1px solid #f1f5f9;">
-        Executed on: <strong>${todayStr}</strong> &nbsp;·&nbsp; Application ID: <strong>${appId}</strong>
+        Executed on: <strong>${todayStr}</strong> &nbsp;Â·&nbsp; Application ID: <strong>${appId}</strong>
       </p>
     </div>
 
@@ -2409,8 +2417,8 @@ function renderLeaseSigningPage(appId) {
   <!-- FOOTER -->
   <div class="lease-footer">
     <div class="footer-logo">Choice Properties</div>
-    <p>2265 Livernois, Suite 500 &nbsp;·&nbsp; Troy, MI 48083<br>
-    📱 707-706-3137 &nbsp;·&nbsp; choicepropertygroup@hotmail.com</p>
+    <p>2265 Livernois, Suite 500 &nbsp;Â·&nbsp; Troy, MI 48083<br>
+    ð± 707-706-3137 &nbsp;Â·&nbsp; choicepropertygroup@hotmail.com</p>
     <div class="tagline">Your trust is our standard.</div>
   </div>
 
@@ -2430,13 +2438,13 @@ function renderLeaseSigningPage(appId) {
       .then(d => {
         capturedIP = d.ip || 'unavailable';
         badge.textContent =
-          '🔒 Session verified — IP: ' + capturedIP +
-          ' · Your signature and this session will be permanently recorded in the execution record.';
+          'ð Session verified â IP: ' + capturedIP +
+          ' Â· Your signature and this session will be permanently recorded in the execution record.';
       })
       .catch(() => {
         capturedIP = 'unavailable';
         badge.textContent =
-          '🔒 Your signature, date, and timestamp will be permanently recorded in the legal execution record.';
+          'ð Your signature, date, and timestamp will be permanently recorded in the legal execution record.';
       });
   })();
 
@@ -2453,7 +2461,7 @@ function renderLeaseSigningPage(appId) {
     } else {
       preview.textContent = 'Your signature will appear here...';
       preview.className   = 'sig-preview-name empty';
-      footer.textContent  = '—';
+      footer.textContent  = 'â';
       input.className     = 'sig-input';
     }
     validateSignatureForm();
@@ -2500,7 +2508,7 @@ function renderLeaseSigningPage(appId) {
       if (!financial)      missing.push('financial agreement');
       if (!ownership)      missing.push('ownership acknowledgment');
       if (!insurance)      missing.push('renter\'s insurance confirmation');
-      sub.textContent = 'Still needed: ' + missing.join(' · ');
+      sub.textContent = 'Still needed: ' + missing.join(' Â· ');
       sub.style.color = '#94a3b8';
     }
   }
@@ -2521,7 +2529,7 @@ function renderLeaseSigningPage(appId) {
     const insuranceAgreed = document.getElementById('agreeInsurance').checked;
     const btn = document.getElementById('signBtn');
     btn.disabled = true;
-    btn.textContent = '⏳ Securing signature...';
+    btn.textContent = 'â³ Securing signature...';
     document.getElementById('sigSpinner').style.display = 'block';
     document.getElementById('tenantSignature').disabled = true;
     ['agreeTerms','agreeBinding','agreeFinancial','agreeOwnership','agreeInsurance'].forEach(id => {
@@ -2547,18 +2555,18 @@ function renderLeaseSigningPage(appId) {
         } else {
           document.getElementById('sigSpinner').style.display = 'none';
           btn.disabled = false;
-          btn.textContent = '✍️ Execute Lease Agreement';
+          btn.textContent = 'âï¸ Execute Lease Agreement';
           document.getElementById('tenantSignature').disabled = false;
           ['agreeTerms','agreeBinding','agreeFinancial','agreeOwnership','agreeInsurance'].forEach(id => {
             document.getElementById(id).disabled = false;
           });
-          showAlert('⚠️ ' + result.error, 'danger');
+          showAlert('â ï¸ ' + result.error, 'danger');
         }
       })
       .withFailureHandler(function(err) {
         document.getElementById('sigSpinner').style.display = 'none';
         btn.disabled = false;
-        btn.textContent = '✍️ Execute Lease Agreement';
+        btn.textContent = 'âï¸ Execute Lease Agreement';
         document.getElementById('tenantSignature').disabled = false;
         ['agreeTerms','agreeBinding','agreeFinancial','agreeOwnership','agreeInsurance'].forEach(id => {
           document.getElementById(id).disabled = false;
@@ -2585,7 +2593,7 @@ function renderLeaseSigningPage(appId) {
 
 
 // ============================================================
-// renderLeaseConfirmPage()  —  ?path=lease_confirm&id=APP_ID
+// renderLeaseConfirmPage()  â  ?path=lease_confirm&id=APP_ID
 // Shown after tenant successfully signs
 // ============================================================
 function renderLeaseConfirmPage(appId) {
@@ -2636,7 +2644,7 @@ function renderLeaseConfirmPage(appId) {
 </head>
 <body>
   <div class="card">
-    <div class="check-icon">🎉</div>
+    <div class="check-icon">ð</div>
     <h1>Lease Signed!</h1>
     <p class="subtitle">Welcome to Choice Properties, ${firstName}. Your lease is now fully executed.</p>
 
@@ -2648,23 +2656,23 @@ function renderLeaseConfirmPage(appId) {
     </div>
 
     <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:16px 20px;margin:16px 0;text-align:left;">
-      <div style="font-size:13px;font-weight:700;color:#92400e;margin-bottom:6px;">⏳ Management Countersignature Pending</div>
+      <div style="font-size:13px;font-weight:700;color:#92400e;margin-bottom:6px;">â³ Management Countersignature Pending</div>
       <p style="font-size:13px;color:#78350f;line-height:1.6;">Your signature has been recorded. This lease becomes fully executed once a Choice Properties representative countersigns. You will receive a follow-up email when the countersignature is complete.</p>
     </div>
 
     <div class="next-steps">
-      <h4>📋 What Happens Next</h4>
+      <h4>ð What Happens Next</h4>
       <ul style="padding-left:18px;">
         <li>A confirmation email has been sent to you with your lease details.</li>
         <li>Choice Properties will countersign your lease to fully execute the agreement.</li>
         <li>Our team will contact you to confirm your move-in date and collect move-in payment.</li>
         <li>You'll receive key handoff instructions closer to your move-in date.</li>
-        <li>Save our number: <strong>707-706-3137</strong> — text us anytime.</li>
+        <li>Save our number: <strong>707-706-3137</strong> â text us anytime.</li>
       </ul>
     </div>
 
-    <a href="${dashLink}" class="btn btn-primary">📊 View My Dashboard</a>
-    <a href="javascript:window.print()" class="btn btn-secondary">🖨️ Save or Print Your Lease (PDF)</a>
+    <a href="${dashLink}" class="btn btn-primary">ð View My Dashboard</a>
+    <a href="javascript:window.print()" class="btn btn-secondary">ð¨ï¸ Save or Print Your Lease (PDF)</a>
     <p class="print-note">Click Print in your browser, then choose "Save as PDF" to save a copy for your records.</p>
 
     <div class="contact">
@@ -2680,13 +2688,13 @@ function renderLeaseConfirmPage(appId) {
 // Email Templates  (all original + 2 new lease templates)
 // ============================================================
 // ============================================================
-// EMAIL TEMPLATES — Choice Properties
-// Tone: Luxury · Nationwide · Trusted · Professional
+// EMAIL TEMPLATES â Choice Properties
+// Tone: Luxury Â· Nationwide Â· Trusted Â· Professional
 // Brand sign-off: Choice Properties Leasing Team
 // Tagline: Your trust is our standard.
 // ============================================================
 
-// ── Shared CSS injected into every email ──────────────────
+// ââ Shared CSS injected into every email ââââââââââââââââââ
 // Design philosophy: clean, minimal, dark-mode safe.
 // No dark backgrounds. No colored background boxes.
 // Pure white body. Black text. Color only via borders & text.
@@ -2696,14 +2704,14 @@ const EMAIL_BASE_CSS = `
   body { margin:0; padding:0; background:#f4f4f4; font-family:Arial,Helvetica,sans-serif; -webkit-font-smoothing:antialiased; color:#1a1a1a; }
   .email-wrapper { max-width:600px; margin:24px auto; background:#ffffff; border:1px solid #e0e0e0; border-radius:4px; overflow:hidden; }
 
-  /* ── Header — white bg, dark text, blue accent bar only ── */
+  /* ââ Header â white bg, dark text, blue accent bar only ââ */
   .email-header { background:#ffffff; padding:32px 40px 24px; border-bottom:3px solid #1a5276; }
   .header-brand { font-size:20px; font-weight:700; color:#1a1a1a; letter-spacing:0.3px; margin-bottom:3px; }
   .header-sub   { font-size:12px; color:#666666; margin-bottom:14px; }
   .header-title { font-size:22px; font-weight:700; color:#1a1a1a; line-height:1.3; margin-bottom:8px; }
   .header-ref   { font-size:12px; color:#888888; font-family:monospace; }
 
-  /* ── Status line — colored text only, no background ── */
+  /* ââ Status line â colored text only, no background ââ */
   .status-line { padding:12px 40px; font-size:13px; font-weight:600; border-bottom:1px solid #e8e8e8; }
   .status-pending  { color:#b45309; }
   .status-paid     { color:#166534; }
@@ -2711,23 +2719,23 @@ const EMAIL_BASE_CSS = `
   .status-denied   { color:#991b1b; }
   .status-lease    { color:#1e40af; }
 
-  /* ── Body ── */
+  /* ââ Body ââ */
   .email-body { padding:36px 40px; }
   .greeting   { font-size:16px; font-weight:600; color:#1a1a1a; margin-bottom:16px; }
   .intro-text { font-size:14px; color:#444444; line-height:1.7; margin-bottom:28px; }
 
-  /* ── Section ── */
+  /* ââ Section ââ */
   .section { margin-bottom:28px; }
   .section-label { font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#888888; margin-bottom:12px; padding-bottom:8px; border-bottom:1px solid #e8e8e8; }
 
-  /* ── Info table — no background shading ── */
+  /* ââ Info table â no background shading ââ */
   .info-table { width:100%; border-collapse:collapse; }
   .info-table tr td { padding:10px 0; font-size:14px; vertical-align:top; border-bottom:1px solid #f0f0f0; }
   .info-table tr:last-child td { border-bottom:none; }
   .info-table td:first-child { width:42%; font-weight:600; color:#555555; padding-right:12px; }
   .info-table td:last-child  { color:#1a1a1a; }
 
-  /* ── Callout box — border-left only, white bg ── */
+  /* ââ Callout box â border-left only, white bg ââ */
   .callout { border-left:3px solid #1a5276; padding:14px 18px; margin:20px 0; background:#ffffff; }
   .callout.green  { border-color:#166534; }
   .callout.amber  { border-color:#b45309; }
@@ -2735,41 +2743,41 @@ const EMAIL_BASE_CSS = `
   .callout h4 { font-size:13px; font-weight:700; color:#1a1a1a; margin-bottom:6px; }
   .callout p  { font-size:13px; color:#444444; line-height:1.65; }
 
-  /* ── Steps list ── */
+  /* ââ Steps list ââ */
   .steps-list { list-style:none; margin:0; padding:0; }
   .steps-list li { display:flex; align-items:flex-start; gap:14px; padding:11px 0; border-bottom:1px solid #f0f0f0; font-size:14px; color:#333333; line-height:1.6; }
   .steps-list li:last-child { border-bottom:none; }
   .step-num { flex-shrink:0; width:24px; height:24px; background:#1a5276; color:#ffffff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; }
 
-  /* ── Financial rows ── */
+  /* ââ Financial rows ââ */
   .financial-row { display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #f0f0f0; font-size:14px; }
   .financial-row:last-child { border-bottom:none; border-top:1px solid #e0e0e0; padding-top:14px; margin-top:4px; }
   .financial-row .f-label { color:#555555; }
   .financial-row .f-value { font-weight:700; color:#1a1a1a; }
   .financial-row.total .f-value { font-size:17px; color:#1a5276; }
 
-  /* ── CTA button ── */
+  /* ââ CTA button ââ */
   .cta-wrap { text-align:center; margin:32px 0 24px; }
   .cta-btn  { display:inline-block; background:#1a5276; color:#ffffff !important; text-decoration:none; padding:14px 36px; border-radius:4px; font-size:14px; font-weight:700; letter-spacing:0.5px; }
   .cta-note { font-size:11px; color:#888888; text-align:center; margin-top:8px; word-break:break-all; }
 
-  /* ── Contact row ── */
+  /* ââ Contact row ââ */
   .contact-row { padding:16px 0; border-top:1px solid #e8e8e8; border-bottom:1px solid #e8e8e8; margin:24px 0; font-size:13px; color:#444444; }
   .contact-row span { margin-right:24px; }
   .contact-row strong { color:#1a1a1a; }
 
-  /* ── Closing ── */
+  /* ââ Closing ââ */
   .email-closing { margin-top:28px; padding-top:20px; border-top:1px solid #e8e8e8; }
   .closing-text { font-size:13px; color:#666666; line-height:1.65; margin-bottom:14px; }
   .sign-off     { font-size:14px; font-weight:700; color:#1a1a1a; margin-bottom:2px; }
   .sign-company { font-size:13px; color:#666666; }
 
-  /* ── Footer — light gray, dark text ── */
+  /* ââ Footer â light gray, dark text ââ */
   .email-footer { background:#f8f8f8; border-top:1px solid #e0e0e0; padding:20px 40px; text-align:center; }
   .footer-name    { font-size:13px; font-weight:700; color:#1a1a1a; margin-bottom:4px; }
   .footer-details { font-size:12px; color:#888888; line-height:1.7; }
 
-  /* ── Pay pills ── */
+  /* ââ Pay pills ââ */
   .pay-pill { display:inline-block; border:1px solid #cccccc; border-radius:3px; padding:5px 12px; font-size:13px; color:#333333; margin:3px 4px 3px 0; }
 
   @media only screen and (max-width:600px) {
@@ -2781,7 +2789,7 @@ const EMAIL_BASE_CSS = `
   }
 `;
 
-// ── Shared footer HTML ─────────────────────────────────────
+// ââ Shared footer HTML âââââââââââââââââââââââââââââââââââââ
 const EMAIL_FOOTER = `
   <div class="email-footer">
     <div class="footer-name">Choice Properties</div>
@@ -2793,7 +2801,7 @@ const EMAIL_FOOTER = `
   </div>
 `;
 
-// ── Shared header builder ──────────────────────────────────
+// ââ Shared header builder ââââââââââââââââââââââââââââââââââ
 function buildEmailHeader(title, appId) {
   return `
   <div class="email-header">
@@ -2806,14 +2814,14 @@ function buildEmailHeader(title, appId) {
 
 const EmailTemplates = {
 
-  // ── 1. Applicant Confirmation ─────────────────────────────
+  // ââ 1. Applicant Confirmation âââââââââââââââââââââââââââââ
   applicantConfirmation: (data, appId, dashboardLink, paymentMethods) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Application Received — Choice Properties</title>
+  <title>Application Received â Choice Properties</title>
   <style>${EMAIL_BASE_CSS}</style>
 </head>
 <body>
@@ -2822,7 +2830,7 @@ const EmailTemplates = {
   ${buildEmailHeader('Application Successfully Received', appId)}
 
   <div class="status-line status-pending">
-    ⏳ &nbsp; Awaiting Application Fee · Review Pending
+    â³ &nbsp; Awaiting Application Fee Â· Review Pending
   </div>
 
   <div class="email-body">
@@ -2853,7 +2861,7 @@ const EmailTemplates = {
     <div class="section">
       <div class="section-label">Your Selected Payment Methods</div>
       <div class="callout amber">
-        <h4>Application Fee — $${(data['Application Fee'] || APPLICATION_FEE)}.00</h4>
+        <h4>Application Fee â $${(data['Application Fee'] || APPLICATION_FEE)}.00</h4>
         <p style="margin-bottom:12px;">You have indicated the following preferred payment methods. Our team will reach out to you at the contact information above within 24 hours to arrange collection of your application fee.</p>
         <div>${paymentMethods.map(m => `<span class="pay-pill">${m}</span>`).join('')}</div>
       </div>
@@ -2863,15 +2871,15 @@ const EmailTemplates = {
     <div class="section">
       <div class="section-label">What Happens Next</div>
       <ul class="steps-list">
-        <li><span class="step-num">1</span><span><strong>Payment Arrangement</strong> — A member of our leasing team will contact you within 24 hours via text at <strong>${data['Phone']}</strong> to coordinate your $${(data['Application Fee'] || APPLICATION_FEE)}.00 application fee.</span></li>
-        <li><span class="step-num">2</span><span><strong>Payment Confirmation</strong> — Once your fee is received and confirmed, you will receive an email notification and your application will advance to the review stage.</span></li>
-        <li><span class="step-num">3</span><span><strong>Application Review</strong> — Our team will conduct a thorough review of your application within 2–3 business days of payment confirmation.</span></li>
-        <li><span class="step-num">4</span><span><strong>Decision Notification</strong> — You will be notified of our decision via email. If approved, our leasing team will prepare your lease agreement for signature.</span></li>
+        <li><span class="step-num">1</span><span><strong>Payment Arrangement</strong> â A member of our leasing team will contact you within 24 hours via text at <strong>${data['Phone']}</strong> to coordinate your $${(data['Application Fee'] || APPLICATION_FEE)}.00 application fee.</span></li>
+        <li><span class="step-num">2</span><span><strong>Payment Confirmation</strong> â Once your fee is received and confirmed, you will receive an email notification and your application will advance to the review stage.</span></li>
+        <li><span class="step-num">3</span><span><strong>Application Review</strong> â Our team will conduct a thorough review of your application within 2â3 business days of payment confirmation.</span></li>
+        <li><span class="step-num">4</span><span><strong>Decision Notification</strong> â You will be notified of our decision via email. If approved, our leasing team will prepare your lease agreement for signature.</span></li>
       </ul>
     </div>
 
     <div class="callout">
-      <h4>Important — Save Your Application ID</h4>
+      <h4>Important â Save Your Application ID</h4>
       <p>Your application ID is <strong>${appId}</strong>. Please save this reference number. You will use it to track your application status and access your dashboard at any time.</p>
     </div>
 
@@ -2898,14 +2906,14 @@ const EmailTemplates = {
 </html>
 `,
 
-  // ── 2. Admin Notification ─────────────────────────────────
+  // ââ 2. Admin Notification âââââââââââââââââââââââââââââââââ
   adminNotification: (data, appId, baseUrl, dashboardLink, paymentMethods) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>New Application — ${appId}</title>
+  <title>New Application â ${appId}</title>
   <style>${EMAIL_BASE_CSS}</style>
 </head>
 <body>
@@ -2914,7 +2922,7 @@ const EmailTemplates = {
   ${buildEmailHeader('New Application Received', appId)}
 
   <div class="status-line status-pending">
-    ⚡ &nbsp; Action Required — Application Fee Pending Collection
+    â¡ &nbsp; Action Required â Application Fee Pending Collection
   </div>
 
   <div class="email-body">
@@ -2937,7 +2945,7 @@ const EmailTemplates = {
         <tr><td>Requested Move-In</td><td>${data['Requested Move-in Date'] || 'Not specified'}</td></tr>
         <tr><td>Lease Term</td><td>${data['Desired Lease Term'] || 'Not specified'}</td></tr>
         <tr><td>Contact Preference</td><td>${data['Preferred Contact Method'] || 'Not specified'}</td></tr>
-        <tr><td>Best Times to Reach</td><td>${data['Preferred Time'] || 'Any'} ${data['Preferred Time Specific'] ? '— ' + data['Preferred Time Specific'] : ''}</td></tr>
+        <tr><td>Best Times to Reach</td><td>${data['Preferred Time'] || 'Any'} ${data['Preferred Time Specific'] ? 'â ' + data['Preferred Time Specific'] : ''}</td></tr>
       </table>
     </div>
 
@@ -2976,7 +2984,7 @@ const EmailTemplates = {
 
     <div class="email-closing">
       <div class="sign-off">Choice Properties System</div>
-      <div class="sign-company">Automated Admin Notification — ${appId}</div>
+      <div class="sign-company">Automated Admin Notification â ${appId}</div>
     </div>
 
   </div>
@@ -2986,14 +2994,14 @@ const EmailTemplates = {
 </html>
 `,
 
-  // ── 3. Payment Confirmation ───────────────────────────────
+  // ââ 3. Payment Confirmation âââââââââââââââââââââââââââââââ
   paymentConfirmation: (appId, applicantName, phone, dashboardLink, propertyAddress, propertyName, fee, actualMethod, transactionRef, amountCollected) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Payment Confirmed — Choice Properties</title>
+  <title>Payment Confirmed â Choice Properties</title>
   <style>${EMAIL_BASE_CSS}</style>
 </head>
 <body>
@@ -3002,7 +3010,7 @@ const EmailTemplates = {
   ${buildEmailHeader('Application Fee Confirmed', appId)}
 
   <div class="status-line status-paid">
-    ✓ &nbsp; Payment Received — Application Now Under Review
+    â &nbsp; Payment Received â Application Now Under Review
   </div>
 
   <div class="email-body">
@@ -3019,7 +3027,7 @@ const EmailTemplates = {
     <div class="section">
       <div class="section-label">Payment Confirmation</div>
       <div class="callout green">
-        <h4>✓ Payment Successfully Received</h4>
+        <h4>â Payment Successfully Received</h4>
         <div class="financial-row"><span class="f-label">Receipt ID</span><span class="f-value">${appId}-PMT</span></div>
         <div class="financial-row"><span class="f-label">Application ID</span><span class="f-value">${appId}</span></div>
         <div class="financial-row"><span class="f-label">Applicant</span><span class="f-value">${applicantName}</span></div>
@@ -3037,9 +3045,9 @@ const EmailTemplates = {
     <div class="section">
       <div class="section-label">What Happens Next</div>
       <ul class="steps-list">
-        <li><span class="step-num">1</span><span><strong>Active Review</strong> — Your complete application is now being reviewed by our leasing team. This process is thorough and designed to be completed within 2–3 business days.</span></li>
-        <li><span class="step-num">2</span><span><strong>Background & Income Verification</strong> — We will conduct standard verification procedures as part of our review process.</span></li>
-        <li><span class="step-num">3</span><span><strong>Decision Notification</strong> — You will receive an email notification once a decision has been made. Our team may also reach out via text at <strong>${phone}</strong> if additional information is needed.</span></li>
+        <li><span class="step-num">1</span><span><strong>Active Review</strong> â Your complete application is now being reviewed by our leasing team. This process is thorough and designed to be completed within 2â3 business days.</span></li>
+        <li><span class="step-num">2</span><span><strong>Background & Income Verification</strong> â We will conduct standard verification procedures as part of our review process.</span></li>
+        <li><span class="step-num">3</span><span><strong>Decision Notification</strong> â You will receive an email notification once a decision has been made. Our team may also reach out via text at <strong>${phone}</strong> if additional information is needed.</span></li>
       </ul>
     </div>
 
@@ -3070,7 +3078,7 @@ const EmailTemplates = {
 </html>
 `,
 
-  // ── 4. Status Update (Approved & Denied) ──────────────────
+  // ââ 4. Status Update (Approved & Denied) ââââââââââââââââââ
   statusUpdate: (appId, firstName, status, reason, dashboardLink, propertyAddress, propertyName, propertyState) => {
     const isApproved    = status === 'approved';
     const propertyLabel = propertyName || propertyAddress || '';
@@ -3083,7 +3091,7 @@ const EmailTemplates = {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>${isApproved ? 'Application Approved' : 'Application Update'} — Choice Properties</title>
+  <title>${isApproved ? 'Application Approved' : 'Application Update'} â Choice Properties</title>
   <style>${EMAIL_BASE_CSS}</style>
 </head>
 <body>
@@ -3092,7 +3100,7 @@ const EmailTemplates = {
   ${buildEmailHeader(isApproved ? 'Application Approved' : 'Application Update', appId)}
 
   <div class="status-line ${isApproved ? 'status-approved' : 'status-denied'}">
-    ${isApproved ? '✓ &nbsp; Congratulations — Your Application Has Been Approved' : '— &nbsp; Your Application Has Been Reviewed'}
+    ${isApproved ? 'â &nbsp; Congratulations â Your Application Has Been Approved' : 'â &nbsp; Your Application Has Been Reviewed'}
   </div>
 
   <div class="email-body">
@@ -3108,22 +3116,22 @@ const EmailTemplates = {
     </p>
 
     <div class="callout green">
-      <h4>✓ Application Approved</h4>
+      <h4>â Application Approved</h4>
       <p>Your application has met all of our criteria. Our leasing team will be in contact with you shortly to prepare and deliver your lease agreement for electronic signature. Please ensure your phone and email remain accessible.</p>
     </div>
 
     <div class="section">
       <div class="section-label">Your Next Steps</div>
       <ul class="steps-list">
-        <li><span class="step-num">1</span><span><strong>Lease Agreement</strong> — Our team will prepare a formal lease agreement and send it to you via email within 1–2 business days. Please review it carefully in its entirety.</span></li>
-        <li><span class="step-num">2</span><span><strong>Electronic Signature</strong> — You will sign your lease electronically. Your signature is legally binding under the ${getESignText(resolvedState)}.</span></li>
-        <li><span class="step-num">3</span><span><strong>Move-In Costs</strong> — Prior to receiving your keys, the move-in total (first month's rent plus security deposit) must be paid in full. This amount will be clearly outlined in your lease.</span></li>
-        <li><span class="step-num">4</span><span><strong>Key Handoff</strong> — Once all documents and payments are complete, our team will coordinate your key pickup and official move-in date.</span></li>
+        <li><span class="step-num">1</span><span><strong>Lease Agreement</strong> â Our team will prepare a formal lease agreement and send it to you via email within 1â2 business days. Please review it carefully in its entirety.</span></li>
+        <li><span class="step-num">2</span><span><strong>Electronic Signature</strong> â You will sign your lease electronically. Your signature is legally binding under the ${getESignText(resolvedState)}.</span></li>
+        <li><span class="step-num">3</span><span><strong>Move-In Costs</strong> â Prior to receiving your keys, the move-in total (first month's rent plus security deposit) must be paid in full. This amount will be clearly outlined in your lease.</span></li>
+        <li><span class="step-num">4</span><span><strong>Key Handoff</strong> â Once all documents and payments are complete, our team will coordinate your key pickup and official move-in date.</span></li>
       </ul>
     </div>
 
     <div class="callout">
-      <h4>Important — Please Respond Promptly</h4>
+      <h4>Important â Please Respond Promptly</h4>
       <p>Unit availability is time-sensitive. To secure your unit, please sign your lease agreement within 48 hours of receiving it. Delays may result in the unit being offered to other applicants.</p>
     </div>
     ` : `
@@ -3134,7 +3142,7 @@ const EmailTemplates = {
     </p>
 
     <div class="callout red">
-      <h4>Application Status — Not Approved</h4>
+      <h4>Application Status â Not Approved</h4>
       <p>${reason
         ? `After review, the primary reason for this decision relates to: <strong>${reason}</strong>.`
         : `Our decision is based on our standard application review criteria.`
@@ -3144,9 +3152,9 @@ const EmailTemplates = {
     <div class="section">
       <div class="section-label">Looking Ahead</div>
       <ul class="steps-list">
-        <li><span class="step-num">1</span><span><strong>This is Not Permanent</strong> — Our decisions are based on current application criteria. Circumstances change, and we encourage you to consider reapplying in the future should your situation evolve. Your application and screening results remain on file for 60 days from your submission date. If you wish to apply for another available Choice Properties unit within 30 days, <strong>no new application fee will be required</strong> — please contact our team to discuss your options.</span></li>
-        <li><span class="step-num">2</span><span><strong>Other Properties</strong> — Choice Properties manages a portfolio of properties. Our team would be happy to discuss alternative options that may be a strong fit for your current profile.</span></li>
-        <li><span class="step-num">3</span><span><strong>Questions</strong> — If you would like to discuss this decision or explore your options further, please do not hesitate to reach out to our leasing team directly.</span></li>
+        <li><span class="step-num">1</span><span><strong>This is Not Permanent</strong> â Our decisions are based on current application criteria. Circumstances change, and we encourage you to consider reapplying in the future should your situation evolve. Your application and screening results remain on file for 60 days from your submission date. If you wish to apply for another available Choice Properties unit within 30 days, <strong>no new application fee will be required</strong> â please contact our team to discuss your options.</span></li>
+        <li><span class="step-num">2</span><span><strong>Other Properties</strong> â Choice Properties manages a portfolio of properties. Our team would be happy to discuss alternative options that may be a strong fit for your current profile.</span></li>
+        <li><span class="step-num">3</span><span><strong>Questions</strong> â If you would like to discuss this decision or explore your options further, please do not hesitate to reach out to our leasing team directly.</span></li>
       </ul>
     </div>
 
@@ -3178,14 +3186,14 @@ const EmailTemplates = {
 `;
   },
 
-  // ── 5. Lease Sent ─────────────────────────────────────────
+  // ââ 5. Lease Sent âââââââââââââââââââââââââââââââââââââââââ
   leaseSent: (appId, tenantName, leaseLink, leaseData) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Your Lease Agreement is Ready — Choice Properties</title>
+  <title>Your Lease Agreement is Ready â Choice Properties</title>
   <style>${EMAIL_BASE_CSS}</style>
 </head>
 <body>
@@ -3194,7 +3202,7 @@ const EmailTemplates = {
   ${buildEmailHeader('Your Lease Agreement is Ready', appId)}
 
   <div class="status-line status-lease">
-    📋 &nbsp; Action Required — Please Review and Sign Within 48 Hours
+    ð &nbsp; Action Required â Please Review and Sign Within 48 Hours
   </div>
 
   <div class="email-body">
@@ -3230,7 +3238,7 @@ const EmailTemplates = {
     </div>
 
     <div class="callout amber">
-      <h4>⏰ 48-Hour Signing Window</h4>
+      <h4>â° 48-Hour Signing Window</h4>
       <p>To secure your unit, your lease must be signed within <strong>48 hours</strong> of receiving this email. Failure to sign within this window may result in the unit being released to other applicants. If you require additional time, please contact our team immediately.</p>
     </div>
 
@@ -3243,10 +3251,10 @@ const EmailTemplates = {
     <div class="section">
       <div class="section-label">What to Expect When You Sign</div>
       <ul class="steps-list">
-        <li><span class="step-num">1</span><span><strong>Review the Full Agreement</strong> — Read every section carefully. The lease outlines your rights, responsibilities, and all financial obligations.</span></li>
-        <li><span class="step-num">2</span><span><strong>Confirm Checkboxes</strong> — You will be asked to confirm your agreement to specific terms before signing.</span></li>
-        <li><span class="step-num">3</span><span><strong>Sign Electronically</strong> — Enter your full legal name as your electronic signature. This is legally binding under the ${getESignText(leaseData.propertyState || 'MI')}.</span></li>
-        <li><span class="step-num">4</span><span><strong>Receive Confirmation</strong> — You will receive an immediate email confirmation once your signature is recorded.</span></li>
+        <li><span class="step-num">1</span><span><strong>Review the Full Agreement</strong> â Read every section carefully. The lease outlines your rights, responsibilities, and all financial obligations.</span></li>
+        <li><span class="step-num">2</span><span><strong>Confirm Checkboxes</strong> â You will be asked to confirm your agreement to specific terms before signing.</span></li>
+        <li><span class="step-num">3</span><span><strong>Sign Electronically</strong> â Enter your full legal name as your electronic signature. This is legally binding under the ${getESignText(leaseData.propertyState || 'MI')}.</span></li>
+        <li><span class="step-num">4</span><span><strong>Receive Confirmation</strong> â You will receive an immediate email confirmation once your signature is recorded.</span></li>
       </ul>
     </div>
 
@@ -3267,14 +3275,14 @@ const EmailTemplates = {
 </html>
 `,
 
-  // ── 6. Lease Signed — Tenant ──────────────────────────────
+  // ââ 6. Lease Signed â Tenant ââââââââââââââââââââââââââââââ
   leaseSignedTenant: (appId, firstName, leaseData, dashboardLink) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Lease Executed — Welcome to Choice Properties</title>
+  <title>Lease Executed â Welcome to Choice Properties</title>
   <style>${EMAIL_BASE_CSS}</style>
 </head>
 <body>
@@ -3283,7 +3291,7 @@ const EmailTemplates = {
   ${buildEmailHeader('Welcome to Choice Properties', appId)}
 
   <div class="status-line status-approved">
-    ✓ &nbsp; Lease Successfully Executed — Your Tenancy is Confirmed
+    â &nbsp; Lease Successfully Executed â Your Tenancy is Confirmed
   </div>
 
   <div class="email-body">
@@ -3300,7 +3308,7 @@ const EmailTemplates = {
     <div class="section">
       <div class="section-label">Your Tenancy Confirmation</div>
       <div class="callout green">
-        <h4>✓ Lease Executed — Tenancy Confirmed</h4>
+        <h4>â Lease Executed â Tenancy Confirmed</h4>
         <div class="financial-row"><span class="f-label">Property</span><span class="f-value">${leaseData.property}</span></div>
         <div class="financial-row"><span class="f-label">Move-In Date</span><span class="f-value">${leaseData.startDate}</span></div>
         <div class="financial-row"><span class="f-label">Lease End Date</span><span class="f-value">${leaseData.endDate}</span></div>
@@ -3315,10 +3323,10 @@ const EmailTemplates = {
     <div class="section">
       <div class="section-label">What Happens Next</div>
       <ul class="steps-list">
-        <li><span class="step-num">1</span><span><strong>Move-In Payment</strong> — Our leasing team will contact you to coordinate collection of your move-in total of <strong>$${parseFloat(leaseData.moveInCost).toLocaleString('en-US',{minimumFractionDigits:2})}</strong>. This must be paid in full prior to key handoff.</span></li>
-        <li><span class="step-num">2</span><span><strong>Move-In Preparation</strong> — We will provide you with a detailed move-in guide and any property-specific information you need to know before your arrival.</span></li>
-        <li><span class="step-num">3</span><span><strong>Key Handoff</strong> — Once all payments are confirmed, your key handoff will be coordinated. Our team will reach out to schedule this at a time that works for you.</span></li>
-        <li><span class="step-num">4</span><span><strong>Your Dashboard</strong> — You may view your lease details and tenancy information at any time through your applicant dashboard.</span></li>
+        <li><span class="step-num">1</span><span><strong>Move-In Payment</strong> â Our leasing team will contact you to coordinate collection of your move-in total of <strong>$${parseFloat(leaseData.moveInCost).toLocaleString('en-US',{minimumFractionDigits:2})}</strong>. This must be paid in full prior to key handoff.</span></li>
+        <li><span class="step-num">2</span><span><strong>Move-In Preparation</strong> â We will provide you with a detailed move-in guide and any property-specific information you need to know before your arrival.</span></li>
+        <li><span class="step-num">3</span><span><strong>Key Handoff</strong> â Once all payments are confirmed, your key handoff will be coordinated. Our team will reach out to schedule this at a time that works for you.</span></li>
+        <li><span class="step-num">4</span><span><strong>Your Dashboard</strong> â You may view your lease details and tenancy information at any time through your applicant dashboard.</span></li>
       </ul>
     </div>
 
@@ -3353,23 +3361,23 @@ const EmailTemplates = {
 </html>
 `,
 
-  // ── 7. Lease Signed — Admin Alert ────────────────────────
+  // ââ 7. Lease Signed â Admin Alert ââââââââââââââââââââââââ
   leaseSignedAdmin: (appId, tenantName, email, phone, signature, property, adminUrl) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Lease Signed — ${appId}</title>
+  <title>Lease Signed â ${appId}</title>
   <style>${EMAIL_BASE_CSS}</style>
 </head>
 <body>
 <div class="email-wrapper">
 
-  ${buildEmailHeader('Lease Signed — Action Required', appId)}
+  ${buildEmailHeader('Lease Signed â Action Required', appId)}
 
   <div class="status-line status-approved">
-    ✍️ &nbsp; Tenant Has Executed the Lease — Collect Move-In Payment
+    âï¸ &nbsp; Tenant Has Executed the Lease â Collect Move-In Payment
   </div>
 
   <div class="email-body">
@@ -3386,7 +3394,7 @@ const EmailTemplates = {
     <div class="section">
       <div class="section-label">Lease Execution Details</div>
       <div class="callout green">
-        <h4>✓ Lease Successfully Executed</h4>
+        <h4>â Lease Successfully Executed</h4>
         <div class="financial-row"><span class="f-label">Tenant</span><span class="f-value">${tenantName}</span></div>
         <div class="financial-row"><span class="f-label">Property</span><span class="f-value">${property}</span></div>
         <div class="financial-row"><span class="f-label">Email</span><span class="f-value">${email}</span></div>
@@ -3401,10 +3409,10 @@ const EmailTemplates = {
     <div class="section">
       <div class="section-label">Required Actions</div>
       <ul class="steps-list">
-        <li><span class="step-num">1</span><span><strong>Collect Move-In Payment</strong> — Contact the tenant immediately to arrange collection of the move-in total (first month + security deposit).</span></li>
-        <li><span class="step-num">2</span><span><strong>Confirm Move-In Date</strong> — Coordinate and confirm the official move-in date with the tenant once payment is received.</span></li>
-        <li><span class="step-num">3</span><span><strong>Key Handoff</strong> — Schedule and complete the key handoff on or before the agreed move-in date.</span></li>
-        <li><span class="step-num">4</span><span><strong>Update Records</strong> — Ensure all internal records and the admin dashboard reflect the completed lease status.</span></li>
+        <li><span class="step-num">1</span><span><strong>Collect Move-In Payment</strong> â Contact the tenant immediately to arrange collection of the move-in total (first month + security deposit).</span></li>
+        <li><span class="step-num">2</span><span><strong>Confirm Move-In Date</strong> â Coordinate and confirm the official move-in date with the tenant once payment is received.</span></li>
+        <li><span class="step-num">3</span><span><strong>Key Handoff</strong> â Schedule and complete the key handoff on or before the agreed move-in date.</span></li>
+        <li><span class="step-num">4</span><span><strong>Update Records</strong> â Ensure all internal records and the admin dashboard reflect the completed lease status.</span></li>
       </ul>
     </div>
 
@@ -3414,13 +3422,13 @@ const EmailTemplates = {
       <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:4px;">
         <a href="${adminUrl}" style="display:inline-block;background:#0a1628;color:white;text-decoration:none;padding:11px 22px;border-radius:3px;font-size:13px;font-weight:600;letter-spacing:0.5px;">Admin Dashboard</a>
         <a href="sms:7077063137?body=Hi%20${tenantName.split(' ')[0]}%2C%20congratulations%20on%20signing%20your%20lease%20for%20${encodeURIComponent(property)}.%20Please%20contact%20us%20to%20arrange%20your%20move-in%20payment." style="display:inline-block;background:#059669;color:white;text-decoration:none;padding:11px 22px;border-radius:3px;font-size:13px;font-weight:600;letter-spacing:0.5px;">Text Tenant</a>
-        <a href="mailto:${email}?subject=Next Steps — Move-In Coordination — ${appId}" style="display:inline-block;background:#1d4ed8;color:white;text-decoration:none;padding:11px 22px;border-radius:3px;font-size:13px;font-weight:600;letter-spacing:0.5px;">Email Tenant</a>
+        <a href="mailto:${email}?subject=Next Steps â Move-In Coordination â ${appId}" style="display:inline-block;background:#1d4ed8;color:white;text-decoration:none;padding:11px 22px;border-radius:3px;font-size:13px;font-weight:600;letter-spacing:0.5px;">Email Tenant</a>
       </div>
     </div>
 
     <div class="email-closing">
       <div class="sign-off">Choice Properties System</div>
-      <div class="sign-company">Automated Admin Alert — ${appId}</div>
+      <div class="sign-company">Automated Admin Alert â ${appId}</div>
     </div>
 
   </div>
@@ -3430,26 +3438,26 @@ const EmailTemplates = {
 </html>
 `,
 
-  // ── 8. Holding Fee Received ───────────────────────────────── Task 4.1
+  // ââ 8. Holding Fee Received âââââââââââââââââââââââââââââââââ Task 4.1
   holdingFeeReceived: (appId, tenantName, feeAmount, property, newMoveInBalance, dashboardLink) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Holding Fee Received — Choice Properties</title>
+  <title>Holding Fee Received â Choice Properties</title>
   <style>${EMAIL_BASE_CSS}</style>
 </head>
 <body>
 <div class="email-wrapper">
   ${buildEmailHeader('Holding Fee Received', appId)}
-  <div class="status-line status-approved">✓ &nbsp; Holding Fee Successfully Received</div>
+  <div class="status-line status-approved">â &nbsp; Holding Fee Successfully Received</div>
   <div class="email-body">
     <p class="greeting">Dear ${tenantName},</p>
     ${property ? `<p style="font-size:13px;color:#64748b;margin:-4px 0 16px;">Property: <strong>${property}</strong></p>` : ''}
-    <p class="intro-text">We have received your holding fee and your unit is now secured. Thank you for acting promptly — your payment ensures the property will not be offered to other applicants while your lease is finalized.</p>
+    <p class="intro-text">We have received your holding fee and your unit is now secured. Thank you for acting promptly â your payment ensures the property will not be offered to other applicants while your lease is finalized.</p>
     <div class="callout green">
-      <h4>✓ Holding Fee Confirmed</h4>
+      <h4>â Holding Fee Confirmed</h4>
       <p><strong>Amount Received:</strong> $${feeAmount}.00<br>
       <strong>Credit at Move-In:</strong> This amount will be applied in full toward your move-in balance.<br>
       ${newMoveInBalance !== undefined && newMoveInBalance !== null ? `<strong>Remaining Move-In Balance:</strong> $${newMoveInBalance}.00` : ''}</p>
@@ -3457,9 +3465,9 @@ const EmailTemplates = {
     <div class="section">
       <div class="section-label">Next Steps</div>
       <ul class="steps-list">
-        <li><span class="step-num">1</span><span><strong>Lease Agreement</strong> — Your lease agreement will be prepared and sent to you shortly for electronic signature.</span></li>
-        <li><span class="step-num">2</span><span><strong>Remaining Move-In Payment</strong> — Once your lease is signed, the remaining move-in balance will be due before key handoff.</span></li>
-        <li><span class="step-num">3</span><span><strong>Move-In Coordination</strong> — Our team will contact you to confirm your move-in date and key pickup details.</span></li>
+        <li><span class="step-num">1</span><span><strong>Lease Agreement</strong> â Your lease agreement will be prepared and sent to you shortly for electronic signature.</span></li>
+        <li><span class="step-num">2</span><span><strong>Remaining Move-In Payment</strong> â Once your lease is signed, the remaining move-in balance will be due before key handoff.</span></li>
+        <li><span class="step-num">3</span><span><strong>Move-In Coordination</strong> â Our team will contact you to confirm your move-in date and key pickup details.</span></li>
       </ul>
     </div>
     <div class="cta-wrap">
@@ -3480,30 +3488,30 @@ const EmailTemplates = {
 </html>
 `,
 
-  // ── 9. Lease Signing Reminder ─────────────────────────────── Task 4.2
+  // ââ 9. Lease Signing Reminder âââââââââââââââââââââââââââââââ Task 4.2
   leaseSigningReminder: (appId, firstName, leaseLink, property) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Friendly Reminder — Sign Your Lease</title>
+  <title>Friendly Reminder â Sign Your Lease</title>
   <style>${EMAIL_BASE_CSS}</style>
 </head>
 <body>
 <div class="email-wrapper">
   ${buildEmailHeader('Lease Signing Reminder', appId)}
-  <div class="status-line" style="background:#fff7ed;color:#c2410c;border-left-color:#f97316;">⏳ &nbsp; Action Required — Your Lease Awaits Your Signature</div>
+  <div class="status-line" style="background:#fff7ed;color:#c2410c;border-left-color:#f97316;">â³ &nbsp; Action Required â Your Lease Awaits Your Signature</div>
   <div class="email-body">
     <p class="greeting">Dear ${firstName},</p>
     ${property ? `<p style="font-size:13px;color:#64748b;margin:-4px 0 16px;">Property: <strong>${property}</strong></p>` : ''}
-    <p class="intro-text">This is a friendly reminder that your lease agreement is still awaiting your electronic signature. Unit availability is time-sensitive — to protect your reservation, please sign at your earliest convenience.</p>
+    <p class="intro-text">This is a friendly reminder that your lease agreement is still awaiting your electronic signature. Unit availability is time-sensitive â to protect your reservation, please sign at your earliest convenience.</p>
     <div class="callout" style="border-left-color:#f97316;background:#fff7ed;">
       <h4 style="color:#c2410c;">Please Sign Within 48 Hours</h4>
       <p>If your lease remains unsigned, the unit may be offered to other applicants on our waiting list. If you have questions or concerns about any clause, please reach out to our team before the deadline.</p>
     </div>
     <div class="cta-wrap">
-      <a href="${leaseLink}" class="cta-btn">Sign My Lease Now →</a>
+      <a href="${leaseLink}" class="cta-btn">Sign My Lease Now â</a>
     </div>
     <div class="contact-row">
       <strong>Questions?</strong> &nbsp; Text: 707-706-3137 &nbsp;&middot;&nbsp; choicepropertygroup@hotmail.com
@@ -3520,20 +3528,20 @@ const EmailTemplates = {
 </html>
 `,
 
-  // ── 10. Lease Expiry Admin Alert ──────────────────────────── Task 4.3
+  // ââ 10. Lease Expiry Admin Alert ââââââââââââââââââââââââââââ Task 4.3
   leaseExpiryAdminAlert: (appId, tenantName, tenantEmail, tenantPhone, property) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Lease Unsigned — Admin Alert</title>
+  <title>Lease Unsigned â Admin Alert</title>
   <style>${EMAIL_BASE_CSS}</style>
 </head>
 <body>
 <div class="email-wrapper">
-  ${buildEmailHeader('Lease Unsigned — 48h Alert', appId)}
-  <div class="status-line status-denied">⚠ &nbsp; Tenant Has Not Signed — 48 Hours Elapsed</div>
+  ${buildEmailHeader('Lease Unsigned â 48h Alert', appId)}
+  <div class="status-line status-denied">â  &nbsp; Tenant Has Not Signed â 48 Hours Elapsed</div>
   <div class="email-body">
     <p class="intro-text">The lease agreement for Application <strong>${appId}</strong> has not been signed within 48 hours of delivery. Immediate follow-up is recommended to protect unit availability.</p>
     <div class="callout red">
@@ -3563,7 +3571,7 @@ const EmailTemplates = {
 </html>
 `,
 
-  // ── 11. Move-In Preparation Guide ────────────────────────── Task 4.4
+  // ââ 11. Move-In Preparation Guide ââââââââââââââââââââââââââ Task 4.4
   moveInPreparationGuide: (appId, firstName, leaseData, dashboardLink) => {
     const rent    = leaseData.rent    || 0;
     const deposit = leaseData.deposit || 0;
@@ -3576,13 +3584,13 @@ const EmailTemplates = {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Move-In Preparation Guide — Choice Properties</title>
+  <title>Move-In Preparation Guide â Choice Properties</title>
   <style>${EMAIL_BASE_CSS}</style>
 </head>
 <body>
 <div class="email-wrapper">
   ${buildEmailHeader('Move-In Preparation Guide', appId)}
-  <div class="status-line status-approved">🏠 &nbsp; Your Lease is Signed — Here\'s How to Prepare</div>
+  <div class="status-line status-approved">ð  &nbsp; Your Lease is Signed â Here\'s How to Prepare</div>
   <div class="email-body">
     <p class="greeting">Dear ${firstName},</p>
     ${property ? `<p style="font-size:13px;color:#64748b;margin:-4px 0 16px;">Property: <strong>${property}</strong></p>` : ''}
@@ -3599,17 +3607,17 @@ const EmailTemplates = {
     <div class="section">
       <div class="section-label">What to Bring on Move-In Day</div>
       <ul class="steps-list">
-        <li><span class="step-num">1</span><span><strong>Government-Issued Photo ID</strong> — Required for all adults 18+ who will reside in the unit.</span></li>
-        <li><span class="step-num">2</span><span><strong>Move-In Payment</strong> — Full move-in amount in the agreed payment form. Our team will confirm the method in advance.</span></li>
-        <li><span class="step-num">3</span><span><strong>Renter\'s Insurance Proof</strong> — A current binder or declaration page showing Choice Properties as an interested party.</span></li>
+        <li><span class="step-num">1</span><span><strong>Government-Issued Photo ID</strong> â Required for all adults 18+ who will reside in the unit.</span></li>
+        <li><span class="step-num">2</span><span><strong>Move-In Payment</strong> â Full move-in amount in the agreed payment form. Our team will confirm the method in advance.</span></li>
+        <li><span class="step-num">3</span><span><strong>Renter\'s Insurance Proof</strong> â A current binder or declaration page showing Choice Properties as an interested party.</span></li>
       </ul>
     </div>
     <div class="section">
       <div class="section-label">Before You Move In</div>
       <ul class="steps-list">
-        <li><span class="step-num">A</span><span><strong>Set Up Utilities</strong> — Electric, gas, water, and internet accounts should be transferred or opened in your name on or before your lease start date. Your utility providers may need your move-in date and unit address.</span></li>
-        <li><span class="step-num">B</span><span><strong>Obtain Renter\'s Insurance</strong> — Your lease requires you to maintain renter\'s insurance for the full lease term. Most policies cost $10–$20/month. Please have your policy in effect before key handoff.</span></li>
-        <li><span class="step-num">C</span><span><strong>Review Parking</strong> — Parking assignments and rules are outlined in your lease. Please review these before your move-in day.</span></li>
+        <li><span class="step-num">A</span><span><strong>Set Up Utilities</strong> â Electric, gas, water, and internet accounts should be transferred or opened in your name on or before your lease start date. Your utility providers may need your move-in date and unit address.</span></li>
+        <li><span class="step-num">B</span><span><strong>Obtain Renter\'s Insurance</strong> â Your lease requires you to maintain renter\'s insurance for the full lease term. Most policies cost $10â$20/month. Please have your policy in effect before key handoff.</span></li>
+        <li><span class="step-num">C</span><span><strong>Review Parking</strong> â Parking assignments and rules are outlined in your lease. Please review these before your move-in day.</span></li>
       </ul>
     </div>
     <div class="callout">
@@ -3631,7 +3639,7 @@ const EmailTemplates = {
 </html>
 `; },
 
-  // ── 12. Admin Review Summary ──────────────────────────────── Task 4.5
+  // ââ 12. Admin Review Summary ââââââââââââââââââââââââââââââââ Task 4.5
   adminReviewSummary: (appId, data, adminPanelUrl) => {
     const row = (label, value) => value ? `<tr><td style="padding:6px 10px;font-size:13px;color:#64748b;width:40%;border-bottom:1px solid #f1f5f9;">${label}</td><td style="padding:6px 10px;font-size:13px;color:#1e293b;font-weight:500;border-bottom:1px solid #f1f5f9;">${value}</td></tr>` : '';
     const section = (title) => `<tr><td colspan="2" style="padding:10px 10px 4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#94a3b8;background:#f8fafc;">${title}</td></tr>`;
@@ -3641,18 +3649,18 @@ const EmailTemplates = {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Review Summary — ${appId}</title>
+  <title>Review Summary â ${appId}</title>
   <style>${EMAIL_BASE_CSS}</style>
 </head>
 <body>
 <div class="email-wrapper">
   ${buildEmailHeader('Application Review Summary', appId)}
-  <div class="status-line" style="background:#f0fdf4;color:#15803d;border-left-color:#22c55e;">✓ &nbsp; Fee Confirmed — Application Ready for Decision</div>
+  <div class="status-line" style="background:#f0fdf4;color:#15803d;border-left-color:#22c55e;">â &nbsp; Fee Confirmed â Application Ready for Decision</div>
   <div class="email-body">
     <p class="intro-text">The application fee for <strong>${appId}</strong> has been confirmed. The full application summary is below. Please review and record your decision in the admin panel.</p>
     <div class="callout green">
       <h4>Decision Required</h4>
-      <p>Log in to the admin panel to <strong>Approve</strong> or <strong>Deny</strong> this application. Do not communicate your decision to the applicant directly — use the admin panel to trigger the correct email.</p>
+      <p>Log in to the admin panel to <strong>Approve</strong> or <strong>Deny</strong> this application. Do not communicate your decision to the applicant directly â use the admin panel to trigger the correct email.</p>
     </div>
     <div class="section">
       <div class="section-label">Full Application Data</div>
@@ -3700,7 +3708,7 @@ const EmailTemplates = {
       </table>
     </div>
     <div class="cta-wrap">
-      <a href="${adminPanelUrl}" class="cta-btn">Open Admin Panel →</a>
+      <a href="${adminPanelUrl}" class="cta-btn">Open Admin Panel â</a>
     </div>
     <div class="contact-row">This summary was generated automatically when the application fee was confirmed.</div>
   </div>
@@ -3721,10 +3729,10 @@ function sendApplicantConfirmation(data, appId) {
     const baseUrl        = ScriptApp.getService().getUrl();
     const dashboardLink  = baseUrl + '?path=dashboard&id=' + appId;
     const htmlBody = EmailTemplates.applicantConfirmation(data, appId, dashboardLink, paymentMethods);
-    const propertySnippet = data['Property Address'] ? ` — ${data['Property Address'].split(',')[0]}` : '';
+    const propertySnippet = data['Property Address'] ? ` â ${data['Property Address'].split(',')[0]}` : '';
     MailApp.sendEmail({
       to: data['Email'],
-      subject: `✅ Application Received${propertySnippet} | Choice Properties (Ref: ${appId})`,
+      subject: `â Application Received${propertySnippet} | Choice Properties (Ref: ${appId})`,
       htmlBody: htmlBody,
       name: 'Choice Properties Leasing',
       replyTo: 'choicepropertygroup@hotmail.com',
@@ -3732,7 +3740,7 @@ function sendApplicantConfirmation(data, appId) {
     });
     return true;
   } catch (error) {
-    console.error('sendApplicantConfirmation error — appId: ' + appId + ' | to: ' + data['Email'] + ' | ' + error.toString());
+    console.error('sendApplicantConfirmation error â appId: ' + appId + ' | to: ' + data['Email'] + ' | ' + error.toString());
     return false;
   }
 }
@@ -3748,7 +3756,7 @@ function sendAdminNotification(data, appId) {
     adminEmails.forEach(email => {
       MailApp.sendEmail({
         to: email,
-        subject: `New Application: ${appId} — ${data['First Name']} ${data['Last Name']}${propertySnippet}`,
+        subject: `New Application: ${appId} â ${data['First Name']} ${data['Last Name']}${propertySnippet}`,
         htmlBody: htmlBody, name: 'Choice Properties System'
       });
     });
@@ -3756,7 +3764,7 @@ function sendAdminNotification(data, appId) {
   } catch (error) { console.error('sendAdminNotification error:', error); return false; }
 }
 
-// ── Task 4.6: Refactored to use shared EMAIL_BASE_CSS, buildEmailHeader(), EMAIL_FOOTER ──
+// ââ Task 4.6: Refactored to use shared EMAIL_BASE_CSS, buildEmailHeader(), EMAIL_FOOTER ââ
 function sendResumeEmail(email, resumeUrl, step) {
   try {
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -3776,14 +3784,14 @@ function sendResumeEmail(email, resumeUrl, step) {
         if (propName) propertyLine = `<p style="font-size:13px;color:#64748b;margin:-4px 0 16px;">Applying for: <strong>${propName}</strong></p>`;
       }
     } catch (e) {}
-    const subject  = '📋 Resume Your Choice Properties Application';
+    const subject  = 'ð Resume Your Choice Properties Application';
     const htmlBody = `
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Resume Your Application — Choice Properties</title>
+  <title>Resume Your Application â Choice Properties</title>
   <style>${EMAIL_BASE_CSS}</style>
 </head>
 <body>
@@ -3793,14 +3801,14 @@ function sendResumeEmail(email, resumeUrl, step) {
     <p class="greeting">Your progress is saved!</p>
     ${propertyLine}
     <p class="intro-text">
-      We've saved your progress through Step <strong>${step}</strong> of 6. Click the button below to pick up right where you left off — your information will be restored automatically.
+      We've saved your progress through Step <strong>${step}</strong> of 6. Click the button below to pick up right where you left off â your information will be restored automatically.
     </p>
     <div class="cta-wrap">
-      <a href="${resumeUrl}" class="cta-btn">Continue My Application →</a>
+      <a href="${resumeUrl}" class="cta-btn">Continue My Application â</a>
     </div>
-    <div class="callout">
-      <h4>A Note on Browser Compatibility</h4>
-      <p>Your progress is saved locally in your browser. For best results, use the same device and browser you started on.</p>
+    <div class="callout" style="border-left:4px solid #c0392b;">
+      <h4 style="color:#c0392b;">&#9888; Important: Same Device Required</h4>
+      <p>Your progress is saved locally in your browser. <strong>This link must be opened in the same browser on the same device where you started your application.</strong> Opening it on a different device or browser will show a blank form.</p>
     </div>
     <div class="contact-row">
       <strong>Questions?</strong> &nbsp; Text: 707-706-3137 &nbsp;&middot;&nbsp; choicepropertygroup@hotmail.com
@@ -3822,7 +3830,7 @@ function sendResumeEmail(email, resumeUrl, step) {
   }
 }
 
-// ── Task 4.1: Holding Fee Received dispatch ───────────────────────────────
+// ââ Task 4.1: Holding Fee Received dispatch âââââââââââââââââââââââââââââââ
 function sendHoldingFeeReceivedEmail(appId, email, tenantName, feeAmount, property, newMoveInBalance) {
   try {
     const baseUrl      = ScriptApp.getService().getUrl();
@@ -3830,7 +3838,7 @@ function sendHoldingFeeReceivedEmail(appId, email, tenantName, feeAmount, proper
     const htmlBody     = EmailTemplates.holdingFeeReceived(appId, tenantName, feeAmount, property, newMoveInBalance, dashboardLink);
     MailApp.sendEmail({
       to: email,
-      subject: `Holding Fee Confirmed — ${property || 'Your Unit'} | Choice Properties (Ref: ${appId})`,
+      subject: `Holding Fee Confirmed â ${property || 'Your Unit'} | Choice Properties (Ref: ${appId})`,
       htmlBody: htmlBody,
       name: 'Choice Properties Leasing',
       replyTo: 'choicepropertygroup@hotmail.com'
@@ -3844,13 +3852,13 @@ function sendHoldingFeeReceivedEmail(appId, email, tenantName, feeAmount, proper
   }
 }
 
-// ── Task 4.2: Lease Signing Reminder dispatch ─────────────────────────────
+// ââ Task 4.2: Lease Signing Reminder dispatch âââââââââââââââââââââââââââââ
 function sendLeaseSigningReminder(appId, email, firstName, leaseLink, property) {
   try {
     const htmlBody = EmailTemplates.leaseSigningReminder(appId, firstName, leaseLink, property);
     MailApp.sendEmail({
       to: email,
-      subject: `Reminder: Your Lease Awaits Signature — ${property || 'Choice Properties'} (Ref: ${appId})`,
+      subject: `Reminder: Your Lease Awaits Signature â ${property || 'Choice Properties'} (Ref: ${appId})`,
       htmlBody: htmlBody,
       name: 'Choice Properties Leasing',
       replyTo: 'choicepropertygroup@hotmail.com'
@@ -3864,7 +3872,7 @@ function sendLeaseSigningReminder(appId, email, firstName, leaseLink, property) 
   }
 }
 
-// ── Task 4.3: Lease Expiry Admin Alert dispatch ───────────────────────────
+// ââ Task 4.3: Lease Expiry Admin Alert dispatch âââââââââââââââââââââââââââ
 function sendLeaseExpiryAdminAlert(appId, tenantName, tenantEmail, tenantPhone, property) {
   try {
     const adminEmails = getAdminEmails();
@@ -3872,7 +3880,7 @@ function sendLeaseExpiryAdminAlert(appId, tenantName, tenantEmail, tenantPhone, 
     adminEmails.forEach(adminEmail => {
       MailApp.sendEmail({
         to: adminEmail,
-        subject: `Lease Unsigned — 48h Alert: ${appId} — ${tenantName}`,
+        subject: `Lease Unsigned â 48h Alert: ${appId} â ${tenantName}`,
         htmlBody: htmlBody,
         name: 'Choice Properties System'
       });
@@ -3886,7 +3894,7 @@ function sendLeaseExpiryAdminAlert(appId, tenantName, tenantEmail, tenantPhone, 
   }
 }
 
-// ── Task 4.4: Move-In Preparation Guide dispatch ──────────────────────────
+// ââ Task 4.4: Move-In Preparation Guide dispatch ââââââââââââââââââââââââââ
 function sendMoveInPreparationGuide(appId, email, firstName, leaseData) {
   try {
     const baseUrl       = ScriptApp.getService().getUrl();
@@ -3894,7 +3902,7 @@ function sendMoveInPreparationGuide(appId, email, firstName, leaseData) {
     const htmlBody      = EmailTemplates.moveInPreparationGuide(appId, firstName, leaseData, dashboardLink);
     MailApp.sendEmail({
       to: email,
-      subject: `Your Move-In Preparation Guide — ${leaseData.property || 'Choice Properties'} (Ref: ${appId})`,
+      subject: `Your Move-In Preparation Guide â ${leaseData.property || 'Choice Properties'} (Ref: ${appId})`,
       htmlBody: htmlBody,
       name: 'Choice Properties Leasing',
       replyTo: 'choicepropertygroup@hotmail.com'
@@ -3908,7 +3916,7 @@ function sendMoveInPreparationGuide(appId, email, firstName, leaseData) {
   }
 }
 
-// ── Task 4.5: Admin Review Summary dispatch ───────────────────────────────
+// ââ Task 4.5: Admin Review Summary dispatch âââââââââââââââââââââââââââââââ
 function sendAdminReviewSummary(appId) {
   try {
     const ss    = getSpreadsheet();
@@ -3931,7 +3939,7 @@ function sendAdminReviewSummary(appId) {
     adminEmails.forEach(adminEmail => {
       MailApp.sendEmail({
         to: adminEmail,
-        subject: `Review Summary: ${appId} — ${appData['First Name'] || ''} ${appData['Last Name'] || ''} — Fee Confirmed`,
+        subject: `Review Summary: ${appId} â ${appData['First Name'] || ''} ${appData['Last Name'] || ''} â Fee Confirmed`,
         htmlBody: htmlBody,
         name: 'Choice Properties System'
       });
@@ -3962,10 +3970,10 @@ function sendPaymentConfirmation(appId, applicantEmail, applicantName, phone, ac
       }
     } catch (e) {}
     const propertyLabel   = propertyName || propertyAddress;
-    const propertySnippet = propertyLabel ? ` — ${propertyLabel.split(',')[0]}` : '';
+    const propertySnippet = propertyLabel ? ` â ${propertyLabel.split(',')[0]}` : '';
     MailApp.sendEmail({
       to: applicantEmail,
-      subject: `✅ Payment Confirmed${propertySnippet} | Application ${appId}`,
+      subject: `â Payment Confirmed${propertySnippet} | Application ${appId}`,
       htmlBody: EmailTemplates.paymentConfirmation(appId, applicantName, phone, dashboardLink, propertyAddress, propertyName, applicationFee, actualMethod, transactionRef, amountCollected),
       name: 'Choice Properties'
     });
@@ -3990,11 +3998,11 @@ function sendStatusUpdateEmail(appId, email, firstName, status, reason) {
       }
     } catch (e) {}
     const propertyLabel   = propertyName || propertyAddress;
-    const propertySnippet = propertyLabel ? ` — ${propertyLabel.split(',')[0]}` : '';
+    const propertySnippet = propertyLabel ? ` â ${propertyLabel.split(',')[0]}` : '';
     MailApp.sendEmail({
       to: email,
       subject: status === 'approved'
-        ? `✅ Application Approved${propertySnippet} | ${appId}`
+        ? `â Application Approved${propertySnippet} | ${appId}`
         : `Application Update${propertySnippet} | ${appId}`,
       // Bug fix: pass propertyState so the template can resolve the correct e-sign text
       // without referencing the nonexistent `leaseData` variable.
@@ -4005,12 +4013,12 @@ function sendStatusUpdateEmail(appId, email, firstName, status, reason) {
   } catch (error) { console.error('sendStatusUpdateEmail error:', error); return false; }
 }
 
-// ── [NEW] sendLeaseEmail ──────────────────────────────────
+// ââ [NEW] sendLeaseEmail ââââââââââââââââââââââââââââââââââ
 function sendLeaseEmail(appId, email, tenantName, phone, leaseLink, leaseData) {
   try {
     MailApp.sendEmail({
       to: email,
-      subject: `📜 Your Lease is Ready to Sign - ${appId}`,
+      subject: `ð Your Lease is Ready to Sign - ${appId}`,
       htmlBody: EmailTemplates.leaseSent(appId, tenantName, leaseLink, leaseData),
       name: 'Choice Properties Leasing'
     });
@@ -4018,14 +4026,14 @@ function sendLeaseEmail(appId, email, tenantName, phone, leaseLink, leaseData) {
   } catch (error) { console.error('sendLeaseEmail error:', error); return false; }
 }
 
-// ── [NEW] sendLeaseSignedTenantEmail ─────────────────────
+// ââ [NEW] sendLeaseSignedTenantEmail âââââââââââââââââââââ
 function sendLeaseSignedTenantEmail(appId, email, firstName, phone, leaseData) {
   try {
     const baseUrl       = ScriptApp.getService().getUrl();
     const dashboardLink = baseUrl + '?path=dashboard&id=' + appId;
     MailApp.sendEmail({
       to: email,
-      subject: `🎉 Lease Signed - Welcome to Choice Properties! (${appId})`,
+      subject: `ð Lease Signed - Welcome to Choice Properties! (${appId})`,
       htmlBody: EmailTemplates.leaseSignedTenant(appId, firstName, leaseData, dashboardLink),
       name: 'Choice Properties Leasing'
     });
@@ -4033,7 +4041,7 @@ function sendLeaseSignedTenantEmail(appId, email, firstName, phone, leaseData) {
   } catch (error) { console.error('sendLeaseSignedTenantEmail error:', error); return false; }
 }
 
-// ── [NEW] sendLeaseSignedAdminAlert ──────────────────────
+// ââ [NEW] sendLeaseSignedAdminAlert ââââââââââââââââââââââ
 function sendLeaseSignedAdminAlert(appId, tenantName, email, phone, signature, property) {
   try {
     const adminEmails = getAdminEmails();
@@ -4042,7 +4050,7 @@ function sendLeaseSignedAdminAlert(appId, tenantName, email, phone, signature, p
     adminEmails.forEach(adminEmail => {
       MailApp.sendEmail({
         to: adminEmail,
-        subject: `✍️ LEASE SIGNED: ${appId} - ${tenantName}`,
+        subject: `âï¸ LEASE SIGNED: ${appId} - ${tenantName}`,
         htmlBody: EmailTemplates.leaseSignedAdmin(appId, tenantName, email, phone, signature, property, adminUrl),
         name: 'Choice Properties System'
       });
@@ -4077,16 +4085,16 @@ function buildPaymentMethodList(data, withEmoji) {
     return withEmoji ? `${emoji} ${name}` : `<strong>${fallback}:</strong> ${name}`;
   };
 
-  if (primary) methods.push(label('🥇', 'Primary', primary, primOth));
-  if (second)  methods.push(label('🥈', 'Secondary', second, secOth));
-  if (third)   methods.push(label('🥉', 'Third Choice', third, thirdOth));
+  if (primary) methods.push(label('ð¥', 'Primary', primary, primOth));
+  if (second)  methods.push(label('ð¥', 'Secondary', second, secOth));
+  if (third)   methods.push(label('ð¥', 'Third Choice', third, thirdOth));
   return methods;
 }
 
 // ============================================================
-// requestHoldingFee()  — Session 037
+// requestHoldingFee()  â Session 037
 // Admin requests a holding fee from an approved applicant.
-// Sets Holding Fee Status → 'requested', emails the tenant.
+// Sets Holding Fee Status â 'requested', emails the tenant.
 // ============================================================
 function requestHoldingFee(appId, amount, adminNotes, deadline) {
   try {
@@ -4109,8 +4117,8 @@ function requestHoldingFee(appId, amount, adminNotes, deadline) {
     // Guard: only request a holding fee on approved, paid applications
     const appStatus     = sheet.getRange(rowIndex, col['Status']).getValue();
     const paymentStatus = sheet.getRange(rowIndex, col['Payment Status']).getValue();
-    if (appStatus !== 'approved')  throw new Error('Cannot request a holding fee — application is not yet approved.');
-    if (paymentStatus !== 'paid')  throw new Error('Cannot request a holding fee — application fee has not been confirmed.');
+    if (appStatus !== 'approved')  throw new Error('Cannot request a holding fee â application is not yet approved.');
+    if (paymentStatus !== 'paid')  throw new Error('Cannot request a holding fee â application fee has not been confirmed.');
 
     const currentStatus = sheet.getRange(rowIndex, col['Holding Fee Status']).getValue();
     if (currentStatus === 'paid') throw new Error('Holding fee is already marked as paid.');
@@ -4152,9 +4160,9 @@ function requestHoldingFee(appId, amount, adminNotes, deadline) {
 }
 
 // ============================================================
-// markHoldingFeePaid()  — Session 037
+// markHoldingFeePaid()  â Session 037
 // Admin confirms offline holding fee payment received.
-// Sets Holding Fee Status → 'paid', logs date.
+// Sets Holding Fee Status â 'paid', logs date.
 // ============================================================
 function markHoldingFeePaid(appId, adminNotes) {
   try {
@@ -4179,7 +4187,7 @@ function markHoldingFeePaid(appId, adminNotes) {
     const holdingPaymentTime = new Date();
     sheet.getRange(rowIndex, col['Holding Fee Status']).setValue('paid');
     sheet.getRange(rowIndex, col['Holding Fee Date']).setValue(holdingPaymentTime);
-    // ── Phase 6: Store precise payment timestamp for refund window calculation ──
+    // ââ Phase 6: Store precise payment timestamp for refund window calculation ââ
     if (col['Holding Fee Payment Timestamp']) {
       sheet.getRange(rowIndex, col['Holding Fee Payment Timestamp']).setValue(holdingPaymentTime.getTime());
     }
@@ -4193,7 +4201,7 @@ function markHoldingFeePaid(appId, adminNotes) {
       currAdminNotes ? currAdminNotes + '\n' + noteText : noteText
     );
 
-    // ── Task 4.1: Notify tenant that holding fee was received ──
+    // ââ Task 4.1: Notify tenant that holding fee was received ââ
     const tenantEmail    = sheet.getRange(rowIndex, col['Email']).getValue();
     const tenantFirst    = sheet.getRange(rowIndex, col['First Name']).getValue();
     const tenantLast     = sheet.getRange(rowIndex, col['Last Name']).getValue();
@@ -4211,7 +4219,7 @@ function markHoldingFeePaid(appId, adminNotes) {
 }
 
 // ============================================================
-// managementCountersign()  — Phase 1
+// managementCountersign()  â Phase 1
 // Records the management countersignature on an executed lease.
 // Called from the admin panel after the tenant has signed.
 // ============================================================
@@ -4258,14 +4266,14 @@ function managementCountersign(appId, signerName, notes) {
 }
 
 // ============================================================
-// sendHoldingFeeRequestEmail()  — Session 037
+// sendHoldingFeeRequestEmail()  â Session 037
 // Emails the tenant with holding fee amount and payment instructions.
 // ============================================================
 function sendHoldingFeeRequestEmail(appId, email, fullName, phone, feeAmount, property, deadline) {
   try {
     const firstName   = fullName.split(' ')[0] || fullName;
     const deadlineText = (deadline && deadline.trim()) ? deadline.trim() : '48 hours';
-    const subject   = `Action Required — Holding Fee to Reserve Your Unit | ${property || 'Choice Properties'}`;
+    const subject   = `Action Required â Holding Fee to Reserve Your Unit | ${property || 'Choice Properties'}`;
     const body = `
 <!DOCTYPE html><html><head><meta charset="UTF-8">
 <style>
@@ -4294,7 +4302,7 @@ function sendHoldingFeeRequestEmail(appId, email, fullName, phone, feeAmount, pr
 <div class="wrap">
   <div class="header">
     <h1>Choice Properties</h1>
-    <p>Holding Fee Request — App #${appId}</p>
+    <p>Holding Fee Request â App #${appId}</p>
   </div>
   <div class="body">
     <p class="greeting">Dear ${firstName},</p>
@@ -4308,19 +4316,19 @@ function sendHoldingFeeRequestEmail(appId, email, fullName, phone, feeAmount, pr
     </div>
 
     <div class="callout">
-      <h4>✓ This Fee Is Credited Toward Your Move-In</h4>
+      <h4>â This Fee Is Credited Toward Your Move-In</h4>
       <p>The holding fee is not an additional charge. It will be fully credited toward your move-in total (first month's rent + security deposit) when you take possession of the property.</p>
     </div>
 
     <div class="steps">
       <p style="font-size:13px;font-weight:700;color:#1e293b;margin:0 0 12px;">How to Pay</p>
-      <div class="step"><div class="step-dot">1</div><p><strong>Contact our team</strong> — Text or call us at <strong>707-706-3137</strong> to coordinate your preferred payment method (Zelle, money order, certified check, or cashier's check).</p></div>
-      <div class="step"><div class="step-dot">2</div><p><strong>Submit payment</strong> — Send the holding fee using your chosen method. Our team will provide payment details when you reach out.</p></div>
-      <div class="step"><div class="step-dot">3</div><p><strong>Receive confirmation</strong> — Once payment is received, our team will confirm in writing and proceed to prepare your lease agreement.</p></div>
+      <div class="step"><div class="step-dot">1</div><p><strong>Contact our team</strong> â Text or call us at <strong>707-706-3137</strong> to coordinate your preferred payment method (Zelle, money order, certified check, or cashier's check).</p></div>
+      <div class="step"><div class="step-dot">2</div><p><strong>Submit payment</strong> â Send the holding fee using your chosen method. Our team will provide payment details when you reach out.</p></div>
+      <div class="step"><div class="step-dot">3</div><p><strong>Receive confirmation</strong> â Once payment is received, our team will confirm in writing and proceed to prepare your lease agreement.</p></div>
     </div>
 
     <div class="notice">
-      ⏱ <strong>Deadline: ${deadlineText}.</strong> Unit availability is time-sensitive. If the holding fee is not received within this window, the unit may be offered to other qualified applicants.
+      â± <strong>Deadline: ${deadlineText}.</strong> Unit availability is time-sensitive. If the holding fee is not received within this window, the unit may be offered to other qualified applicants.
     </div>
 
     <p style="font-size:13px;color:#475569;line-height:1.7;">
@@ -4330,8 +4338,8 @@ function sendHoldingFeeRequestEmail(appId, email, fullName, phone, feeAmount, pr
     </p>
   </div>
   <div class="footer">
-    Choice Properties &nbsp;·&nbsp; 2265 Livernois Suite 500, Troy MI 48083<br>
-    707-706-3137 &nbsp;·&nbsp; choicepropertygroup@hotmail.com<br>
+    Choice Properties &nbsp;Â·&nbsp; 2265 Livernois Suite 500, Troy MI 48083<br>
+    707-706-3137 &nbsp;Â·&nbsp; choicepropertygroup@hotmail.com<br>
     <span style="font-size:11px;">App ID: ${appId}</span>
   </div>
 </div>
@@ -4389,7 +4397,7 @@ function markAsPaid(appId, notes, actualMethod, transactionRef, amountCollected)
     const phone     = sheet.getRange(rowIndex, col['Phone']).getValue();
     sendPaymentConfirmation(appId, email, firstName + ' ' + lastName, phone, actualMethod, transactionRef, amountCollected);
     logEmail('payment_confirmation', email, 'success', appId);
-    // ── Task 4.9: Send admin review summary now that fee is confirmed ──
+    // ââ Task 4.9: Send admin review summary now that fee is confirmed ââ
     sendAdminReviewSummary(appId);
     return { success: true, message: 'Application marked as paid' };
   } catch (error) {
@@ -4400,9 +4408,9 @@ function markAsPaid(appId, notes, actualMethod, transactionRef, amountCollected)
 }
 
 // ============================================================
-// markAsRefunded()  — Phase 6 Task 6.2
+// markAsRefunded()  â Phase 6 Task 6.2
 // Admin marks a paid application fee as refunded.
-// Sets Payment Status → 'refunded'. No email is sent automatically.
+// Sets Payment Status â 'refunded'. No email is sent automatically.
 // ============================================================
 function markAsRefunded(appId, notes) {
   try {
@@ -4430,7 +4438,7 @@ function markAsRefunded(appId, notes) {
 }
 
 // ============================================================
-// markAsContacted()  — Phase 8.3
+// markAsContacted()  â Phase 8.3
 // Logs the current timestamp into the "Last Contacted" column
 // so admins can see when they last reached out to an applicant.
 // ============================================================
@@ -4462,7 +4470,7 @@ function markAsContacted(appId) {
 }
 
 // ============================================================
-// withdrawApplication()  — Phase 8.5
+// withdrawApplication()  â Phase 8.5
 // Allows an applicant to withdraw their own application.
 // Sets status to 'withdrawn' and reverts the property listing
 // to 'active' so it becomes available for other applicants.
@@ -4508,16 +4516,16 @@ function withdrawApplication(appId) {
 // Keeps the listing platform's Supabase database in sync when
 // an application is approved or denied.
 //
-// approved → property.status = 'rented'  (takes it off the market)
-// denied   → property.status = 'active'  (makes it available again)
+// approved â property.status = 'rented'  (takes it off the market)
+// denied   â property.status = 'active'  (makes it available again)
 //
-// SETUP REQUIRED — add these two Script Properties in the GAS editor:
-//   Extensions → Apps Script → Project Settings → Script Properties
+// SETUP REQUIRED â add these two Script Properties in the GAS editor:
+//   Extensions â Apps Script â Project Settings â Script Properties
 //     SUPABASE_URL         e.g. https://abcdefgh.supabase.co
 //     SUPABASE_SERVICE_KEY Your Supabase service role key
-//                          (Dashboard → Settings → API → service_role)
+//                          (Dashboard â Settings â API â service_role)
 //
-// This call is fire-and-forget — errors are logged but never block
+// This call is fire-and-forget â errors are logged but never block
 // the approval flow. If credentials are not set, it silently skips.
 // ============================================================
 function _syncPropertyStatusToSupabase(propertyId, supabaseStatus) {
@@ -4552,7 +4560,7 @@ function _syncPropertyStatusToSupabase(propertyId, supabaseStatus) {
     const code     = response.getResponseCode();
 
     if (code >= 200 && code < 300) {
-      console.log('_syncPropertyStatusToSupabase: Property ' + propertyId + ' → "' + supabaseStatus + '" (HTTP ' + code + ')');
+      console.log('_syncPropertyStatusToSupabase: Property ' + propertyId + ' â "' + supabaseStatus + '" (HTTP ' + code + ')');
     } else {
       console.error('_syncPropertyStatusToSupabase: Supabase returned HTTP ' + code + ': ' + response.getContentText());
     }
@@ -4566,9 +4574,9 @@ function _syncPropertyStatusToSupabase(propertyId, supabaseStatus) {
 // updateStatus()
 // ============================================================
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // PHASE 5 — Application Credit System
-  // ─────────────────────────────────────────────────────────────────────────────
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // PHASE 5 â Application Credit System
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
   const CREDITS_SHEET_NAME = 'Credits';
   const MAX_ACTIVE_CREDITS  = 2;
@@ -4716,14 +4724,14 @@ function _syncPropertyStatusToSupabase(propertyId, supabaseStatus) {
     sendStatusUpdateEmail(appId, email, firstName, newStatus, notes);
     logEmail('status_update', email, 'success', appId);
 
-    // ── Phase 5: Issue application credits on denial ──
+    // ââ Phase 5: Issue application credits on denial ââ
     if (newStatus === 'denied') {
       const emailForCredits = sheet.getRange(rowIndex, col['Email']).getValue();
       issueApplicationCredits(emailForCredits, appId);
     }
 
     // Sync property availability to the listing platform (Supabase).
-      // Only fires on approval — denial does not change property availability.
+      // Only fires on approval â denial does not change property availability.
       if (newStatus === 'approved' && col['Property ID']) {
         const propertyId = sheet.getRange(rowIndex, col['Property ID']).getValue();
         _syncPropertyStatusToSupabase(propertyId, 'rented');
@@ -4737,7 +4745,7 @@ function _syncPropertyStatusToSupabase(propertyId, supabaseStatus) {
         const propertyId = sheet.getRange(rowIndex, col['Property ID']).getValue();
         if (propertyId) {
           _syncPropertyStatusToSupabase(propertyId, 'active');
-          console.log('updateStatus: Restored property ' + propertyId + ' to active after reversal from approved → ' + newStatus);
+          console.log('updateStatus: Restored property ' + propertyId + ' to active after reversal from approved â ' + newStatus);
         }
       }
 
@@ -4820,7 +4828,7 @@ function getAllApplications(filterStatus) {
 
 // ============================================================
 // getDataFingerprint()
-// Lightweight check — returns a hash of all App IDs + statuses.
+// Lightweight check â returns a hash of all App IDs + statuses.
 // Used by both dashboards to decide whether a full data fetch
 // is needed. Costs almost nothing server-side.
 // ============================================================
@@ -4899,15 +4907,15 @@ function logEmail(type, recipient, status, appId, errorMsg) {
 }
 
 // ============================================================
-// renderApplicantDashboard()  — extended with lease status card
+// renderApplicantDashboard()  â extended with lease status card
 // ============================================================
 // ============================================================
-// renderApplicantDashboard() — ENHANCED UI
+// renderApplicantDashboard() â ENHANCED UI
 // ============================================================
 
-  // ─────────────────────────────────────────────────────────────────────────────
-  // PHASE 6 — Holding Deposit Refund Eligibility
-  // ─────────────────────────────────────────────────────────────────────────────
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // PHASE 6 â Holding Deposit Refund Eligibility
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
   /**
    * Calculate holding deposit refund eligibility based on payment timestamp.
@@ -4922,7 +4930,7 @@ function logEmail(type, recipient, status, appId, errorMsg) {
       const paidAt = new Date(dateRaw);
       const hoursElapsed = (Date.now() - paidAt.getTime()) / 3600000;
       if (hoursElapsed < 24) return { status: 'full',    label: 'Full refund available (within 24h)',        color: '#43a047' };
-      if (hoursElapsed < 48) return { status: 'partial', label: 'Partial refund — review case (24–48h)',     color: '#fb8c00' };
+      if (hoursElapsed < 48) return { status: 'partial', label: 'Partial refund â review case (24â48h)',     color: '#fb8c00' };
       return                        { status: 'none',    label: 'Non-refundable (48h+ or lease executed)',   color: '#e53935' };
     }
     const paidAt      = new Date(parseInt(tsRaw));
@@ -4930,7 +4938,7 @@ function logEmail(type, recipient, status, appId, errorMsg) {
     const leaseExecuted = app['Lease Status'] === 'signed' || app['Lease Status'] === 'active';
     if (leaseExecuted) return { status: 'none', label: 'Non-refundable (lease executed)', color: '#e53935' };
     if (hoursElapsed < 24) return { status: 'full',    label: 'Full refund available (within 24h)',       color: '#43a047' };
-    if (hoursElapsed < 48) return { status: 'partial', label: 'Partial refund — review case (24–48h)',    color: '#fb8c00' };
+    if (hoursElapsed < 48) return { status: 'partial', label: 'Partial refund â review case (24â48h)',    color: '#fb8c00' };
     return                        { status: 'none',    label: 'Non-refundable (48h+ or lease executed)',  color: '#e53935' };
   }
 
@@ -4941,43 +4949,43 @@ function logEmail(type, recipient, status, appId, errorMsg) {
   const app = result.application;
   const baseUrl = ScriptApp.getService().getUrl();
 
-  // ── Status logic ──
+  // ââ Status logic ââ
   let statusColor, statusGradient, statusText, statusIcon, statusSubtext;
   if (app['Payment Status'] === 'unpaid') {
     statusColor = '#f59e0b'; statusGradient = 'linear-gradient(135deg,#f59e0b,#fbbf24)';
-    statusText = 'Pending Payment'; statusIcon = '⏳';
-    statusSubtext = 'Action required — payment needed to proceed';
+    statusText = 'Pending Payment'; statusIcon = 'â³';
+    statusSubtext = 'Action required â payment needed to proceed';
   } else if (app['Status'] === 'approved' && (app['Lease Status'] === 'signed' || app['Lease Status'] === 'active')) {
     statusColor = '#10b981'; statusGradient = 'linear-gradient(135deg,#059669,#10b981)';
-    statusText = 'Lease Signed'; statusIcon = '🏠';
+    statusText = 'Lease Signed'; statusIcon = 'ð ';
     statusSubtext = 'Welcome! Your lease is fully executed';
   } else if (app['Lease Status'] === 'sent') {
     statusColor = '#3b82f6'; statusGradient = 'linear-gradient(135deg,#2563eb,#3b82f6)';
-    statusText = 'Lease Ready to Sign'; statusIcon = '📜';
+    statusText = 'Lease Ready to Sign'; statusIcon = 'ð';
     statusSubtext = 'Please review and sign your lease agreement';
   } else if (app['Status'] === 'approved') {
     statusColor = '#10b981'; statusGradient = 'linear-gradient(135deg,#059669,#10b981)';
-    statusText = 'Approved'; statusIcon = '✅';
+    statusText = 'Approved'; statusIcon = 'â';
     statusSubtext = 'Congratulations! Your application was approved';
   } else if (app['Status'] === 'denied') {
     statusColor = '#ef4444'; statusGradient = 'linear-gradient(135deg,#dc2626,#ef4444)';
-    statusText = 'Not Approved'; statusIcon = '📋';
+    statusText = 'Not Approved'; statusIcon = 'ð';
     statusSubtext = 'Thank you for your application';
   } else if (app['Status'] === 'withdrawn') {
     statusColor = '#64748b'; statusGradient = 'linear-gradient(135deg,#475569,#64748b)';
-    statusText = 'Withdrawn'; statusIcon = '↩️';
+    statusText = 'Withdrawn'; statusIcon = 'â©ï¸';
     statusSubtext = 'You have withdrawn this application';
   } else if (app['Payment Status'] === 'paid') {
     statusColor = '#6366f1'; statusGradient = 'linear-gradient(135deg,#4f46e5,#6366f1)';
-    statusText = 'Under Review'; statusIcon = '🔍';
+    statusText = 'Under Review'; statusIcon = 'ð';
     statusSubtext = 'Your application is being reviewed';
   } else {
     statusColor = '#64748b'; statusGradient = 'linear-gradient(135deg,#475569,#64748b)';
-    statusText = 'Received'; statusIcon = '📝';
+    statusText = 'Received'; statusIcon = 'ð';
     statusSubtext = 'We have received your application';
   }
 
-  // ── Progress steps ──
+  // ââ Progress steps ââ
   const hfStatusDash = app['Holding Fee Status'] || 'none';
   const hfAmtDash    = parseFloat(app['Holding Fee Amount']) || 0;
   const steps = [
@@ -4988,21 +4996,21 @@ function logEmail(type, recipient, status, appId, errorMsg) {
     { label: 'Lease Ready',  done: app['Lease Status'] === 'sent' || app['Lease Status'] === 'signed' || app['Lease Status'] === 'active' },
     { label: 'Move-In',      done: app['Lease Status'] === 'signed' || app['Lease Status'] === 'active' }
   ];
-  const reviewTimeHint = (app['Payment Status'] === 'paid' && app['Status'] === 'received') ? '<p style="font-size:12px;color:#64748b;text-align:center;margin-top:10px;"><i class="fas fa-clock" style="margin-right:4px;"></i>Typical review time: 24–72 business hours</p>' : '';
+  const reviewTimeHint = (app['Payment Status'] === 'paid' && app['Status'] === 'received') ? '<p style="font-size:12px;color:#64748b;text-align:center;margin-top:10px;"><i class="fas fa-clock" style="margin-right:4px;"></i>Typical review time: 24â72 business hours</p>' : '';
   const progressHtml = steps.map((s, i) => `
     <div style="display:flex;flex-direction:column;align-items:center;flex:1;position:relative;">
       ${i < steps.length - 1 ? `<div style="position:absolute;top:16px;left:50%;width:100%;height:3px;background:${s.done ? statusColor : '#e2e8f0'};z-index:0;"></div>` : ''}
-      <div style="width:34px;height:34px;border-radius:50%;background:${s.done ? statusColor : '#e2e8f0'};color:${s.done ? 'white' : '#94a3b8'};display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;position:relative;z-index:1;box-shadow:${s.done ? '0 4px 10px rgba(0,0,0,.15)' : 'none'};">${s.done ? '✓' : (i + 1)}</div>
+      <div style="width:34px;height:34px;border-radius:50%;background:${s.done ? statusColor : '#e2e8f0'};color:${s.done ? 'white' : '#94a3b8'};display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;position:relative;z-index:1;box-shadow:${s.done ? '0 4px 10px rgba(0,0,0,.15)' : 'none'};">${s.done ? 'â' : (i + 1)}</div>
       <span style="font-size:11px;font-weight:600;color:${s.done ? '#1e293b' : '#94a3b8'};margin-top:7px;text-align:center;line-height:1.2;">${s.label}</span>
     </div>`).join('');
 
-  // ── Phase 8.1: Denied reapplication card ──────────────────
+  // ââ Phase 8.1: Denied reapplication card ââââââââââââââââââ
   let deniedCardHtml = '';
   if (app['Status'] === 'denied') {
     deniedCardHtml = `
       <div style="background:white;border-radius:18px;overflow:hidden;box-shadow:0 4px 20px rgba(239,68,68,.12);margin:0 0 20px;border:1.5px solid #fca5a5;">
         <div style="background:linear-gradient(135deg,#dc2626,#ef4444);padding:18px 24px;display:flex;align-items:center;gap:14px;">
-          <div style="width:44px;height:44px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">🔄</div>
+          <div style="width:44px;height:44px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">ð</div>
           <div>
             <div style="color:white;font-weight:700;font-size:16px;">Reapplication Protection</div>
             <div style="color:rgba(255,255,255,.85);font-size:13px;margin-top:2px;">Your options going forward</div>
@@ -5011,10 +5019,10 @@ function logEmail(type, recipient, status, appId, errorMsg) {
         <div style="padding:18px 22px;font-size:14px;color:#374151;">
           <p style="margin:0 0 12px;line-height:1.6;">While we were unable to approve your application for this property, our decision is based on current criteria and is <strong>not permanent</strong>.</p>
           <div style="background:#fef2f2;border-radius:12px;padding:14px 16px;margin-bottom:14px;">
-            <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;font-size:13px;line-height:1.5;"><span style="color:#dc2626;font-weight:700;flex-shrink:0;">✓</span><span><strong>No new fee for 30 days</strong> — Apply for any other available Choice Properties unit within 30 days and the $50 application fee will be waived.</span></div>
-            <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.5;"><span style="color:#dc2626;font-weight:700;flex-shrink:0;">✓</span><span><strong>Results valid for 60 days</strong> — Your background and credit screening remains on file and can be applied to a new application without re-running checks.</span></div>
+            <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;font-size:13px;line-height:1.5;"><span style="color:#dc2626;font-weight:700;flex-shrink:0;">â</span><span><strong>No new fee for 30 days</strong> â Apply for any other available Choice Properties unit within 30 days and the $50 application fee will be waived.</span></div>
+            <div style="display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:1.5;"><span style="color:#dc2626;font-weight:700;flex-shrink:0;">â</span><span><strong>Results valid for 60 days</strong> â Your background and credit screening remains on file and can be applied to a new application without re-running checks.</span></div>
           </div>
-          <p style="margin:0 0 14px;font-size:13px;color:#6b7280;line-height:1.5;">We encourage you to reach out — our team can discuss available properties that may be a better fit and walk you through your options.</p>
+          <p style="margin:0 0 14px;font-size:13px;color:#6b7280;line-height:1.5;">We encourage you to reach out â our team can discuss available properties that may be a better fit and walk you through your options.</p>
           <div style="display:flex;flex-wrap:wrap;gap:10px;">
             <a href="tel:7077063137" style="display:inline-flex;align-items:center;gap:8px;background:#dc2626;color:white;padding:11px 20px;border-radius:50px;font-weight:600;font-size:14px;text-decoration:none;"><i class="fas fa-phone"></i> Call Us</a>
             <a href="mailto:choicepropertygroup@hotmail.com" style="display:inline-flex;align-items:center;gap:8px;background:white;color:#dc2626;border:2px solid #fca5a5;padding:10px 20px;border-radius:50px;font-weight:600;font-size:14px;text-decoration:none;"><i class="fas fa-envelope"></i> Email Us</a>
@@ -5023,7 +5031,7 @@ function logEmail(type, recipient, status, appId, errorMsg) {
       </div>`;
   }
 
-  // ── Phase 8.5: Withdraw button (shown when status is still actionable) ──
+  // ââ Phase 8.5: Withdraw button (shown when status is still actionable) ââ
   const canWithdraw = !['approved', 'denied', 'withdrawn'].includes(app['Status'] || '') &&
                       !['signed', 'active'].includes(app['Lease Status'] || '');
   const withdrawHtml = canWithdraw ? `
@@ -5033,31 +5041,31 @@ function logEmail(type, recipient, status, appId, errorMsg) {
       </button>
     </div>` : '';
 
-  // ── Holding fee card (shown on approved apps when HF requested or paid) ──
+  // ââ Holding fee card (shown on approved apps when HF requested or paid) ââ
   let hfCardHtml = '';
   if (app['Status'] === 'approved' && hfStatusDash !== 'none') {
     const hfPaid = hfStatusDash === 'paid';
     hfCardHtml = `
       <div style="background:white;border-radius:18px;overflow:hidden;box-shadow:0 4px 20px ${hfPaid ? 'rgba(16,185,129,.12)' : 'rgba(245,158,11,.15)'};margin:0 0 20px;border:1.5px solid ${hfPaid ? '#a7f3d0' : '#fcd34d'};">
         <div style="background:${hfPaid ? 'linear-gradient(135deg,#059669,#10b981)' : 'linear-gradient(135deg,#d97706,#f59e0b)'};padding:16px 22px;display:flex;align-items:center;gap:14px;">
-          <div style="width:42px;height:42px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">${hfPaid ? '✅' : '⏳'}</div>
+          <div style="width:42px;height:42px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;">${hfPaid ? 'â' : 'â³'}</div>
           <div>
-            <div style="color:white;font-weight:700;font-size:16px;">${hfPaid ? 'Holding Fee Received — Thank You!' : 'Action Required: Holding Fee'}</div>
+            <div style="color:white;font-weight:700;font-size:16px;">${hfPaid ? 'Holding Fee Received â Thank You!' : 'Action Required: Holding Fee'}</div>
             <div style="color:rgba(255,255,255,.85);font-size:13px;margin-top:2px;">${hfPaid ? `$${hfAmtDash.toLocaleString()} credited toward your move-in total` : `$${hfAmtDash.toLocaleString()} due within 48 hours to hold your unit`}</div>
           </div>
         </div>
         <div style="padding:16px 22px;font-size:14px;color:#374151;">
           ${hfPaid
-            ? `<p style="margin:0;">Your holding deposit of <strong>$${hfAmtDash.toLocaleString()}</strong> has been received and will be fully credited toward your move-in total when you take possession. No further action is needed at this time — our team will be in touch with your lease details shortly.</p>`
-            : `<p style="margin:0 0 10px;">To officially reserve this unit, a holding fee of <strong>$${hfAmtDash.toLocaleString()}</strong> is required. Please contact our office to submit payment. This fee is not an additional charge — it will be credited in full toward your move-in costs.</p>
-               <p style="margin:0;color:#b45309;font-weight:600;">⏰ Please respond within 48 hours. The unit may be offered to another applicant if the holding fee is not received.</p>
+            ? `<p style="margin:0;">Your holding deposit of <strong>$${hfAmtDash.toLocaleString()}</strong> has been received and will be fully credited toward your move-in total when you take possession. No further action is needed at this time â our team will be in touch with your lease details shortly.</p>`
+            : `<p style="margin:0 0 10px;">To officially reserve this unit, a holding fee of <strong>$${hfAmtDash.toLocaleString()}</strong> is required. Please contact our office to submit payment. This fee is not an additional charge â it will be credited in full toward your move-in costs.</p>
+               <p style="margin:0;color:#b45309;font-weight:600;">â° Please respond within 48 hours. The unit may be offered to another applicant if the holding fee is not received.</p>
                <p style="margin:10px 0 0;"><strong>Contact us:</strong> <a href="tel:7077063137" style="color:#d97706;">707-706-3137</a> &nbsp;|&nbsp; <a href="mailto:choicepropertygroup@hotmail.com" style="color:#d97706;">choicepropertygroup@hotmail.com</a></p>`
           }
         </div>
       </div>`;
   }
 
-  // ── Lease card ──
+  // ââ Lease card ââ
   const leaseStatus = app['Lease Status'] || 'none';
   let leaseCardHtml = '';
   if (leaseStatus === 'sent') {
@@ -5065,7 +5073,7 @@ function logEmail(type, recipient, status, appId, errorMsg) {
     leaseCardHtml = `
       <div style="background:white;border-radius:18px;overflow:hidden;box-shadow:0 4px 20px rgba(37,99,235,.12);margin:0 0 20px;border:1.5px solid #bfdbfe;">
         <div style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);padding:18px 24px;display:flex;align-items:center;gap:14px;">
-          <div style="width:46px;height:46px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">📜</div>
+          <div style="width:46px;height:46px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">ð</div>
           <div><div style="color:white;font-weight:700;font-size:17px;">Your Lease is Ready to Sign</div><div style="color:rgba(255,255,255,.8);font-size:13px;margin-top:2px;">Please review carefully before signing</div></div>
         </div>
         <div style="padding:20px 24px;">
@@ -5074,30 +5082,30 @@ function logEmail(type, recipient, status, appId, errorMsg) {
             <div style="background:#f0fdf4;border-radius:12px;padding:14px;text-align:center;"><div style="font-size:11px;font-weight:600;color:#64748b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">Move-in Total</div><div style="font-size:22px;font-weight:800;color:#059669;">$${parseFloat(app['Move-in Costs']||0).toLocaleString()}</div></div>
           </div>
           <div style="background:#f8fafc;border-radius:10px;padding:12px 16px;margin-bottom:16px;">
-            <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e2e8f0;font-size:14px;"><span style="color:#64748b;font-weight:500;">Lease Start Date</span><span style="font-weight:600;color:#1e293b;">${app['Lease Start Date']||'—'}</span></div>
+            <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #e2e8f0;font-size:14px;"><span style="color:#64748b;font-weight:500;">Lease Start Date</span><span style="font-weight:600;color:#1e293b;">${app['Lease Start Date']||'â'}</span></div>
             <div style="display:flex;justify-content:space-between;padding:7px 0;font-size:14px;"><span style="color:#64748b;font-weight:500;">Security Deposit</span><span style="font-weight:600;color:#1e293b;">$${parseFloat(app['Security Deposit']||0).toLocaleString()}</span></div>
           </div>
-          <a href="${leaseLink}" style="display:block;background:linear-gradient(to right,#059669,#10b981);color:white;text-align:center;padding:16px;border-radius:50px;font-weight:700;font-size:17px;text-decoration:none;letter-spacing:.2px;box-shadow:0 6px 18px rgba(16,185,129,.3);">✍️ Review &amp; Sign My Lease</a>
-          <p style="font-size:12px;color:#f59e0b;text-align:center;margin:10px 0 0;font-weight:600;">⏰ Please sign within 48 hours to hold your unit</p>
+          <a href="${leaseLink}" style="display:block;background:linear-gradient(to right,#059669,#10b981);color:white;text-align:center;padding:16px;border-radius:50px;font-weight:700;font-size:17px;text-decoration:none;letter-spacing:.2px;box-shadow:0 6px 18px rgba(16,185,129,.3);">âï¸ Review &amp; Sign My Lease</a>
+          <p style="font-size:12px;color:#f59e0b;text-align:center;margin:10px 0 0;font-weight:600;">â° Please sign within 48 hours to hold your unit</p>
         </div>
       </div>`;
   } else if (leaseStatus === 'signed' || leaseStatus === 'active') {
     leaseCardHtml = `
       <div style="background:white;border-radius:18px;overflow:hidden;box-shadow:0 4px 20px rgba(16,185,129,.12);margin:0 0 20px;border:1.5px solid #a7f3d0;">
         <div style="background:linear-gradient(135deg,#059669,#10b981);padding:18px 24px;display:flex;align-items:center;gap:14px;">
-          <div style="width:46px;height:46px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">🏠</div>
-          <div><div style="color:white;font-weight:700;font-size:17px;">Lease Signed — Welcome Home!</div><div style="color:rgba(255,255,255,.8);font-size:13px;margin-top:2px;">Your tenancy is confirmed</div></div>
+          <div style="width:46px;height:46px;background:rgba(255,255,255,.2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;">ð </div>
+          <div><div style="color:white;font-weight:700;font-size:17px;">Lease Signed â Welcome Home!</div><div style="color:rgba(255,255,255,.8);font-size:13px;margin-top:2px;">Your tenancy is confirmed</div></div>
         </div>
         <div style="padding:20px 24px;">
           <div style="background:#f0fdf4;border-radius:12px;padding:4px 0;margin-bottom:16px;">
-            ${[['Property',app['Property Address']||'—'],['Move-in Date',app['Lease Start Date']||'—'],['Lease Ends',app['Lease End Date']||'—'],['Monthly Rent','$'+parseFloat(app['Monthly Rent']||0).toLocaleString()],['Signed By',app['Tenant Signature']||'—']].map(([l,v],i,a)=>`<div style="display:flex;justify-content:space-between;padding:10px 16px;${i<a.length-1?'border-bottom:1px solid #d1fae5;':''}font-size:14px;"><span style="color:#64748b;font-weight:500;">${l}</span><span style="font-weight:600;color:#1e293b;">${v}</span></div>`).join('')}
+            ${[['Property',app['Property Address']||'â'],['Move-in Date',app['Lease Start Date']||'â'],['Lease Ends',app['Lease End Date']||'â'],['Monthly Rent','$'+parseFloat(app['Monthly Rent']||0).toLocaleString()],['Signed By',app['Tenant Signature']||'â']].map(([l,v],i,a)=>`<div style="display:flex;justify-content:space-between;padding:10px 16px;${i<a.length-1?'border-bottom:1px solid #d1fae5;':''}font-size:14px;"><span style="color:#64748b;font-weight:500;">${l}</span><span style="font-weight:600;color:#1e293b;">${v}</span></div>`).join('')}
           </div>
           <p style="font-size:13px;color:#059669;text-align:center;font-weight:600;margin:0;">Questions? Text us at <strong>707-706-3137</strong></p>
         </div>
       </div>`;
   }
 
-  // ── Payment methods ──
+  // ââ Payment methods ââ
   const paymentMethods = [];
   if (app['Primary Payment Method']) {
     const v = app['Primary Payment Method'] === 'Other' && app['Primary Payment Method Other'] ? app['Primary Payment Method Other'] : app['Primary Payment Method'];
@@ -5112,16 +5120,16 @@ function logEmail(type, recipient, status, appId, errorMsg) {
     paymentMethods.push({ label: '3rd Choice', value: v });
   }
 
-  // ── Extra detail sections ──
+  // ââ Extra detail sections ââ
   let extraHtml = '';
   if (app['Has Co-Applicant'] && app['Co-Applicant First Name']) {
-    extraHtml += `<div style="margin-bottom:20px;"><h4 style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 12px;display:flex;align-items:center;gap:8px;"><span style="background:#e0e7ff;color:#4f46e5;padding:5px 10px;border-radius:20px;font-size:13px;">👥 Co-Applicant / Guarantor</span></h4><div style="background:#f8fafc;border-radius:12px;padding:16px;font-size:14px;"><div style="display:grid;gap:8px;"><div><span style="color:#64748b;font-weight:500;">Role:</span> <span style="font-weight:600;">${app['Additional Person Role']||'Not specified'}</span></div><div><span style="color:#64748b;font-weight:500;">Name:</span> <span style="font-weight:600;">${app['Co-Applicant First Name']||''} ${app['Co-Applicant Last Name']||''}</span></div><div><span style="color:#64748b;font-weight:500;">Email:</span> <span style="font-weight:600;">${app['Co-Applicant Email']||''}</span></div><div><span style="color:#64748b;font-weight:500;">Phone:</span> <span style="font-weight:600;">${app['Co-Applicant Phone']||''}</span></div></div></div></div>`;
+    extraHtml += `<div style="margin-bottom:20px;"><h4 style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 12px;display:flex;align-items:center;gap:8px;"><span style="background:#e0e7ff;color:#4f46e5;padding:5px 10px;border-radius:20px;font-size:13px;">ð¥ Co-Applicant / Guarantor</span></h4><div style="background:#f8fafc;border-radius:12px;padding:16px;font-size:14px;"><div style="display:grid;gap:8px;"><div><span style="color:#64748b;font-weight:500;">Role:</span> <span style="font-weight:600;">${app['Additional Person Role']||'Not specified'}</span></div><div><span style="color:#64748b;font-weight:500;">Name:</span> <span style="font-weight:600;">${app['Co-Applicant First Name']||''} ${app['Co-Applicant Last Name']||''}</span></div><div><span style="color:#64748b;font-weight:500;">Email:</span> <span style="font-weight:600;">${app['Co-Applicant Email']||''}</span></div><div><span style="color:#64748b;font-weight:500;">Phone:</span> <span style="font-weight:600;">${app['Co-Applicant Phone']||''}</span></div></div></div></div>`;
   }
   if (app['Vehicle Make']) {
-    extraHtml += `<div style="margin-bottom:20px;"><h4 style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 12px;display:flex;align-items:center;gap:8px;"><span style="background:#fef3c7;color:#d97706;padding:5px 10px;border-radius:20px;font-size:13px;">🚗 Vehicle</span></h4><div style="background:#f8fafc;border-radius:12px;padding:16px;font-size:14px;"><div style="display:grid;gap:8px;"><div><span style="color:#64748b;font-weight:500;">Make:</span> <span style="font-weight:600;">${app['Vehicle Make']}</span></div><div><span style="color:#64748b;font-weight:500;">Model:</span> <span style="font-weight:600;">${app['Vehicle Model']||''}</span></div><div><span style="color:#64748b;font-weight:500;">Year:</span> <span style="font-weight:600;">${app['Vehicle Year']||''}</span></div></div></div></div>`;
+    extraHtml += `<div style="margin-bottom:20px;"><h4 style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 12px;display:flex;align-items:center;gap:8px;"><span style="background:#fef3c7;color:#d97706;padding:5px 10px;border-radius:20px;font-size:13px;">ð Vehicle</span></h4><div style="background:#f8fafc;border-radius:12px;padding:16px;font-size:14px;"><div style="display:grid;gap:8px;"><div><span style="color:#64748b;font-weight:500;">Make:</span> <span style="font-weight:600;">${app['Vehicle Make']}</span></div><div><span style="color:#64748b;font-weight:500;">Model:</span> <span style="font-weight:600;">${app['Vehicle Model']||''}</span></div><div><span style="color:#64748b;font-weight:500;">Year:</span> <span style="font-weight:600;">${app['Vehicle Year']||''}</span></div></div></div></div>`;
   }
   if (app['Preferred Contact Method'] || app['Preferred Time']) {
-    extraHtml += `<div style="margin-bottom:20px;"><h4 style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 12px;display:flex;align-items:center;gap:8px;"><span style="background:#dcfce7;color:#16a34a;padding:5px 10px;border-radius:20px;font-size:13px;">📱 Contact Preferences</span></h4><div style="background:#f8fafc;border-radius:12px;padding:16px;font-size:14px;"><div style="display:grid;gap:8px;"><div><span style="color:#64748b;font-weight:500;">Method:</span> <span style="font-weight:600;">${app['Preferred Contact Method']||'Not specified'}</span></div><div><span style="color:#64748b;font-weight:500;">Times:</span> <span style="font-weight:600;">${app['Preferred Time']||'Any'}</span></div><div><span style="color:#64748b;font-weight:500;">Notes:</span> <span style="font-weight:600;">${app['Preferred Time Specific']||'None'}</span></div></div></div></div>`;
+    extraHtml += `<div style="margin-bottom:20px;"><h4 style="font-size:14px;font-weight:700;color:#1e293b;margin:0 0 12px;display:flex;align-items:center;gap:8px;"><span style="background:#dcfce7;color:#16a34a;padding:5px 10px;border-radius:20px;font-size:13px;">ð± Contact Preferences</span></h4><div style="background:#f8fafc;border-radius:12px;padding:16px;font-size:14px;"><div style="display:grid;gap:8px;"><div><span style="color:#64748b;font-weight:500;">Method:</span> <span style="font-weight:600;">${app['Preferred Contact Method']||'Not specified'}</span></div><div><span style="color:#64748b;font-weight:500;">Times:</span> <span style="font-weight:600;">${app['Preferred Time']||'Any'}</span></div><div><span style="color:#64748b;font-weight:500;">Notes:</span> <span style="font-weight:600;">${app['Preferred Time Specific']||'None'}</span></div></div></div></div>`;
   }
 
   return HtmlService.createHtmlOutput(`
@@ -5129,7 +5137,7 @@ function logEmail(type, recipient, status, appId, errorMsg) {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Application Status — Choice Properties</title>
+  <title>Application Status â Choice Properties</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#1B3A5C">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -5148,7 +5156,7 @@ function logEmail(type, recipient, status, appId, errorMsg) {
     }
     .shell { max-width: 640px; margin: 0 auto; }
 
-    /* ── Top bar ── */
+    /* ââ Top bar ââ */
     .top-bar {
       display: flex;
       justify-content: space-between;
@@ -5187,7 +5195,7 @@ function logEmail(type, recipient, status, appId, errorMsg) {
     }
     .refresh-btn:hover, .refresh-btn:active { background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.3); }
 
-    /* ── Status hero card ── */
+    /* ââ Status hero card ââ */
     .status-hero {
       background: white;
       border-radius: 22px;
@@ -5244,7 +5252,7 @@ function logEmail(type, recipient, status, appId, errorMsg) {
       letter-spacing: .3px;
     }
 
-    /* ── Progress tracker ── */
+    /* ââ Progress tracker ââ */
     .progress-wrap {
       padding: 20px 20px 18px;
       border-bottom: 1px solid #f1f5f9;
@@ -5263,7 +5271,7 @@ function logEmail(type, recipient, status, appId, errorMsg) {
       align-items: flex-start;
     }
 
-    /* ── Payment pending alert ── */
+    /* ââ Payment pending alert ââ */
     .payment-alert {
       margin: 18px 20px;
       background: linear-gradient(135deg, #fffbeb, #fef3c7);
@@ -5295,7 +5303,7 @@ function logEmail(type, recipient, status, appId, errorMsg) {
       margin: 3px 4px 3px 0;
     }
 
-    /* ── Info grid ── */
+    /* ââ Info grid ââ */
     .info-section { padding: 18px 20px 4px; }
     .section-header {
       font-size: 10px;
@@ -5335,7 +5343,7 @@ function logEmail(type, recipient, status, appId, errorMsg) {
       line-height: 1.3;
     }
 
-    /* ── Toggle button ── */
+    /* ââ Toggle button ââ */
     .toggle-btn {
       display: flex;
       align-items: center;
@@ -5358,7 +5366,7 @@ function logEmail(type, recipient, status, appId, errorMsg) {
     .toggle-btn:hover, .toggle-btn:active { background: #f1f5f9; border-color: #cbd5e1; color: #1e293b; }
     .extra-details { display: none; padding: 0 20px 4px; }
 
-    /* ── Contact card (replaces dark footer) ── */
+    /* ââ Contact card (replaces dark footer) ââ */
     .contact-card {
       background: white;
       border-radius: 18px;
@@ -5411,10 +5419,10 @@ function logEmail(type, recipient, status, appId, errorMsg) {
     .contact-row-value { font-size: 14px; font-weight: 600; color: #1e293b; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .contact-row-arrow { color: #94a3b8; font-size: 12px; flex-shrink: 0; }
 
-    /* Keep .contact-footer for JS DOM queries — rendered invisible */
+    /* Keep .contact-footer for JS DOM queries â rendered invisible */
     .contact-footer { display: none; }
 
-    /* ── Back link ── */
+    /* ââ Back link ââ */
     .back-link {
       display: flex;
       align-items: center;
@@ -5434,7 +5442,7 @@ function logEmail(type, recipient, status, appId, errorMsg) {
     }
     .back-link:hover, .back-link:active { background: rgba(255,255,255,.18); border-color: rgba(255,255,255,.32); color: white; }
 
-    /* ── Responsive ── */
+    /* ââ Responsive ââ */
     @media (max-width: 480px) {
       body { padding: 16px 12px 36px; }
       .status-title { font-size: 23px; }
@@ -5450,7 +5458,7 @@ function logEmail(type, recipient, status, appId, errorMsg) {
       .info-grid { grid-template-columns: 1fr; }
     }
 
-    /* ── Animations ── */
+    /* ââ Animations ââ */
     @keyframes slideDown { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
     .animate-in { animation: slideDown .3s ease forwards; }
   </style>
@@ -5490,10 +5498,10 @@ function logEmail(type, recipient, status, appId, errorMsg) {
     ${app['Payment Status'] === 'unpaid' ? `
     <!-- Payment pending card -->
     <div class="payment-alert" style="margin:20px 24px;">
-      <h5>⏳ Payment Required</h5>
+      <h5>â³ Payment Required</h5>
       <p>Your application is on hold. Our team will text you at <strong>${app['Phone']}</strong> within 24 hours to collect your $${app['Application Fee'] || APPLICATION_FEE} application fee.</p>
       <div>
-        ${paymentMethods.map(m => `<span class="pay-method-pill">🎯 ${m.label}: ${m.value}</span>`).join('')}
+        ${paymentMethods.map(m => `<span class="pay-method-pill">ð¯ ${m.label}: ${m.value}</span>`).join('')}
       </div>
     </div>` : ''}
 
@@ -5522,7 +5530,7 @@ function logEmail(type, recipient, status, appId, errorMsg) {
       ${extraHtml || '<p style="color:#94a3b8;font-size:14px;padding:0 0 20px;">No additional details on file.</p>'}
     </div>
 
-    <!-- Contact footer kept for JS DOM queries — visually hidden via CSS -->
+    <!-- Contact footer kept for JS DOM queries â visually hidden via CSS -->
     <div class="contact-footer"></div>
   </div>
 
@@ -5532,13 +5540,13 @@ function logEmail(type, recipient, status, appId, errorMsg) {
   <!-- Phase 8.5: Withdraw application link -->
   ${withdrawHtml}
 
-  <!-- Contact card — professional replacement for the old dark footer -->
+  <!-- Contact card â professional replacement for the old dark footer -->
   <div class="contact-card">
     <div class="contact-card-header">
       <div class="contact-card-icon"><i class="fas fa-headset"></i></div>
       <div>
         <div class="contact-card-title">Questions? We're here to help.</div>
-        <div class="contact-card-sub">Choice Properties · Troy, MI</div>
+        <div class="contact-card-sub">Choice Properties Â· Troy, MI</div>
       </div>
     </div>
     <div class="contact-card-body">
@@ -5562,7 +5570,7 @@ function logEmail(type, recipient, status, appId, errorMsg) {
         <div class="contact-row-icon address"><i class="fas fa-location-dot"></i></div>
         <div class="contact-row-text">
           <div class="contact-row-label">Office</div>
-          <div class="contact-row-value">2265 Livernois, Suite 500 · Troy, MI 48083</div>
+          <div class="contact-row-value">2265 Livernois, Suite 500 Â· Troy, MI 48083</div>
         </div>
       </div>
     </div>
@@ -5577,12 +5585,12 @@ function logEmail(type, recipient, status, appId, errorMsg) {
 <script>
   const APP_ID = '${app['App ID']}';
 
-  // ══════════════════════════════════════════════════════════
-  // LIVE STATUS WATCHER — Applicant Dashboard
+  // ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // LIVE STATUS WATCHER â Applicant Dashboard
   // Polls every 15s. When status changes, smoothly updates
-  // the hero banner, progress tracker, and lease card —
+  // the hero banner, progress tracker, and lease card â
   // no page reload, no lost scroll position.
-  // ══════════════════════════════════════════════════════════
+  // ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
   let _lastStatusFingerprint = '${app['Payment Status']}|${app['Status']}|${(app['Lease Status'] || 'none')}';
   let _watchTimer = null;
 
@@ -5605,10 +5613,10 @@ function logEmail(type, recipient, status, appId, errorMsg) {
         'border-radius:50%;margin-right:6px;vertical-align:middle;' +
         'animation:watchPulse 2.5s ease-in-out infinite;';
       refreshBtn.prepend(dot);
-      refreshBtn.title = 'Status updates automatically — no refresh needed';
+      refreshBtn.title = 'Status updates automatically â no refresh needed';
     }
 
-    // Check every 45 seconds — balances responsiveness with GAS daily execution quota.
+    // Check every 45 seconds â balances responsiveness with GAS daily execution quota.
     // At 5s the quota (~6 min/day free tier) burns out with just a few concurrent viewers.
     // 45s allows ~190 checks/day per applicant before quota pressure.
     _watchTimer = setInterval(checkForStatusChange, 45000);
@@ -5623,7 +5631,7 @@ function logEmail(type, recipient, status, appId, errorMsg) {
           applyLiveStatusUpdate(data);
         }
       })
-      .withFailureHandler(function() { /* silent — don't alarm the user */ })
+      .withFailureHandler(function() { /* silent â don't alarm the user */ })
       .getApplicationLiveStatus(APP_ID);
   }
 
@@ -5632,41 +5640,41 @@ function logEmail(type, recipient, status, appId, errorMsg) {
     const stat  = data.appStatus     || 'pending';
     const lease = data.leaseStatus   || 'none';
 
-    // ── Compute new display values ──
+    // ââ Compute new display values ââ
     let gradient, icon, title, subtitle, progressStep;
     if (pay === 'unpaid') {
       gradient = 'linear-gradient(135deg,#f59e0b,#fbbf24)';
-      icon = '⏳'; title = 'Pending Payment';
-      subtitle = 'Action required — payment needed to proceed';
+      icon = 'â³'; title = 'Pending Payment';
+      subtitle = 'Action required â payment needed to proceed';
       progressStep = 0;
     } else if (stat === 'approved' && (lease === 'signed' || lease === 'active')) {
       gradient = 'linear-gradient(135deg,#059669,#10b981)';
-      icon = '🏠'; title = 'Lease Signed';
+      icon = 'ð '; title = 'Lease Signed';
       subtitle = 'Welcome! Your lease is fully executed';
       progressStep = 4;
     } else if (lease === 'sent') {
       gradient = 'linear-gradient(135deg,#2563eb,#3b82f6)';
-      icon = '📜'; title = 'Lease Ready to Sign';
+      icon = 'ð'; title = 'Lease Ready to Sign';
       subtitle = 'Please review and sign your lease agreement';
       progressStep = 3;
     } else if (stat === 'approved') {
       gradient = 'linear-gradient(135deg,#059669,#34d399)';
-      icon = '✅'; title = 'Application Approved!';
-      subtitle = 'Congratulations — your lease will be sent shortly';
+      icon = 'â'; title = 'Application Approved!';
+      subtitle = 'Congratulations â your lease will be sent shortly';
       progressStep = 2;
     } else if (stat === 'denied') {
       gradient = 'linear-gradient(135deg,#dc2626,#ef4444)';
-      icon = '❌'; title = 'Application Declined';
+      icon = 'â'; title = 'Application Declined';
       subtitle = 'Please contact us for more information';
       progressStep = -1;
     } else {
       gradient = 'linear-gradient(135deg,#6366f1,#8b5cf6)';
-      icon = '🔍'; title = 'Under Review';
+      icon = 'ð'; title = 'Under Review';
       subtitle = 'Our team is reviewing your application';
       progressStep = 1;
     }
 
-    // ── Animate the banner ──
+    // ââ Animate the banner ââ
     const banner = document.querySelector('.status-banner');
     if (banner) {
       banner.style.transition = 'background .6s ease';
@@ -5681,15 +5689,15 @@ function logEmail(type, recipient, status, appId, errorMsg) {
       setTimeout(() => banner.classList.remove('status-updated'), 600);
     }
 
-    // ── Update progress steps ──
+    // ââ Update progress steps ââ
     updateProgressSteps(progressStep, stat === 'denied');
 
-    // ── Update / inject lease card if lease was just sent or signed ──
+    // ââ Update / inject lease card if lease was just sent or signed ââ
     if (lease === 'sent' || lease === 'signed' || lease === 'active') {
       updateLeaseCard(data, lease);
     }
 
-    // ── Remove payment alert if now paid ──
+    // ââ Remove payment alert if now paid ââ
     if (pay !== 'unpaid') {
       const payAlert = document.querySelector('.payment-alert');
       if (payAlert) {
@@ -5701,8 +5709,8 @@ function logEmail(type, recipient, status, appId, errorMsg) {
       }
     }
 
-    // ── Show a non-intrusive toast notification ──
-    showStatusToast('✨ Your status has been updated: ' + title);
+    // ââ Show a non-intrusive toast notification ââ
+    showStatusToast('â¨ Your status has been updated: ' + title);
   }
 
   function updateProgressSteps(activeStep, denied) {
@@ -5724,7 +5732,7 @@ function logEmail(type, recipient, status, appId, errorMsg) {
     const leaseContainer = document.querySelector('.lease-card-live') ||
                            document.querySelector('[data-lease-card]');
     if (!leaseContainer) {
-      // No lease card yet — inject one above the toggle button
+      // No lease card yet â inject one above the toggle button
       const toggleBtn = document.getElementById('toggleBtn');
       if (!toggleBtn) return;
       const card = buildLeaseCardHtml(data, lease);
@@ -5747,21 +5755,21 @@ function logEmail(type, recipient, status, appId, errorMsg) {
 
   function buildLeaseCardInner(data, lease) {
     const isSigned = (lease === 'signed' || lease === 'active');
-    const rent      = data.monthlyRent      ? '\$' + parseFloat(data.monthlyRent).toLocaleString()      : '—';
-    const deposit   = data.securityDeposit  ? '\$' + parseFloat(data.securityDeposit).toLocaleString()  : '—';
-    const movein    = data.moveInCosts      ? '\$' + parseFloat(data.moveInCosts).toLocaleString()       : '—';
-    const startDate = data.leaseStartDate   || '—';
-    const endDate   = data.leaseEndDate     || '—';
+    const rent      = data.monthlyRent      ? '\$' + parseFloat(data.monthlyRent).toLocaleString()      : 'â';
+    const deposit   = data.securityDeposit  ? '\$' + parseFloat(data.securityDeposit).toLocaleString()  : 'â';
+    const movein    = data.moveInCosts      ? '\$' + parseFloat(data.moveInCosts).toLocaleString()       : 'â';
+    const startDate = data.leaseStartDate   || 'â';
+    const endDate   = data.leaseEndDate     || 'â';
     const btnHtml   = isSigned ? '' :
       '<a href="?path=lease&id=' + APP_ID + '" style="display:block;margin-top:12px;' +
       'background:linear-gradient(to right,#2563eb,#3b82f6);color:white;text-align:center;' +
       'padding:13px;border-radius:12px;font-size:14px;font-weight:700;text-decoration:none;">' +
-      '✍️ Review & Sign My Lease</a>';
+      'âï¸ Review & Sign My Lease</a>';
     return '<div style="background:' + (isSigned ? 'linear-gradient(135deg,#f0fdf4,#dcfce7)' : 'linear-gradient(135deg,#eff6ff,#dbeafe)') + ';' +
       'border:1.5px solid ' + (isSigned ? '#86efac' : '#93c5fd') + ';border-radius:16px;padding:18px 20px;">' +
       '<div style="font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;' +
       'color:' + (isSigned ? '#15803d' : '#1e40af') + ';margin-bottom:12px;">' +
-      (isSigned ? '🏠 Lease Executed' : '📜 Lease Ready to Sign') + '</div>' +
+      (isSigned ? 'ð  Lease Executed' : 'ð Lease Ready to Sign') + '</div>' +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px;">' +
       '<div><span style="color:#64748b;">Monthly Rent</span><br><strong>' + rent + '</strong></div>' +
       '<div><span style="color:#64748b;">Security Deposit</span><br><strong>' + deposit + '</strong></div>' +
@@ -5809,11 +5817,11 @@ function logEmail(type, recipient, status, appId, errorMsg) {
   // Boot the watcher when the page loads
   window.addEventListener('load', initStatusWatcher);
 
-  // ── Phase 8.5: Withdraw application ──────────────────────
+  // ââ Phase 8.5: Withdraw application ââââââââââââââââââââââ
   function withdrawApp() {
     if (!confirm('Are you sure you want to withdraw your application? This action cannot be undone.')) return;
     const btn = document.getElementById('withdrawBtn');
-    if (btn) { btn.disabled = true; btn.textContent = 'Withdrawing…'; }
+    if (btn) { btn.disabled = true; btn.textContent = 'Withdrawingâ¦'; }
     google.script.run
       .withSuccessHandler(function(result) {
         if (result.success) {
@@ -5829,14 +5837,14 @@ function logEmail(type, recipient, status, appId, errorMsg) {
       })
       .withdrawApplication('${app['App ID']}');
   }
-  // ─────────────────────────────────────────────────────────
+  // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 </body>
 </html>
-  `).setTitle('Application ' + app['App ID'] + ' — Choice Properties');
+  `).setTitle('Application ' + app['App ID'] + ' â Choice Properties');
 }
 
 // ============================================================
-// renderAdminPanel() — ENHANCED UI
+// renderAdminPanel() â ENHANCED UI
 // ============================================================
 function renderAdminPanel(authToken) {
   initializeSheets();
@@ -5882,7 +5890,7 @@ function renderAdminPanel(authToken) {
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Admin Dashboard — Choice Properties</title>
+  <title>Admin Dashboard â Choice Properties</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0f172a">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -5901,7 +5909,7 @@ function renderAdminPanel(authToken) {
     body.modal-open { overflow: hidden; }
     body.sidebar-lock { overflow: hidden; }
 
-    /* ── Sidebar + layout ── */
+    /* ââ Sidebar + layout ââ */
     .layout { display: flex; min-height: 100vh; }
     .sidebar {
       width: 270px;
@@ -6024,7 +6032,7 @@ function renderAdminPanel(authToken) {
     }
     .sidebar-footer p { color: rgba(255,255,255,.3); font-size: 11px; text-align: center; line-height: 1.6; }
 
-    /* ── Main content ── */
+    /* ââ Main content ââ */
     .main { margin-left: 0; padding: 0; flex: 1; min-width: 0; }
     .btn-sidebar-toggle {
       display: inline-flex;
@@ -6095,7 +6103,7 @@ function renderAdminPanel(authToken) {
     .spinning { animation: spin .8s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Stats row — horizontally scrollable on mobile ── */
+    /* ââ Stats row â horizontally scrollable on mobile ââ */
     .page-content { padding: 20px 24px 80px; }
     .stats-scroll-wrap {
       overflow-x: auto;
@@ -6142,7 +6150,7 @@ function renderAdminPanel(authToken) {
     .stat-num { font-size: 28px; font-weight: 800; color: #0f172a; line-height: 1; }
     .stat-label { font-size: 11px; font-weight: 600; color: #94a3b8; margin-top: 6px; text-transform: uppercase; letter-spacing: .4px; }
 
-    /* ── Search + filters ── */
+    /* ââ Search + filters ââ */
     .controls-bar { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
     .search-wrap { position: relative; }
     .search-icon {
@@ -6184,7 +6192,7 @@ function renderAdminPanel(authToken) {
     .filter-pill:hover { border-color: #94a3b8; color: #1e293b; }
     .filter-pill.active { background: #1e293b; color: white; border-color: #1e293b; }
 
-    /* ── Application cards ── */
+    /* ââ Application cards ââ */
     #applicationsContainer { display: flex; flex-direction: column; gap: 12px; }
     .app-card {
       background: white;
@@ -6256,7 +6264,7 @@ function renderAdminPanel(authToken) {
     }
     .pay-prefs strong { font-weight: 700; }
 
-    /* ── Action buttons — larger for touch ── */
+    /* ââ Action buttons â larger for touch ââ */
     .card-actions {
       display: flex;
       flex-wrap: wrap;
@@ -6297,7 +6305,7 @@ function renderAdminPanel(authToken) {
     .badge-hold-req  { background:#fef3c7; color:#92400e; }
     .badge-hold-paid { background:#d1fae5; color:#065f46; }
 
-    /* ── Modals ── */
+    /* ââ Modals ââ */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -6387,7 +6395,7 @@ function renderAdminPanel(authToken) {
     .alert-danger  { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
     .alert-success { background: #d1fae5; color: #065f46; border: 1px solid #6ee7b7; }
 
-    /* ── Loading spinner ── */
+    /* ââ Loading spinner ââ */
     .spinner-wrap { text-align: center; padding: 40px; display: none; }
     .spinner-ring {
       display: inline-block;
@@ -6398,12 +6406,12 @@ function renderAdminPanel(authToken) {
       animation: spin .7s linear infinite;
     }
 
-    /* ── Empty state ── */
+    /* ââ Empty state ââ */
     .empty-state { text-align: center; padding: 60px 20px; color: #94a3b8; }
     .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
     .empty-state p { font-size: 15px; font-weight: 600; }
 
-    /* ── Mobile bottom nav (replaces hidden sidebar) ── */
+    /* ââ Mobile bottom nav (replaces hidden sidebar) ââ */
     .mobile-nav {
       display: none;
       position: fixed;
@@ -6445,7 +6453,7 @@ function renderAdminPanel(authToken) {
     .mobile-nav-item.active { color: #3b82f6; border-top-color: #3b82f6; }
     .mobile-nav-item:hover { color: rgba(255,255,255,.8); }
 
-    /* ── Responsive ── */
+    /* ââ Responsive ââ */
     @media (max-width: 640px) {
       .mobile-nav { display: block; }
       .page-content { padding: 14px 14px 80px; }
@@ -6466,7 +6474,7 @@ function renderAdminPanel(authToken) {
 
 <div class="layout">
 
-  <!-- ── Sidebar ── -->
+  <!-- ââ Sidebar ââ -->
   <aside class="sidebar" id="sidebar">
     <button class="sidebar-close" onclick="closeSidebar()" aria-label="Close sidebar"><i class="fas fa-xmark"></i></button>
     <div class="sidebar-brand">
@@ -6490,7 +6498,7 @@ function renderAdminPanel(authToken) {
     </div>
   </aside>
 
-  <!-- ── Main ── -->
+  <!-- ââ Main ââ -->
   <div class="main">
 
     <!-- Topbar -->
@@ -6513,7 +6521,7 @@ function renderAdminPanel(authToken) {
 
     <div class="page-content">
 
-      <!-- Stats row — horizontally scrollable on mobile -->
+      <!-- Stats row â horizontally scrollable on mobile -->
       <div class="stats-scroll-wrap">
         <div class="stats-row">
           <div class="stat-card s-pending"      onclick="filterApps('pending',null)"     aria-label="Filter: Pending Payment">
@@ -6576,7 +6584,7 @@ function renderAdminPanel(authToken) {
     </div><!-- end .page-content -->
   </div><!-- end .main -->
 
-  <!-- Mobile bottom nav — visible on ≤ 640px, replaces the hidden sidebar -->
+  <!-- Mobile bottom nav â visible on â¤ 640px, replaces the hidden sidebar -->
   <nav class="mobile-nav" aria-label="Application filter navigation">
     <div class="mobile-nav-inner">
       <button class="mobile-nav-item active" id="mNavAll"         onclick="filterApps('all',this)"><i class="fas fa-table-list"></i>All</button>
@@ -6591,7 +6599,7 @@ function renderAdminPanel(authToken) {
 
 </div><!-- end .layout -->
 
-<!-- ── Action Confirmation Modal ── -->
+<!-- ââ Action Confirmation Modal ââ -->
 <div class="modal-overlay" id="confirmModal">
   <div class="modal-box">
     <div class="modal-header">
@@ -6604,7 +6612,7 @@ function renderAdminPanel(authToken) {
         <div class="form-group" style="margin-bottom:12px;">
           <label class="form-label" for="actualPaymentMethod">Payment Method <span style="color:#ef4444;">*</span></label>
           <select class="form-control" id="actualPaymentMethod">
-            <option value="">— select —</option>
+            <option value="">â select â</option>
             <option value="Cash">Cash</option>
             <option value="Venmo">Venmo</option>
             <option value="Zelle">Zelle</option>
@@ -6635,7 +6643,7 @@ function renderAdminPanel(authToken) {
   </div>
 </div>
 
-<!-- ── Holding Fee Modal ── -->
+<!-- ââ Holding Fee Modal ââ -->
 <div class="modal-overlay" id="holdingFeeModal">
   <div class="modal-box">
     <div class="modal-header">
@@ -6672,11 +6680,11 @@ function renderAdminPanel(authToken) {
   </div>
 </div>
 
-<!-- ── Send Lease Modal ── -->
+<!-- ââ Send Lease Modal ââ -->
 <div class="modal-overlay" id="leaseModal">
   <div class="modal-box">
     <div class="modal-header">
-      <h5>📜 Send Lease Agreement</h5>
+      <h5>ð Send Lease Agreement</h5>
       <p id="leaseModalSubtitle" style="color:#64748b;"></p>
     </div>
     <div class="modal-body">
@@ -6706,7 +6714,7 @@ function renderAdminPanel(authToken) {
         <textarea class="form-control" id="leaseNotes" rows="2" placeholder="e.g., Utilities included, parking space #4..."></textarea>
       </div>
       <hr style="margin:16px 0;border:none;border-top:1px solid #e2e8f0;">
-      <p style="font-size:12px;color:#64748b;margin-bottom:12px;">🏠 <strong>Property Details</strong> — optional; shown on the lease if provided</p>
+      <p style="font-size:12px;color:#64748b;margin-bottom:12px;">ð  <strong>Property Details</strong> â optional; shown on the lease if provided</p>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <div class="form-group" style="margin-bottom:0;">
           <label class="form-label" style="font-size:12px;">Unit Type</label>
@@ -6730,7 +6738,7 @@ function renderAdminPanel(authToken) {
         <input type="text" class="form-control" id="leaseIncludedUtilities" placeholder="e.g., Water, Trash, Gas">
       </div>
       <hr style="margin:16px 0;border:none;border-top:1px solid #e2e8f0;">
-      <p style="font-size:12px;color:#64748b;margin-bottom:12px;">🐾 <strong>Pet Terms</strong> — only if tenant has pets; leave at 0 if not applicable</p>
+      <p style="font-size:12px;color:#64748b;margin-bottom:12px;">ð¾ <strong>Pet Terms</strong> â only if tenant has pets; leave at 0 if not applicable</p>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <div class="form-group" style="margin-bottom:0;">
           <label class="form-label" style="font-size:12px;">Pet Deposit ($)</label>
@@ -6742,7 +6750,7 @@ function renderAdminPanel(authToken) {
         </div>
       </div>
       <hr style="margin:16px 0;border:none;border-top:1px solid #e2e8f0;">
-      <p style="font-size:12px;color:#64748b;margin-bottom:12px;">⚙️ <strong>Financial Terms</strong> — defaults shown; edit only if this property differs</p>
+      <p style="font-size:12px;color:#64748b;margin-bottom:12px;">âï¸ <strong>Financial Terms</strong> â defaults shown; edit only if this property differs</p>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
         <div class="form-group" style="margin-bottom:0;">
           <label class="form-label" style="font-size:12px;">Rent Due Day</label>
@@ -6772,10 +6780,10 @@ function renderAdminPanel(authToken) {
   let currentSearch = '';
   const baseUrl = '${baseUrl}';
 
-  // ══════════════════════════════════════════════════════════
-  // LIVE POLLING ENGINE — Admin Dashboard
+  // ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  // LIVE POLLING ENGINE â Admin Dashboard
   // Polls server every 20s. Only re-renders if data changed.
-  // ══════════════════════════════════════════════════════════
+  // ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
   let _lastFingerprint  = '';       // last known data hash
   let _pollTimer        = null;     // setInterval handle
   let _pollPaused       = false;    // pause while modal is open
@@ -6811,7 +6819,7 @@ function renderAdminPanel(authToken) {
       document.head.appendChild(s);
     }
 
-    // Load data immediately on first open — no recurring timer
+    // Load data immediately on first open â no recurring timer
     fetchAndRenderAll('');
   }
 
@@ -6857,7 +6865,7 @@ function renderAdminPanel(authToken) {
       .withSuccessHandler(function(result) {
         if (!result.success) { setLiveStatus('error'); return; }
         if (result.fingerprint !== _lastFingerprint) {
-          // Data changed — fetch full dataset
+          // Data changed â fetch full dataset
           fetchAndRenderAll(result.fingerprint);
         } else {
           setLiveStatus('live');
@@ -6877,21 +6885,21 @@ function renderAdminPanel(authToken) {
         _lastFingerprint   = newFingerprint;
 
         if (wasFirstLoad) {
-          // Initial render — just set everything
+          // Initial render â just set everything
           renderApplications(_allApplications);
         } else {
-          // Incremental update — patch only changed cards
+          // Incremental update â patch only changed cards
           patchChangedCards(prevData, _allApplications);
           updateStats(_allApplications);
           setLiveStatus('updated');
-          showToast('🔄 Dashboard updated automatically', 'success');
+          showToast('ð Dashboard updated automatically', 'success');
         }
       })
       .withFailureHandler(function() { setLiveStatus('error'); })
       .getAllApplications();
   }
 
-  // Patch only cards whose status changed — no full re-render flicker
+  // Patch only cards whose status changed â no full re-render flicker
   function patchChangedCards(prevData, newData) {
     const prevMap = {};
     prevData.forEach(a => { prevMap[a['App ID']] = a; });
@@ -6913,7 +6921,7 @@ function renderAdminPanel(authToken) {
       const existingCard = document.querySelector('.app-card[data-appid="' + id + '"]');
 
       if (!existingCard) {
-        // New application — prepend it
+        // New application â prepend it
         const container = document.getElementById('applicationsContainer');
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = buildCardHtml(app);
@@ -6930,7 +6938,7 @@ function renderAdminPanel(authToken) {
         (prev['Status'] !== app['Status'] ||
          prev['Payment Status'] !== app['Payment Status'] ||
          prev['Lease Status'] !== app['Lease Status'])) {
-        // Status changed — smoothly replace this card
+        // Status changed â smoothly replace this card
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = buildCardHtml(app);
         const newCard = tempDiv.firstElementChild;
@@ -6947,7 +6955,7 @@ function renderAdminPanel(authToken) {
     applyFilterAndSearch();
   }
 
-  // ── Move-in preview ──
+  // ââ Move-in preview ââ
   ['leaseRent','leaseDeposit'].forEach(id => {
     document.getElementById(id).addEventListener('input', updateMoveInPreview);
   });
@@ -6961,11 +6969,11 @@ function renderAdminPanel(authToken) {
       : 'Enter rent and deposit above';
   }
 
-  // ── Lease modal ──
+  // ââ Lease modal ââ
   function showLeaseModal(appId, tenantName, contactMethod, contactTimes, propertyAddress) {
     currentAppId = appId;
     pausePolling();
-    document.getElementById('leaseModalSubtitle').textContent = tenantName + '  ·  ' + appId;
+    document.getElementById('leaseModalSubtitle').textContent = tenantName + '  Â·  ' + appId;
     ['leaseRent','leaseDeposit','leaseStartDate','leaseNotes',
      'leaseUnitType','leaseParkingSpace','leaseBedrooms','leaseBathrooms','leaseIncludedUtilities'
     ].forEach(id => document.getElementById(id).value = '');
@@ -7016,7 +7024,7 @@ function renderAdminPanel(authToken) {
         btn.disabled = false; btn.textContent = 'Send Lease to Tenant';
         if (result.success) {
           closeLeaseModal();
-          showToast('✅ Lease sent! The tenant has been emailed a signing link.', 'success');
+          showToast('â Lease sent! The tenant has been emailed a signing link.', 'success');
           // Immediately fetch fresh data and update dashboard
           fetchAndRenderAll('');
         } else {
@@ -7032,7 +7040,7 @@ function renderAdminPanel(authToken) {
                              unitType, bedrooms, bathrooms, parkingSpace, includedUtilities, petDeposit, monthlyPetRent, verifiedAddress);
   }
 
-  // ── Confirm modal close + submit ──
+  // ââ Confirm modal close + submit ââ
   function closeModal() {
     document.getElementById('confirmModal').classList.remove('open');
     document.body.classList.remove('modal-open');
@@ -7080,12 +7088,12 @@ function renderAdminPanel(authToken) {
     }
   };
 
-  // ── Holding Fee Modal open/close ──
+  // ââ Holding Fee Modal open/close ââ
   function showHoldingFeeModal(appId, applicantName, contactMethod) {
     currentAppId = appId;
     pausePolling();
     document.getElementById('hfModalTitle').textContent    = 'Request Holding Fee';
-    document.getElementById('hfModalSubtitle').textContent = applicantName + ' · ' + appId;
+    document.getElementById('hfModalSubtitle').textContent = applicantName + ' Â· ' + appId;
     document.getElementById('hfContactInfo').innerHTML     = '<strong>Contact:</strong> ' + contactMethod;
     document.getElementById('hfAmountField').style.display = 'block';
     document.getElementById('hfAmount').value              = '';
@@ -7125,7 +7133,7 @@ function renderAdminPanel(authToken) {
           return;
         }
         closeHoldingFeeModal();
-        showToast('Holding fee requested — tenant emailed.', 'success');
+        showToast('Holding fee requested â tenant emailed.', 'success');
         fetchAndRenderAll('');
       })
       .withFailureHandler(err => {
@@ -7136,7 +7144,7 @@ function renderAdminPanel(authToken) {
       .requestHoldingFee(currentAppId, amount, notes, deadline);
   };
 
-  // ── Close modals on backdrop click ──
+  // ââ Close modals on backdrop click ââ
   ['confirmModal','holdingFeeModal','leaseModal'].forEach(id => {
     document.getElementById(id).addEventListener('click', function(e) {
       if (e.target === this) {
@@ -7148,14 +7156,14 @@ function renderAdminPanel(authToken) {
     });
   });
 
-  // ── showConfirmModal — extended for holdFeePaid, markRefund ──
+  // ââ showConfirmModal â extended for holdFeePaid, markRefund ââ
   function showConfirmModal(action, appId, applicantName, contactMethod, contactTimes) {
     currentAction = action; currentAppId = appId;
     pausePolling();
     const config = {
       markPaid    : { title: 'Mark as Paid',             sub: 'A payment confirmation receipt email will be sent to the applicant.', btn: 'Confirm Payment',   notes: false, notesLabel: 'Notes (optional)', payFields: true },
       approve     : { title: 'Approve Application',       sub: 'An approval email will be sent to the applicant.',                   btn: 'Approve',           notes: false, notesLabel: 'Notes (optional)', payFields: false },
-      deny        : { title: 'Deny Application',           sub: 'The applicant will be notified by email.',                           btn: 'Deny Application',  notes: true,  notesLabel: 'Reason for denial (optional — sent to applicant)', payFields: false },
+      deny        : { title: 'Deny Application',           sub: 'The applicant will be notified by email.',                           btn: 'Deny Application',  notes: true,  notesLabel: 'Reason for denial (optional â sent to applicant)', payFields: false },
       holdFeePaid : { title: 'Mark Hold Fee Received',     sub: 'Holding fee will be credited toward move-in total.',                 btn: 'Confirm Receipt',   notes: true,  notesLabel: 'Notes (optional)', payFields: false },
       countersign : { title: 'Countersign Lease',          sub: 'Enter your full legal name to countersign this lease. Lease status will update to Executed.', btn: 'Countersign Lease', notes: true, notesLabel: 'Your Full Legal Name (required)', payFields: false },
       markRefund    : { title: 'Mark as Refunded',   sub: 'Payment Status will be set to "refunded". No email is sent automatically.', btn: 'Mark Refunded',   notes: true,  notesLabel: 'Refund reason / notes (optional)', payFields: false },
@@ -7163,8 +7171,8 @@ function renderAdminPanel(authToken) {
     };
     const c = config[action];
     document.getElementById('modalTitle').textContent    = c.title;
-    document.getElementById('modalSubtitle').textContent = applicantName + ' · ' + appId;
-    document.getElementById('contactInfo').innerHTML     = '<strong>' + (action === 'deny' ? 'Applicant:' : 'Contact:') + '</strong> ' + contactMethod + ' · ' + contactTimes;
+    document.getElementById('modalSubtitle').textContent = applicantName + ' Â· ' + appId;
+    document.getElementById('contactInfo').innerHTML     = '<strong>' + (action === 'deny' ? 'Applicant:' : 'Contact:') + '</strong> ' + contactMethod + ' Â· ' + contactTimes;
     document.getElementById('paymentFields').style.display = c.payFields ? 'block' : 'none';
     if (c.payFields) {
       document.getElementById('actualPaymentMethod').value = '';
@@ -7180,7 +7188,7 @@ function renderAdminPanel(authToken) {
     document.body.classList.add('modal-open');
   }
 
-  // ── Toast notifications ──
+  // ââ Toast notifications ââ
   function showToast(msg, type) {
     const t = document.createElement('div');
     const isMobile = window.innerWidth <= 640;
@@ -7197,7 +7205,7 @@ function renderAdminPanel(authToken) {
     setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity .3s'; setTimeout(()=>t.remove(),350); }, 4000);
   }
 
-  // ── Build client-side card HTML (live-update version, mirrors buildAdminCard) ──
+  // ââ Build client-side card HTML (live-update version, mirrors buildAdminCard) ââ
   function buildCardHtml(app) {
     const leaseStatus = app['Lease Status'] || 'none';
     let accentClass = 'accent-pending', badgeClass = 'badge-pending', statusText = '<i class="fas fa-clock"></i> Pending';
@@ -7407,7 +7415,7 @@ function renderAdminPanel(authToken) {
     applyFilterAndSearch();
   });
 
-  /* ── Persistent session management ── */
+  /* ââ Persistent session management ââ */
   var CP_SESSION_KEY = 'cp_admin_session_v2';
   var _cpToken = '${authToken}';
 
@@ -7451,16 +7459,16 @@ function renderAdminPanel(authToken) {
     currentFilter = 'all';
     currentSearch = '';
     applyFilterAndSearch();
-    // Boot the live polling engine — starts watching for changes immediately
+    // Boot the live polling engine â starts watching for changes immediately
     initLivePolling();
   };
 </script>
 </body>
 </html>
-  `).setTitle('Admin Dashboard — Choice Properties');
+  `).setTitle('Admin Dashboard â Choice Properties');
 }
 
-// ── Helper: build admin card server-side (initial render, enhanced) ──
+// ââ Helper: build admin card server-side (initial render, enhanced) ââ
 function buildAdminCard(app, baseUrl) {
   const leaseStatus = app['Lease Status'] || 'none';
   let accentClass = 'accent-pending', badgeClass = 'badge-pending', statusText = '<i class="fas fa-clock"></i> Pending';
@@ -7557,10 +7565,10 @@ function buildAdminCard(app, baseUrl) {
 }
 
 // ============================================================
-// runCompleteBackendTest() — dev helper (unchanged)
+// runCompleteBackendTest() â dev helper (unchanged)
 // ============================================================
 // ============================================================
-  // checkUnsignedLeases()  — Issue #6 fix
+  // checkUnsignedLeases()  â Issue #6 fix
   // Scheduled to run daily via setupLeaseReminderTrigger().
   // At 24h after lease sent: emails tenant a signing reminder.
   // At 48h after lease sent: emails admin an expiry alert.
@@ -7621,9 +7629,9 @@ function buildAdminCard(app, baseUrl) {
   }
 
   // ============================================================
-  // setupLeaseReminderTrigger()  — Run ONCE manually from GAS IDE.
+  // setupLeaseReminderTrigger()  â Run ONCE manually from GAS IDE.
   // Creates a daily time-driven trigger for checkUnsignedLeases().
-  // Safe to re-run — removes any duplicate triggers first.
+  // Safe to re-run â removes any duplicate triggers first.
   // ============================================================
   function setupLeaseReminderTrigger() {
     ScriptApp.getProjectTriggers().forEach(function(t) {
