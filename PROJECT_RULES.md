@@ -67,11 +67,18 @@ The main platform passes these query parameters when redirecting here:
 | `beds` | Bedrooms                    | Property context display              |
 | `baths`| Bathrooms                   | Property context display              |
 | `pets` | Pet policy string           | Property context display              |
-| `term` | Lease term string           | Property context display              |
+  | `term` | Lease term string           | Property context display              |
+  | `fee` | Application fee override    | Overrides default $50 fee in Step 6   |
+  | `zip` | Property zip code           | Stored in hidden field, submitted to GAS |
+  | `deposit` | Security deposit amount  | Displayed in property context banner  |
+  | `avail` | Available date (YYYY-MM-DD) | Enforced as minimum move-in date in Step 5 |
+  | `min_months` | Minimum lease months    | Fallback when `term` array is empty |
+  | `smoking` | `true`/`false`         | Pre-sets and locks the smoking field  |
+  | `utilities` | Pipe-separated utilities | Displayed in property context banner  |
+  | `parking` | Parking description       | Displayed in property context banner  |
+  | `parking_fee` | Parking fee amount      | Stored in hidden field, submitted to GAS |
 
-**These params are NEVER sent to GAS or used in any backend decision.**
-The applicant can edit the pre-filled address field at any time.
-GAS processes only what the applicant types into the form.
+  **These params pre-fill the form for UX only.** Values are stored in hidden `<input>` elements and ARE submitted to GAS as part of the form data (stored in Google Sheets under property context columns). GAS does not use these values for backend validation — only what the applicant types in the visible form fields drives decision-making.
 
 ---
 
@@ -143,7 +150,7 @@ A comprehensive product flow audit was completed in April 2026.
 4. `docs/ARCHITECTURE.md` — system architecture, function map, database schema
 5. `AUDIT_REPORT.md` — original audit findings (reference only)
 
-**Current active phase: Phase 1 — read `PROJECT_STATUS.md` for details.**
+**All 9 phases are complete (Phase 7 permanently cancelled). The system is feature-complete as of April 8, 2026. Read `PROJECT_STATUS.md` for full details.**
 
 Do not ask the user what to fix. The plan is self-sufficient.
 
