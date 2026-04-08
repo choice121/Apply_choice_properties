@@ -187,7 +187,7 @@ class RentalApplication {
                 if (feeTitle)  feeTitle.textContent  = 'Application Fee: ' + formatted;
                 if (feeAmount) feeAmount.textContent = '$' + fee.toFixed(0);
             }
-        } catch (e) {}
+        } catch (e) { console.warn('[CP App] Non-critical error in _readApplicationFee:', e); }
     }
 
     // ─────────────────────────────────────────────────────────────────────
@@ -1202,7 +1202,7 @@ class RentalApplication {
                     }
                 });
                 if (data._language) this.state.language = data._language;
-            } catch (e) {}
+            } catch (e) { console.warn('[CP App] Non-critical error in restoreSavedProgress:', e); }
         }
     }
 
