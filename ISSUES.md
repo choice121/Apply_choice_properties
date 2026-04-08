@@ -28,7 +28,7 @@
   ## 🔴 CRITICAL ISSUES (C-series)
 
   ### [C1] Duplicate `Security Deposit` Case in `processApplication()`
-  - **Status:** `[ ]`
+  - **Status:** `[x]`
   - **File:** `backend/code.gs`
   - **Lines:** ~1179 and ~1205
   - **Severity:** CRITICAL — data loss risk
@@ -39,7 +39,7 @@
   ---
 
   ### [C2] Eight New Property Context Fields Missing Explicit Handling in GAS Switch
-  - **Status:** `[ ]`
+  - **Status:** `[x]`
   - **File:** `backend/code.gs`
   - **Lines:** `processApplication()` switch block (~1170–1220)
   - **Severity:** CRITICAL — silent data loss on schema change
@@ -170,7 +170,7 @@
   ---
 
   ### [I5] Duplicate Detection Uses Address String Instead of Property ID
-  - **Status:** `[ ]`
+  - **Status:** `[x]`
   - **File:** `backend/code.gs`, `processApplication()` (~line 1108–1125)
   - **Severity:** IMPORTANT — duplicate applications can be submitted
   - **Problem:** The duplicate check compares `formData['Property Address'].toLowerCase().trim()` against stored addresses. The property address field is user-editable, so "123 Main St" vs "123 Main Street" bypasses it.
@@ -313,7 +313,7 @@
   ---
 
   ### [M5] Property Status NOT Reversed When Application Withdrawn After Approval
-  - **Status:** `[ ]`
+  - **Status:** `[x]`
   - **File:** `backend/code.gs`, `updateStatus()` function
   - **Severity:** IMPORTANT — listing platform gets stuck showing rented
   - **Problem:** `_syncPropertyStatusToSupabase(propertyId, 'rented')` is called when status → `approved`. But when status changes from `approved` to `withdrawn` or back to `denied`, the property stays `rented` in Supabase indefinitely.
