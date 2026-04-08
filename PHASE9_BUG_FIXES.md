@@ -9,7 +9,7 @@ START HERE — ACTIVE WORK DOCUMENT:
   **System:** Choice Properties — Apply_choice_properties (GAS backend + Cloudflare Pages frontend)
   **Companion repo:** choice121/Choice (listing platform — fixes 9A-3, 9B-3, 9B-4 live there)
   **Deep scan completed:** April 8, 2026
-  **Status:** Phase 9B COMPLETE (April 8, 2026) — fix in order: 9C
+  **Status:** ALL PHASES COMPLETE — April 8, 2026
 
   ---
 
@@ -320,7 +320,7 @@ START HERE — ACTIVE WORK DOCUMENT:
 
   ### 9C-1 — Application fee must be fully dynamic — no hardcoded default
 
-  - [ ] **Status:** Open
+  - [x] **Status:** Fixed — April 8, 2026
   - **File:** `backend/code.gs`
   - **Function:** `processApplication()` — Application Fee switch case
   - **Severity:** Improvement — fee accuracy
@@ -381,7 +381,7 @@ START HERE — ACTIVE WORK DOCUMENT:
 
   ### 9C-2 — Add "Back to listing" link on application success screen
 
-  - [ ] **Status:** Open
+  - [x] **Status:** Fixed — April 8, 2026
   - **Files:** `js/script.js`, `index.html`
   - **Severity:** Improvement — UX
 
@@ -410,7 +410,7 @@ START HERE — ACTIVE WORK DOCUMENT:
 
   ### 9C-3 — Email-based App ID recovery on applicant dashboard
 
-  - [ ] **Status:** Open
+  - [x] **Status:** Fixed — April 8, 2026
   - **File:** `backend/code.gs`
   - **Function:** `renderLoginPage()` and a new `lookupAppIdByEmail()` function
   - **Severity:** Improvement — UX for applicants who lost their App ID email
