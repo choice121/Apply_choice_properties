@@ -9,7 +9,7 @@ START HERE — ACTIVE WORK DOCUMENT:
   **System:** Choice Properties — Apply_choice_properties (GAS backend + Cloudflare Pages frontend)
   **Companion repo:** choice121/Choice (listing platform — fixes 9A-3, 9B-3, 9B-4 live there)
   **Deep scan completed:** April 8, 2026
-  **Status:** STARTING — fix in order: 9A → 9B → 9C
+  **Status:** Phase 9A COMPLETE (April 8, 2026) — fix in order: 9B → 9C
 
   ---
 
@@ -32,7 +32,7 @@ START HERE — ACTIVE WORK DOCUMENT:
 
   ### 9A-1 — Admin cannot deny unpaid applicants
 
-  - [ ] **Status:** Open
+  - [x] **Status:** Fixed — April 8, 2026
   - **File:** `backend/code.gs`
   - **Function:** `updateStatus(appId, newStatus, notes)`
   - **Severity:** Critical — workflow blocker
@@ -75,7 +75,7 @@ START HERE — ACTIVE WORK DOCUMENT:
 
   ### 9A-2 — Denying an applicant reverts a rented property back to "available"
 
-  - [ ] **Status:** Open
+  - [x] **Status:** Fixed — April 8, 2026
   - **File:** `backend/code.gs`
   - **Function:** `updateStatus(appId, newStatus, notes)`
   - **Severity:** Critical — corrupts live property listings on the Choice platform
@@ -122,7 +122,7 @@ START HERE — ACTIVE WORK DOCUMENT:
 
   ### 9A-3 — Property detail page crashes silently when rent is null
 
-  - [ ] **Status:** Open
+  - [x] **Status:** Fixed — April 8, 2026
   - **File:** `property.html` (in the **choice121/Choice** repo)
   - **Function:** `renderProperty(p)` — OG meta description build
   - **Severity:** Critical — entire property detail page goes blank for any listing with no rent
