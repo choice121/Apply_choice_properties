@@ -9,7 +9,7 @@ START HERE — ACTIVE WORK DOCUMENT:
   **System:** Choice Properties — Apply_choice_properties (GAS backend + Cloudflare Pages frontend)
   **Companion repo:** choice121/Choice (listing platform — fixes 9A-3, 9B-3, 9B-4 live there)
   **Deep scan completed:** April 8, 2026
-  **Status:** Phase 9A COMPLETE (April 8, 2026) — fix in order: 9B → 9C
+  **Status:** Phase 9B COMPLETE (April 8, 2026) — fix in order: 9C
 
   ---
 
@@ -160,7 +160,7 @@ START HERE — ACTIVE WORK DOCUMENT:
 
   ### 9B-1 — Emergency Contact Phone is never normalized
 
-  - [ ] **Status:** Open
+  - [x] **Status:** Fixed — April 8, 2026
   - **File:** `backend/code.gs`
   - **Function:** `processApplication(formData, fileBlob)` — phone normalization block
   - **Severity:** Medium — data integrity issue in Google Sheet
@@ -199,7 +199,7 @@ START HERE — ACTIVE WORK DOCUMENT:
 
   ### 9B-2 — Date of Birth saved to browser localStorage
 
-  - [ ] **Status:** Open
+  - [x] **Status:** Fixed — April 8, 2026
   - **File:** `js/script.js`
   - **Functions:** `saveProgress()` and `restoreSavedProgress()`
   - **Severity:** Medium — privacy issue (PII persisted on shared/public devices)
@@ -244,7 +244,7 @@ START HERE — ACTIVE WORK DOCUMENT:
 
   ### 9B-3 — Pets/smoking "false" string treated as truthy
 
-  - [ ] **Status:** Open
+  - [x] **Status:** Verified Safe — April 8, 2026 (no truthy conditional found)
   - **Files:** `js/script.js` (Apply form) and `property.html` in **choice121/Choice**
   - **Severity:** Medium — policy flags can display incorrectly
 
@@ -282,7 +282,7 @@ START HERE — ACTIVE WORK DOCUMENT:
 
   ### 9B-4 — Rent range filter shows empty results with no explanation
 
-  - [ ] **Status:** Open
+  - [x] **Status:** Fixed — April 8, 2026
   - **File:** `listings.html` in **choice121/Choice**
   - **Severity:** Medium — silent UX failure
 
