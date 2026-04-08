@@ -4575,8 +4575,8 @@ function _syncPropertyStatusToSupabase(propertyId, supabaseStatus) {
       if (data[i][col['App ID'] - 1] === appId) { rowIndex = i + 1; break; }
     }
     if (rowIndex === -1) throw new Error('Application not found');
-    if (sheet.getRange(rowIndex, col['Payment Status']).getValue() !== 'paid') {
-      throw new Error('Cannot change status until payment is received');
+    if (newStatus === 'approved' && sheet.getRange(rowIndex, col['Payment Status']).getValue() !== 'paid') {
+      throw new Error('Cannot approve application until payment is received');
     }
     const currentStatus = sheet.getRange(rowIndex, col['Status']).getValue();
     if (currentStatus === newStatus) throw new Error(`Application already ${newStatus}`);
@@ -4598,12 +4598,10 @@ function _syncPropertyStatusToSupabase(propertyId, supabaseStatus) {
     }
 
     // Sync property availability to the listing platform (Supabase).
-    // approved → 'rented' | denied → 'active' (revert to available)
-    // Only fires when a Property ID was captured on the application.
-    if (col['Property ID']) {
-      const propertyId    = sheet.getRange(rowIndex, col['Property ID']).getValue();
-      const supabaseStatus = (newStatus === 'approved') ? 'rented' : 'active';
-      _syncPropertyStatusToSupabase(propertyId, supabaseStatus);
+    // Only fires on approval — denial does not change property availability.
+    if (newStatus === 'approved' && col['Property ID']) {
+      const propertyId = sheet.getRange(rowIndex, col['Property ID']).getValue();
+      _syncPropertyStatusToSupabase(propertyId, 'rented');
     }
 
     return { success: true, message: `Status updated to ${newStatus}` };
