@@ -1107,30 +1107,39 @@ function processApplication(formData, fileBlob) {
     const col   = getColumnMap(sheet);
 
     // ── Task 3.2: Duplicate application detection ──
-    const incomingEmail    = (formData['Email'] || '').toLowerCase().trim();
-    const incomingProperty = (formData['Property Address'] || '').toLowerCase().trim();
-    if (incomingEmail && incomingProperty) {
-      const allData = sheet.getDataRange().getValues();
-      const emailColIdx    = (col['Email']            || 1) - 1;
-      const propertyColIdx = (col['Property Address'] || 1) - 1;
-      const statusColIdx   = (col['Status']           || 1) - 1;
-      const appIdColIdx    = (col['App ID']            || 1) - 1;
-      for (let i = 1; i < allData.length; i++) {
-        const rowEmail    = (allData[i][emailColIdx]    || '').toString().toLowerCase().trim();
-        const rowProperty = (allData[i][propertyColIdx] || '').toString().toLowerCase().trim();
-        const rowStatus   = (allData[i][statusColIdx]   || '').toString().toLowerCase();
-        const rowAppId    = allData[i][appIdColIdx]     || '';
-        if (rowEmail === incomingEmail && rowProperty === incomingProperty &&
-            rowStatus !== 'denied' && rowStatus !== 'withdrawn') {
-          return {
-            success: false,
-            duplicate: true,
-            existingAppId: rowAppId,
-            error: `You already have an active application for this property (Ref: ${rowAppId}). Log in to your dashboard to check your status.`
-          };
+    // [FIXED-I5] Use Property ID as primary duplicate key; address string as fallback only
+      const incomingEmail      = (formData['Email']            || '').toLowerCase().trim();
+      const incomingPropertyId = (formData['Property ID']      || '').trim();
+      const incomingProperty   = (formData['Property Address'] || '').toLowerCase().trim();
+      if (incomingEmail && (incomingPropertyId || incomingProperty)) {
+        const allData        = sheet.getDataRange().getValues();
+        const emailColIdx    = (col['Email']            || 1) - 1;
+        const propIdColIdx   = (col['Property ID']      || 1) - 1;
+        const propertyColIdx = (col['Property Address'] || 1) - 1;
+        const statusColIdx   = (col['Status']           || 1) - 1;
+        const appIdColIdx    = (col['App ID']            || 1) - 1;
+        for (let i = 1; i < allData.length; i++) {
+          const rowEmail    = (allData[i][emailColIdx]    || '').toString().toLowerCase().trim();
+          const rowPropId   = (allData[i][propIdColIdx]   || '').toString().trim();
+          const rowProperty = (allData[i][propertyColIdx] || '').toString().toLowerCase().trim();
+          const rowStatus   = (allData[i][statusColIdx]   || '').toString().toLowerCase();
+          const rowAppId    =  allData[i][appIdColIdx]    || '';
+          if (rowEmail !== incomingEmail) continue;
+          if (rowStatus === 'denied' || rowStatus === 'withdrawn') continue;
+          // Primary: Property ID (exact, immutable) beats address-string matching
+          const idMatch   = incomingPropertyId && rowPropId && (incomingPropertyId === rowPropId);
+          // Fallback: address string — only when no Property ID present
+          const addrMatch = !incomingPropertyId && incomingProperty && (rowProperty === incomingProperty);
+          if (idMatch || addrMatch) {
+            return {
+              success: false,
+              duplicate: true,
+              existingAppId: rowAppId,
+              error: `You already have an active application for this property (Ref: ${rowAppId}). Log in to your dashboard to check your status.`
+            };
+          }
         }
       }
-    }
 
     // ── Task 3.3: Generate a unique App ID ──
     const appId = formData.appId || generateUniqueAppId(sheet, col);
@@ -1192,7 +1201,16 @@ function processApplication(formData, fileBlob) {
           case 'Utilities Included':  rowData.push(formData['Utilities Included']  || ''); break;
           case 'Parking':             rowData.push(formData['Parking']             || ''); break;
           case 'Parking Fee':         rowData.push(formData['Parking Fee']         || ''); break;
-        // ── Ownership columns ──
+            // [FIXED-C2] Explicit cases for 8 property context fields (were falling to default fallthrough)
+            case 'Garage Spaces':       rowData.push(formData['Garage Spaces']       || ''); break;
+            case 'EV Charging':         rowData.push(formData['EV Charging']         || ''); break;
+            case 'Laundry Type':        rowData.push(formData['Laundry Type']        || ''); break;
+            case 'Heating Type':        rowData.push(formData['Heating Type']        || ''); break;
+            case 'Cooling Type':        rowData.push(formData['Cooling Type']        || ''); break;
+            case 'Last Months Rent':    rowData.push(formData['Last Months Rent']    || ''); break;
+            case 'Admin Fee':           rowData.push(formData['Admin Fee']           || ''); break;
+            case 'Move-in Special':     rowData.push(formData['Move-in Special']     || ''); break;
+          // ── Ownership columns ──
         case 'Property Owner':        rowData.push(formData['Property Owner'] || 'Choice Properties'); break;
         case 'Managed By':            rowData.push('Choice Properties'); break;
         // ── Lease columns default empty on submission ──
@@ -1202,7 +1220,7 @@ function processApplication(formData, fileBlob) {
         case 'Lease Start Date':      rowData.push(''); break;
         case 'Lease End Date':        rowData.push(''); break;
         case 'Monthly Rent':          rowData.push(''); break;
-        case 'Security Deposit':      rowData.push(''); break;
+        // [FIXED-C1] Duplicate 'Security Deposit' case removed — was silently overwriting property-context Security Deposit with empty string.
         case 'Move-in Costs':         rowData.push(''); break;
         case 'Lease Notes':           rowData.push(''); break;
         case 'Tenant Signature':      rowData.push(''); break;
@@ -4669,11 +4687,23 @@ function _syncPropertyStatusToSupabase(propertyId, supabaseStatus) {
     }
 
     // Sync property availability to the listing platform (Supabase).
-    // Only fires on approval — denial does not change property availability.
-    if (newStatus === 'approved' && col['Property ID']) {
-      const propertyId = sheet.getRange(rowIndex, col['Property ID']).getValue();
-      _syncPropertyStatusToSupabase(propertyId, 'rented');
-    }
+      // Only fires on approval — denial does not change property availability.
+      if (newStatus === 'approved' && col['Property ID']) {
+        const propertyId = sheet.getRange(rowIndex, col['Property ID']).getValue();
+        _syncPropertyStatusToSupabase(propertyId, 'rented');
+      }
+
+      // [FIXED-M5] Reverse sync: if an approved application is later reversed (withdrawn or denied),
+      // restore the listing back to 'active' so it appears available again on the platform.
+      if ((newStatus === 'withdrawn' || newStatus === 'denied')
+          && String(currentStatus).toLowerCase() === 'approved'
+          && col['Property ID']) {
+        const propertyId = sheet.getRange(rowIndex, col['Property ID']).getValue();
+        if (propertyId) {
+          _syncPropertyStatusToSupabase(propertyId, 'active');
+          console.log('updateStatus: Restored property ' + propertyId + ' to active after reversal from approved → ' + newStatus);
+        }
+      }
 
     return { success: true, message: `Status updated to ${newStatus}` };
   } catch (error) {
