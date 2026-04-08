@@ -11,6 +11,8 @@ The Choice Properties rental application system is a well-architected, fully fun
 
 However, a thorough audit reveals significant gaps in UX logic, form validation, template consistency, lease document completeness, and end-to-end flow integrity. This report documents every issue found and provides a complete implementation plan.
 
+> **Resolution Status (April 8, 2026):** All issues identified in this audit have been addressed across Phases 1–9. See `PROJECT_STATUS.md` in this repository for the full phase-by-phase resolution log. Notes on specific fixed items are added inline below.
+
 ---
 
 ## PHASE 1: SYSTEM-WIDE ANALYSIS
@@ -35,13 +37,13 @@ However, a thorough audit reveals significant gaps in UX logic, form validation,
 
 3. **No rate limiting or abuse protection** — The GAS `doPost()` endpoint accepts submissions without any throttling. A bot could submit thousands of applications. GAS daily quotas provide some natural protection, but there is no intentional guard.
 
-4. **No duplicate detection** — An applicant can submit multiple applications for the same property with the same email. Each creates a new row with a new App ID. No deduplication check exists.
+4. **No duplicate detection** — An applicant can submit multiple applications for the same property with the same email. Each creates a new row with a new App ID. No deduplication check exists. ✅ **Fixed in Phase 3.2** — `processApplication()` now checks for an existing row with the same email + property ID before creating a new entry.
 
 5. **File upload vulnerability** — `DriveApp.createFile()` receives the raw multipart content from `doPost()`. Files are uploaded to Google Drive without validation of file type, extension, or actual content. A malicious file could be uploaded.
 
-6. **Application ID collision risk** — `generateAppId()` appends 6 random alphanumeric chars + 3-digit milliseconds. While collision probability is low, it is not zero and there is no uniqueness check before saving to the sheet.
+6. **Application ID collision risk** — `generateAppId()` appends 6 random alphanumeric chars + 3-digit milliseconds. While collision probability is low, it is not zero and there is no uniqueness check before saving to the sheet. ✅ **Fixed in Phase 3.3** — `generateAppId()` now checks for uniqueness against existing rows before returning the ID.
 
-7. **No server-side field validation** — `processApplication()` only validates `First Name`, `Last Name`, `Email`, and `Phone`. All other fields (SSN, DOB, addresses, income, etc.) are accepted as-is with no backend validation. The backend trusts the client entirely.
+7. **No server-side field validation** — `processApplication()` only validates `First Name`, `Last Name`, `Email`, and `Phone`. All other fields (SSN, DOB, addresses, income, etc.) are accepted as-is with no backend validation. The backend trusts the client entirely. ✅ **Fixed in Phase 3.1** — Server-side validation added for DOB (age ≥ 18), monthly income (numeric), and phone format. All phone numbers are also normalized via a dedicated normalization function.
 
 8. **`getSpreadsheet()` fallback creates new sheets** — If the active spreadsheet context is lost (GAS execution environment resets), the fallback creates a new blank spreadsheet and stores its ID. Existing data remains in the original sheet, new submissions go to the new one. This is a silent data loss risk.
 
