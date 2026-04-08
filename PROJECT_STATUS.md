@@ -428,3 +428,56 @@ All 5 verification checks passed:
   - [x] **9C-2** Source URL param added to buildApplyURL; back link shown on success screen (`js/script.js`, `Choice/js/cp-api.js`)
   - [x] **9C-3** lookupAppIdByEmail() added; forgot link in login page; doPost route wired (`backend/code.gs`)
   
+
+  ---
+
+  ## Phase 10 — System Audit & Issue Resolution
+
+  **Status:** IN PROGRESS — Phase A not yet started
+  **Started:** April 8, 2026
+  **Scan by:** AI Code Scan (external)
+
+  ### Overview
+  A full audit of both `choice121/Choice` (listing platform) and `choice121/Apply_choice_properties` (this repo) identified **18 issues** across 6 severity categories. A structured fix plan has been created and pushed to the repo.
+
+  ### Documents Created
+  - `ISSUES.md` — Full issue tracker with status checkboxes (all 18 issues)
+  - `FIX_PLAN.md` — Phase-by-phase implementation plan with exact code changes
+
+  ### Issue Summary
+  | Severity | Count |
+  |----------|-------|
+  | Critical | 3 |
+  | Important | 6 |
+  | Moderate | 6 |
+  | Integration | 3 |
+  | **Total** | **18** |
+
+  ### Fix Phases
+  | Phase | Focus | Issues | Status |
+  |-------|-------|--------|--------|
+  | A | Critical Data Integrity | C1, C2, I5, M5 | ⬜ Not Started |
+  | B | Connection Reliability | I1, B3, M6 | ⬜ Not Started |
+  | C | Form & UX Fixes | M1, I3, I4, C3 | ⬜ Not Started |
+  | D | Security Hardening | I2, M2, M4, M3 | ⬜ Not Started |
+  | E | Infrastructure | I6, B1 | ⬜ Not Started |
+  | F | Choice Repo Fixes | B2 | ⬜ Not Started |
+
+  ### Top 3 Priority Fixes
+  1. **[C1]** Remove duplicate `Security Deposit` case in `processApplication()` → `backend/code.gs`
+  2. **[C2]** Add explicit cases for 8 missing property context fields → `backend/code.gs`
+  3. **[M5]** Add reverse property status sync when approved→withdrawn → `backend/code.gs`
+
+  ### Tasks
+  - [~] External scan completed — 18 issues identified
+  - [x] `ISSUES.md` created with all issues tracked
+  - [x] `FIX_PLAN.md` created with implementation plan
+  - [x] `AGENTS.md` updated to reference issue tracking docs
+  - [ ] Phase A fixes applied to `backend/code.gs`
+  - [ ] Phase B fixes applied
+  - [ ] Phase C fixes applied
+  - [ ] Phase D fixes applied
+  - [ ] Phase E fixes applied
+  - [ ] Phase F fixes applied to Choice repo
+  - [ ] All 18 issues marked `[x]` in `ISSUES.md`
+  
