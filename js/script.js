@@ -260,6 +260,10 @@ class RentalApplication {
               }
               setHidden('hiddenLeaseTerms',      terms);
               setHidden('hiddenMinLeaseMonths',  minMonths);
+              // 9C-2: store source URL so success screen can link back to the original listing
+              const source = p.get('source') || '';
+              if (source) this.state.sourceUrl = source;
+
               setHidden('hiddenPetsAllowed',     pets);
               setHidden('hiddenPetTypes',        petTypes);
               setHidden('hiddenPetWeightLimit',  petWeight);
@@ -2229,6 +2233,11 @@ class RentalApplication {
               '</span></div>'
             : '';
 
+        // 9C-2: 'Back to listing' link if user arrived from a specific property page
+        const backLink = this.state.sourceUrl
+            ? '<a href="' + this._escHtml(this.state.sourceUrl) + '" style="display:inline-block;margin-top:8px;font-size:0.9rem;color:#1a5276;text-decoration:none;">← Back to this listing</a>'
+            : '';
+
         const dashboardLink = `${this.BACKEND_URL}?path=dashboard&id=${appId}`;
         
         successState.style.display = 'block';
@@ -2239,6 +2248,7 @@ class RentalApplication {
                     <h2>${t.successTitle}</h2>
                     <p class="success-subtitle">${t.successText}</p>
                     ${propertyLine}
+                    ${backLink}
                 </div>
 
                 <div class="id-section">
