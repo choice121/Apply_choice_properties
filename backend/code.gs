@@ -313,9 +313,14 @@ function doGet(e) {
     return renderLeaseSigningPage(id);
   } else if (path === 'lease_confirm' && id) {
     return renderLeaseConfirmPage(id);
-  // ─────────────────────────────────────────────────────────
+    // [FIXED-B3] Health check endpoint — allows listing platform to verify backend is alive
+    } else if (path === 'health') {
+      return ContentService
+        .createTextOutput(JSON.stringify({ status: 'ok', timestamp: new Date().toISOString(), version: '10.0' }))
+        .setMimeType(ContentService.MimeType.JSON);
+    // ─────────────────────────────────────────────────────────
 
-  } else {
+    } else {
     const gasLandingUrl = ScriptApp.getService().getUrl();
     return HtmlService.createHtmlOutput(`
       <!DOCTYPE html>
@@ -1141,8 +1146,39 @@ function processApplication(formData, fileBlob) {
         }
       }
 
-    // ── Task 3.3: Generate a unique App ID ──
-    const appId = formData.appId || generateUniqueAppId(sheet, col);
+    // [FIXED-I1] Validate property exists and is active in Supabase before accepting application
+      if (formData['Property ID']) {
+        const scriptProps  = PropertiesService.getScriptProperties();
+        const supabaseUrl  = scriptProps.getProperty('SUPABASE_URL');
+        const serviceKey   = scriptProps.getProperty('SUPABASE_SERVICE_KEY');
+        if (supabaseUrl && serviceKey) {
+          try {
+            const validationUrl = supabaseUrl.replace(/\/$/, '')
+              + '/rest/v1/properties?id=eq.' + encodeURIComponent(formData['Property ID'])
+              + '&select=id,status&limit=1';
+            const validationResp = UrlFetchApp.fetch(validationUrl, {
+              method: 'GET',
+              headers: { 'apikey': serviceKey, 'Authorization': 'Bearer ' + serviceKey },
+              muteHttpExceptions: true
+            });
+            if (validationResp.getResponseCode() === 200) {
+              const propRows = JSON.parse(validationResp.getContentText());
+              if (!propRows || propRows.length === 0) {
+                return { success: false, error: 'This property could not be found. Please return to our listings page and apply from an active listing.' };
+              }
+              if (propRows[0].status !== 'active') {
+                return { success: false, error: 'This property is no longer accepting applications. Please check our listings for other available homes.' };
+              }
+            }
+            // Non-200 from Supabase: log and fall through (graceful degradation)
+          } catch (validErr) {
+            console.warn('processApplication: Property validation skipped (non-blocking):', validErr.toString());
+          }
+        }
+      }
+
+      // ── Task 3.3: Generate a unique App ID ──
+      const appId = formData.appId || generateUniqueAppId(sheet, col);
 
     // ── Resolve "Other" payment text into the main payment columns ──
     // If the user selected "Other" and typed a value, store that text directly
