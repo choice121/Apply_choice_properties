@@ -1177,7 +1177,7 @@ class RentalApplication {
         if (saved) {
             try {
                 const data = JSON.parse(saved);
-                const SKIP = new Set(['SSN', 'Co-Applicant SSN', 'Application ID', '_last_updated', '_language']);
+                const SKIP = new Set(['SSN', 'Co-Applicant SSN', 'Application ID', '_last_updated', '_language', 'DOB', 'Co-Applicant DOB']);
                 const form = document.getElementById('rentalApplication');
                 if (!form) return;
 
@@ -1204,7 +1204,7 @@ class RentalApplication {
 
     saveProgress() {
         const data = this.getAllFormData();
-        const sensitiveKeys = ['SSN', 'Application ID', 'Co-Applicant SSN'];
+        const sensitiveKeys = ['SSN', 'Application ID', 'Co-Applicant SSN', 'DOB', 'Co-Applicant DOB'];
         sensitiveKeys.forEach(key => delete data[key]);
         data._last_updated = new Date().toISOString();
         data._language = this.state.language || 'en';
