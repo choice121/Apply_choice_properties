@@ -978,13 +978,13 @@ function doPost(e) {
 function processApplication(formData, fileBlob) {
   try {
     // ── Policy consent checkboxes (Phase 4) ──
-      if (formData['feeAcknowledge'] !== true) {
+      if (!formData['feeAcknowledge']) { // Fixed: HTML checkboxes send 'on' string, not boolean true
         return { success: false, error: 'You must acknowledge the application fee policy before submitting.' };
       }
-      if (formData['infoAccuracy'] !== true) {
+      if (!formData['infoAccuracy']) { // Fixed: HTML checkboxes send 'on' string, not boolean true
         return { success: false, error: 'You must certify that your information is accurate before submitting.' };
       }
-      if (formData['dataConsent'] !== true) {
+      if (!formData['dataConsent']) { // Fixed: HTML checkboxes send 'on' string, not boolean true
         return { success: false, error: 'You must consent to data review before submitting.' };
       }
 
@@ -1106,7 +1106,7 @@ function processApplication(formData, fileBlob) {
           case 'Property Zip':        rowData.push(formData['Property Zip']        || ''); break;
           case 'Property Address':    rowData.push(formData['Property Address']    || ''); break;
           case 'Security Deposit':    rowData.push(formData['Security Deposit']    || ''); break;
-          case 'Application Fee':     rowData.push(APPLICATION_FEE); break; // Task 3.4: always use backend constant
+          case 'Application Fee': { const submittedFee = parseFloat(formData['Application Fee'] || ''); rowData.push(!isNaN(submittedFee) ? submittedFee : APPLICATION_FEE); break; } // Fixed: respect per-property fee from listing platform, fall back to APPLICATION_FEE
           case 'Bedrooms':            rowData.push(formData['Bedrooms']            || ''); break;
           case 'Bathrooms':           rowData.push(formData['Bathrooms']           || ''); break;
           case 'Available Date':      rowData.push(formData['Available Date']      || ''); break;
