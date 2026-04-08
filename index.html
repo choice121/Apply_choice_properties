@@ -1013,7 +1013,16 @@
             <div class="form-section" id="section6">
                 <h2><i class="fas fa-check-double"></i> <span data-i18n="reviewHeader">Review & Submit</span></h2>
 
-                <div class="fee-display">
+                <!-- Credit notice: shown by JS when valid credits exist -->
+                  <div id="creditNotice" style="display:none;background:#e8f5e9;border:1px solid #43a047;border-radius:8px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;">
+                      <i class="fas fa-ticket-alt" style="color:#2e7d32;font-size:18px;"></i>
+                      <div>
+                          <strong style="color:#1b5e20;font-size:14px;">Application Credit Applied</strong>
+                          <p style="color:#2e7d32;font-size:13px;margin:2px 0 0;" id="creditNoticeText">You have application credits — your application fee is covered.</p>
+                      </div>
+                  </div>
+
+                  <div class="fee-display">
                     <div class="fee-info">
                         <h4 data-i18n="feeTitle">Application Fee: $50.00</h4>
                         <p data-i18n="feeDesc">This fee is required before review can begin. Our team will contact you immediately after submission to arrange payment.</p>
@@ -1064,6 +1073,21 @@
                         <div class="custom-checkbox">
                             <input type="checkbox" id="termsAgree" required>
                             <label for="termsAgree" data-i18n="termsAgreeLabel">I certify that all information provided in this application is accurate and complete, and I authorize Choice Properties to verify it.</label>
+                        </div>
+
+                        <div class="custom-checkbox">
+                            <input type="checkbox" id="feeAcknowledge" required>
+                            <label for="feeAcknowledge">I acknowledge that the application fee is <strong>non-refundable</strong> once submitted and payment is processed, except as described in the <a href="https://choice-properties.pages.dev/application-credit-policy.html" target="_blank" rel="noopener" style="color:var(--primary);">Application Credit Policy</a>.</label>
+                        </div>
+
+                        <div class="custom-checkbox">
+                            <input type="checkbox" id="infoAccuracy" required>
+                            <label for="infoAccuracy">I certify that all information in this application is accurate and complete to the best of my knowledge. Providing false information is grounds for rejection.</label>
+                        </div>
+
+                        <div class="custom-checkbox">
+                            <input type="checkbox" id="dataConsent" required>
+                            <label for="dataConsent">I consent to my personal information being reviewed by Choice Properties staff and the landlord associated with this property, solely for the purpose of evaluating my rental application.</label>
                         </div>
                     </div>
                 </div>
