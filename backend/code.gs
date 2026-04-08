@@ -1025,7 +1025,7 @@ function processApplication(formData, fileBlob) {
     }
 
     // ── Task 3.5: Normalize all phone fields before storing ──
-    const phoneFields = ['Phone', 'Co-Applicant Phone', 'Supervisor Phone', 'Reference 1 Phone', 'Reference 2 Phone', 'Emergency Phone', 'Landlord Phone'];
+    const phoneFields = ['Phone', 'Co-Applicant Phone', 'Supervisor Phone', 'Reference 1 Phone', 'Reference 2 Phone', 'Emergency Contact Phone', 'Landlord Phone'];
     phoneFields.forEach(field => {
       if (formData[field]) formData[field] = normalizePhone(formData[field]);
     });
