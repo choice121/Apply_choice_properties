@@ -1,6 +1,6 @@
 # Choice Properties — System Architecture
 
-**Document Status:** Current as of April 7, 2026
+**Document Status:** Current as of April 8, 2026
 **Maintainer:** Update this file whenever the architecture changes
 
 ---
@@ -132,6 +132,9 @@ markAsPaid(appId, notes)                     — Marks payment status = 'paid'
 updateStatus(appId, status, notes)           — Sets approved / denied
 requestHoldingFee(appId, amount, notes)      — Requests holding fee from tenant
 markHoldingFeePaid(appId, notes)             — Records holding fee as received
+
+  # Supabase Sync (added Session 042)
+  _syncPropertyStatusToSupabase(propertyId, supabaseStatus) — Fires on approval/denial; PATCHes the Supabase properties table via UrlFetchApp (approved → 'rented', denied → 'active'). Fire-and-forget — errors are caught and logged, never block the main flow. Credentials (SUPABASE_URL, SUPABASE_SERVICE_KEY) read from GAS Script Properties.
 
 # Lease Flow
 generateAndSendLease(appId, leaseData)       — Generates lease, sends email
