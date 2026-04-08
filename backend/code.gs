@@ -160,6 +160,8 @@ function initializeSheets() {
       'Tenant Signature', 'Signature Timestamp', 'Lease IP Address',
       // ── NEW: Holding Fee columns (Session 037) ──
       'Holding Fee Amount', 'Holding Fee Status', 'Holding Fee Date', 'Holding Fee Notes',
+      // ── Phase 6: Precise payment timestamp for refund window ──
+      'Holding Fee Payment Timestamp',
       // ── ISSUE-002 fix: extended property context columns ──
       'Property Zip', 'Application Fee', 'Available Date', 'Lease Terms',
       'Min Lease Months', 'Pets Allowed', 'Pet Types Allowed', 'Pet Weight Limit',
@@ -197,6 +199,16 @@ function initializeSheets() {
     logSheet.getRange(1, 1, 1, 6).setValues([[
       'Timestamp', 'Type', 'Recipient', 'Status', 'App ID', 'Error'
     ]]).setFontWeight('bold').setBackground('#1a5276').setFontColor('#ffffff');
+  }
+
+  // ── Credits sheet (Phase 5) ──
+  const CREDITS_SHEET = 'Credits';
+  let creditsSheet = ss.getSheetByName(CREDITS_SHEET);
+  if (!creditsSheet) {
+    creditsSheet = ss.insertSheet(CREDITS_SHEET);
+    creditsSheet.getRange(1, 1, 1, 5).setValues([[
+      'Email', 'Credits Remaining', 'Issued Date', 'Expiration Date', 'Source App ID'
+    ]]).setFontWeight('bold').setBackground('#1565c0').setFontColor('#ffffff');
   }
 }
 
@@ -965,7 +977,18 @@ function doPost(e) {
 // ============================================================
 function processApplication(formData, fileBlob) {
   try {
-    const requiredFields = ['First Name', 'Last Name', 'Email', 'Phone'];
+    // ── Policy consent checkboxes (Phase 4) ──
+      if (formData['feeAcknowledge'] !== true) {
+        return { success: false, error: 'You must acknowledge the application fee policy before submitting.' };
+      }
+      if (formData['infoAccuracy'] !== true) {
+        return { success: false, error: 'You must certify that your information is accurate before submitting.' };
+      }
+      if (formData['dataConsent'] !== true) {
+        return { success: false, error: 'You must consent to data review before submitting.' };
+      }
+
+      const requiredFields = ['First Name', 'Last Name', 'Email', 'Phone'];
     for (let field of requiredFields) {
       if (!formData[field] || formData[field].trim() === '') {
         throw new Error(`Missing required field: ${field}`);
@@ -2150,7 +2173,20 @@ function renderLeaseSigningPage(appId) {
 
       <div id="alertArea"></div>
 
-      <!-- Step 1: Signature input -->
+        <!-- Phase 10: E-signature legal notice -->
+        <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:10px;padding:16px 20px;margin-bottom:20px;">
+          <h4 style="font-size:14px;font-weight:700;color:#0c4a6e;margin:0 0 8px;display:flex;align-items:center;gap:8px;"><i class="fas fa-gavel" style="color:#0284c7;"></i> Legally Binding Electronic Signature</h4>
+          <p style="font-size:13px;color:#0c4a6e;line-height:1.6;margin:0 0 10px;">By signing below, you agree that your electronic signature is legally binding and has the same effect as a handwritten signature, pursuant to the federal Electronic Signatures in Global and National Commerce Act (ESIGN Act, 15 U.S.C. § 7001) and applicable state law.</p>
+          <p style="font-size:12px;color:#0369a1;margin:0;"><strong>Please read the full lease agreement above carefully before signing.</strong> By signing, you confirm that you have read, understood, and agree to be bound by all terms of the lease.</p>
+          <div style="margin-top:12px;">
+            <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:#0c4a6e;line-height:1.5;">
+              <input type="checkbox" id="leaseReadConfirm" required style="margin-top:3px;flex-shrink:0;" onchange="document.getElementById('btnNext1').disabled = !this.checked;">
+              <span>I have read and understand the lease agreement above, and I agree to be legally bound by its terms.</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Step 1: Signature input -->
       <div id="step1Panel">
         <label class="sig-label">Your Full Legal Name
           <span style="font-weight:400;color:#64748b;font-size:12px;margin-left:6px;">
@@ -4015,8 +4051,13 @@ function markHoldingFeePaid(appId, adminNotes) {
 
     const feeAmount = parseFloat(sheet.getRange(rowIndex, col['Holding Fee Amount']).getValue()) || 0;
 
+    const holdingPaymentTime = new Date();
     sheet.getRange(rowIndex, col['Holding Fee Status']).setValue('paid');
-    sheet.getRange(rowIndex, col['Holding Fee Date']).setValue(new Date());
+    sheet.getRange(rowIndex, col['Holding Fee Date']).setValue(holdingPaymentTime);
+    // ── Phase 6: Store precise payment timestamp for refund window calculation ──
+    if (col['Holding Fee Payment Timestamp']) {
+      sheet.getRange(rowIndex, col['Holding Fee Payment Timestamp']).setValue(holdingPaymentTime.getTime());
+    }
 
     const noteText = `[${new Date().toLocaleString()}] Holding fee of $${feeAmount} marked as received.${adminNotes ? ' ' + adminNotes : ''}`;
     const existing = sheet.getRange(rowIndex, col['Holding Fee Notes']).getValue();
@@ -4399,7 +4440,130 @@ function _syncPropertyStatusToSupabase(propertyId, supabaseStatus) {
 // ============================================================
 // updateStatus()
 // ============================================================
-function updateStatus(appId, newStatus, notes) {
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PHASE 5 — Application Credit System
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  const CREDITS_SHEET_NAME = 'Credits';
+  const MAX_ACTIVE_CREDITS  = 2;
+  const CREDIT_EXPIRY_DAYS  = 45;
+  const CREDITS_PER_DENIAL  = 2;
+
+  /**
+   * Issue application credits to an applicant after a denial.
+   * Rules: max 2 active credits at any time. Each denial issues 2 credits.
+   * If applicant already has 2 active credits, no new ones are issued.
+   */
+  function issueApplicationCredits(email, sourceAppId) {
+    try {
+      if (!email || !sourceAppId) return;
+      const ss    = getSpreadsheet();
+      const sheet = ss.getSheetByName(CREDITS_SHEET_NAME);
+      if (!sheet) return;
+
+      const now       = new Date();
+      const data      = sheet.getDataRange().getValues();
+      let activeCount = 0;
+
+      // Count currently active (non-expired) credits for this email
+      for (let i = 1; i < data.length; i++) {
+        const rowEmail   = data[i][0];
+        const rowCredits = parseInt(data[i][1]) || 0;
+        const expiry     = new Date(data[i][3]);
+        if (rowEmail === email && rowCredits > 0 && expiry > now) {
+          activeCount += rowCredits;
+        }
+      }
+
+      if (activeCount >= MAX_ACTIVE_CREDITS) {
+        console.log('issueApplicationCredits: max active credits reached for ' + email);
+        return;
+      }
+
+      const creditsToIssue = Math.min(CREDITS_PER_DENIAL, MAX_ACTIVE_CREDITS - activeCount);
+      const expiryDate     = new Date(now.getTime() + CREDIT_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+      sheet.appendRow([email, creditsToIssue, now, expiryDate, sourceAppId]);
+      console.log('issueApplicationCredits: issued ' + creditsToIssue + ' credits to ' + email);
+    } catch (e) {
+      console.error('issueApplicationCredits error:', e.message);
+    }
+  }
+
+  /**
+   * Check if an applicant has valid application credits.
+   * Returns { hasCredits: bool, creditsRemaining: number, expiryDate: Date|null, rowIndex: number }
+   */
+  function checkCredits(email) {
+    try {
+      if (!email) return { hasCredits: false, creditsRemaining: 0, expiryDate: null, rowIndex: -1 };
+      const ss    = getSpreadsheet();
+      const sheet = ss.getSheetByName(CREDITS_SHEET_NAME);
+      if (!sheet) return { hasCredits: false, creditsRemaining: 0, expiryDate: null, rowIndex: -1 };
+
+      const now  = new Date();
+      const data = sheet.getDataRange().getValues();
+      let totalActive = 0;
+      let earliestExpiry = null;
+
+      for (let i = 1; i < data.length; i++) {
+        const rowEmail   = data[i][0];
+        const rowCredits = parseInt(data[i][1]) || 0;
+        const expiry     = new Date(data[i][3]);
+        if (rowEmail === email && rowCredits > 0 && expiry > now) {
+          totalActive += rowCredits;
+          if (!earliestExpiry || expiry < earliestExpiry) earliestExpiry = expiry;
+        }
+      }
+
+      return {
+        hasCredits:       totalActive > 0,
+        creditsRemaining: totalActive,
+        expiryDate:       earliestExpiry,
+        rowIndex:         -1
+      };
+    } catch (e) {
+      console.error('checkCredits error:', e.message);
+      return { hasCredits: false, creditsRemaining: 0, expiryDate: null, rowIndex: -1 };
+    }
+  }
+
+  /**
+   * Consume one application credit for the given email.
+   * Deducts from the row with the earliest expiry that still has credits.
+   */
+  function consumeOneCredit(email) {
+    try {
+      const ss    = getSpreadsheet();
+      const sheet = ss.getSheetByName(CREDITS_SHEET_NAME);
+      if (!sheet) return;
+      const now  = new Date();
+      const data = sheet.getDataRange().getValues();
+      let earliestExpiry = null;
+      let targetRow = -1;
+
+      for (let i = 1; i < data.length; i++) {
+        const rowEmail   = data[i][0];
+        const rowCredits = parseInt(data[i][1]) || 0;
+        const expiry     = new Date(data[i][3]);
+        if (rowEmail === email && rowCredits > 0 && expiry > now) {
+          if (!earliestExpiry || expiry < earliestExpiry) {
+            earliestExpiry = expiry;
+            targetRow = i + 1;
+          }
+        }
+      }
+
+      if (targetRow > 0) {
+        const currentCredits = parseInt(sheet.getRange(targetRow, 2).getValue()) || 0;
+        sheet.getRange(targetRow, 2).setValue(Math.max(0, currentCredits - 1));
+      }
+    } catch (e) {
+      console.error('consumeOneCredit error:', e.message);
+    }
+  }
+
+  function updateStatus(appId, newStatus, notes) {
   try {
     const ss    = getSpreadsheet();
     const sheet = ss.getSheetByName(SHEET_NAME);
@@ -4426,6 +4590,12 @@ function updateStatus(appId, newStatus, notes) {
     const firstName = sheet.getRange(rowIndex, col['First Name']).getValue();
     sendStatusUpdateEmail(appId, email, firstName, newStatus, notes);
     logEmail('status_update', email, 'success', appId);
+
+    // ── Phase 5: Issue application credits on denial ──
+    if (newStatus === 'denied') {
+      const emailForCredits = sheet.getRange(rowIndex, col['Email']).getValue();
+      issueApplicationCredits(emailForCredits, appId);
+    }
 
     // Sync property availability to the listing platform (Supabase).
     // approved → 'rented' | denied → 'active' (revert to available)
@@ -4599,7 +4769,37 @@ function logEmail(type, recipient, status, appId, errorMsg) {
 // ============================================================
 // renderApplicantDashboard() — ENHANCED UI
 // ============================================================
-function renderApplicantDashboard(appId) {
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PHASE 6 — Holding Deposit Refund Eligibility
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Calculate holding deposit refund eligibility based on payment timestamp.
+   * Returns: { status: 'full'|'partial'|'none'|'unknown', label: string, color: string }
+   */
+  function getHoldingDepositRefundEligibility(app) {
+    const tsRaw = app['Holding Fee Payment Timestamp'];
+    if (!tsRaw) {
+      // Fallback: use Holding Fee Date if timestamp not stored yet
+      const dateRaw = app['Holding Fee Date'];
+      if (!dateRaw) return { status: 'unknown', label: 'Timestamp not available', color: '#9e9e9e' };
+      const paidAt = new Date(dateRaw);
+      const hoursElapsed = (Date.now() - paidAt.getTime()) / 3600000;
+      if (hoursElapsed < 24) return { status: 'full',    label: 'Full refund available (within 24h)',        color: '#43a047' };
+      if (hoursElapsed < 48) return { status: 'partial', label: 'Partial refund — review case (24–48h)',     color: '#fb8c00' };
+      return                        { status: 'none',    label: 'Non-refundable (48h+ or lease executed)',   color: '#e53935' };
+    }
+    const paidAt      = new Date(parseInt(tsRaw));
+    const hoursElapsed = (Date.now() - paidAt.getTime()) / 3600000;
+    const leaseExecuted = app['Lease Status'] === 'signed' || app['Lease Status'] === 'active';
+    if (leaseExecuted) return { status: 'none', label: 'Non-refundable (lease executed)', color: '#e53935' };
+    if (hoursElapsed < 24) return { status: 'full',    label: 'Full refund available (within 24h)',       color: '#43a047' };
+    if (hoursElapsed < 48) return { status: 'partial', label: 'Partial refund — review case (24–48h)',    color: '#fb8c00' };
+    return                        { status: 'none',    label: 'Non-refundable (48h+ or lease executed)',  color: '#e53935' };
+  }
+
+  function renderApplicantDashboard(appId) {
   const result = getApplication(appId);
   if (!result.success) return renderLoginPage('Invalid application ID or email. Please try again.');
 
@@ -4646,12 +4846,14 @@ function renderApplicantDashboard(appId) {
   const hfStatusDash = app['Holding Fee Status'] || 'none';
   const hfAmtDash    = parseFloat(app['Holding Fee Amount']) || 0;
   const steps = [
-    { label: 'Submitted',    done: true },
+    { label: 'Received',     done: true },
     { label: 'Payment',      done: app['Payment Status'] === 'paid' },
-    { label: 'Under Review', done: app['Payment Status'] === 'paid' && (app['Status'] === 'approved' || app['Status'] === 'denied') },
-    { label: 'Decision',     done: app['Status'] === 'approved' || app['Status'] === 'denied' },
-    { label: 'Lease',        done: app['Lease Status'] === 'signed' || app['Lease Status'] === 'active' }
+    { label: 'Under Review', done: app['Payment Status'] === 'paid' && (app['Status'] === 'approved' || app['Status'] === 'denied' || app['Status'] === 'waitlisted') },
+    { label: 'Decision',     done: app['Status'] === 'approved' || app['Status'] === 'denied' || app['Status'] === 'waitlisted' },
+    { label: 'Lease Ready',  done: app['Lease Status'] === 'sent' || app['Lease Status'] === 'signed' || app['Lease Status'] === 'active' },
+    { label: 'Move-In',      done: app['Lease Status'] === 'signed' || app['Lease Status'] === 'active' }
   ];
+  const reviewTimeHint = (app['Payment Status'] === 'paid' && app['Status'] === 'received') ? '<p style="font-size:12px;color:#64748b;text-align:center;margin-top:10px;"><i class="fas fa-clock" style="margin-right:4px;"></i>Typical review time: 24–72 business hours</p>' : '';
   const progressHtml = steps.map((s, i) => `
     <div style="display:flex;flex-direction:column;align-items:center;flex:1;position:relative;">
       ${i < steps.length - 1 ? `<div style="position:absolute;top:16px;left:50%;width:100%;height:3px;background:${s.done ? statusColor : '#e2e8f0'};z-index:0;"></div>` : ''}
