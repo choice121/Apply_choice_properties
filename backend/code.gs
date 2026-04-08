@@ -411,7 +411,20 @@ function renderLoginPage(errorMsg) {
                 <button type="submit" class="btn btn-primary w-100 btn-lg">View My Application</button>
               </form>
               <hr class="my-4">
-              <p class="text-center text-muted small">Need help? Text us at <strong>707-706-3137</strong></p>
+              <div class="text-center">
+                <p class="text-muted small mb-2">Need help? Text us at <strong>707-706-3137</strong></p>
+                <details style="cursor:pointer;margin-top:8px;">
+                  <summary class="text-muted small" style="color:#1a5276;">Forgot your Application ID?</summary>
+                  <div style="margin-top:10px;">
+                    <p class="text-muted small">Enter your email and we will send your active Application IDs.</p>
+                    <div class="input-group input-group-sm">
+                      <input type="email" id="lookupEmail" class="form-control" placeholder="your@email.com">
+                      <button class="btn btn-outline-secondary" type="button" onclick="lookupById()">Send</button>
+                    </div>
+                    <p id="lookupMsg" class="text-muted small mt-2" style="display:none;"></p>
+                  </div>
+                </details>
+              </div>
             </div>
           </div>
         </div>
@@ -424,13 +437,65 @@ function renderLoginPage(errorMsg) {
           if(!q)return;
           window.location.href=_BASE+'?path=dashboard&id='+encodeURIComponent(q);
         }
+        function lookupById(){
+          const em=document.getElementById('lookupEmail').value.trim();
+          const msg=document.getElementById('lookupMsg');
+          if(!em){msg.textContent='Please enter your email address.';msg.style.display='block';return;}
+          msg.textContent='Sending…';msg.style.display='block';
+          fetch(_BASE,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+            body:'_action=lookupAppId&email='+encodeURIComponent(em)})
+            .then(function(){msg.textContent='If we have a matching application, you will receive an email shortly.';})
+            .catch(function(){msg.textContent='Something went wrong. Please try again.';});
+        }
       </script>
     </body>
     </html>
   `).setTitle('Applicant Login - Choice Properties');
 }
 
-// ============================================================
+
+  // ============================================================
+  // lookupAppIdByEmail() — 9C-3: Email-based App ID recovery
+  // ============================================================
+  function lookupAppIdByEmail(email) {
+    try {
+      if (!email || !email.includes('@')) return { success: true };
+      const ss    = getSpreadsheet();
+      const sheet = ss.getSheetByName(SHEET_NAME);
+      if (!sheet) return { success: true };
+      const col  = getColumnMap(sheet);
+      const data = sheet.getDataRange().getValues();
+      const emailNorm = email.toLowerCase().trim();
+      const matches = [];
+      for (let i = 1; i < data.length; i++) {
+        const rowEmail  = String(data[i][(col['Email'] || 1) - 1]).toLowerCase().trim();
+        const rowStatus = String(data[i][(col['Status'] || 1) - 1]).toLowerCase().trim();
+        const rowAppId  = String(data[i][(col['App ID'] || 1) - 1]).trim();
+        if (rowEmail === emailNorm && rowAppId && !['denied', 'withdrawn'].includes(rowStatus)) {
+          const gasUrl = ScriptApp.getService().getUrl();
+          matches.push({ appId: rowAppId, status: rowStatus,
+            dashLink: gasUrl + '?path=dashboard&id=' + encodeURIComponent(rowAppId) });
+        }
+      }
+      if (matches.length > 0) {
+        const listLines = matches.map(function(m) {
+          return '\u2022 Application ID: ' + m.appId + ' (' + m.status + ')\n  Dashboard: ' + m.dashLink;
+        }).join('\n\n');
+        MailApp.sendEmail({
+          to: email,
+          subject: 'Choice Properties — Your Application ID(s)',
+          body: 'Hello,\n\nYou requested your Application ID(s).\n\nActive applications:\n\n' +
+                listLines + '\n\nIf you did not request this, ignore this email.\n\n— Choice Properties Team'
+        });
+      }
+      return { success: true };
+    } catch (err) {
+      console.error('lookupAppIdByEmail error:', err.toString());
+      return { success: true };
+    }
+  }
+
+  // ============================================================
 // ADMIN AUTH — Token + OTP + Password System
 // ============================================================
 
@@ -927,9 +992,15 @@ function doPost(e) {
       return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
     }
     if (formData['_action'] === 'sendResumeEmail') {
-      const result = sendResumeEmail(formData['email'] || '', formData['resumeUrl'] || '', formData['step'] || '1');
-      return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
-    }
+        const result = sendResumeEmail(formData['email'] || '', formData['resumeUrl'] || '', formData['step'] || '1');
+        return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+      }
+
+      // ── Route: 9C-3 — email-based App ID lookup ──
+      if (formData['_action'] === 'lookupAppId') {
+        const result = lookupAppIdByEmail(formData['email'] || '');
+        return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+      }
 
     // ── Honeypot check — bots fill this field, real users don't ──────────────
       if (formData['website'] && formData['website'].trim() !== '') {
@@ -1106,7 +1177,7 @@ function processApplication(formData, fileBlob) {
           case 'Property Zip':        rowData.push(formData['Property Zip']        || ''); break;
           case 'Property Address':    rowData.push(formData['Property Address']    || ''); break;
           case 'Security Deposit':    rowData.push(formData['Security Deposit']    || ''); break;
-          case 'Application Fee': { const submittedFee = parseFloat(formData['Application Fee'] || ''); rowData.push(!isNaN(submittedFee) ? submittedFee : APPLICATION_FEE); break; } // Fixed: respect per-property fee from listing platform, fall back to APPLICATION_FEE
+          case 'Application Fee': { const submittedFee = parseFloat(formData['Application Fee'] || ''); rowData.push(!isNaN(submittedFee) ? submittedFee : 0); break; } // 9C-1: fee always comes from property data via URL param; fallback 0 (free) not hardcoded constant
           case 'Bedrooms':            rowData.push(formData['Bedrooms']            || ''); break;
           case 'Bathrooms':           rowData.push(formData['Bathrooms']           || ''); break;
           case 'Available Date':      rowData.push(formData['Available Date']      || ''); break;
