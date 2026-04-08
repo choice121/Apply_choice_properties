@@ -372,14 +372,14 @@ All 5 verification checks passed:
 
   ## Phase 9 — Bug Fixes & Integration Improvements
 
-  **Status:** STARTING — April 8, 2026
+  **Status:** Phase 9A COMPLETE — April 8, 2026
   **Triggered by:** Deep scan of both repos (Apply_choice_properties + Choice)
   **Full detail:** See `PHASE9_BUG_FIXES.md` in this repo and `KNOWN_ISSUES.md` in the Choice repo
 
-  ### Phase 9A — Critical (Fix First)
-  - [ ] **9A-1** `updateStatus()` payment guard blocks denial of unpaid applicants (`backend/code.gs`)
-  - [ ] **9A-2** Denial syncs `'active'` to Supabase — reverts rented property to available (`backend/code.gs`)
-  - [ ] **9A-3** `p.monthly_rent.toLocaleString()` crashes property detail page on null rent (`Choice/property.html`)
+  ### Phase 9A — Critical (COMPLETE — April 8, 2026)
+  - [x] **9A-1** `updateStatus()` payment guard now only blocks approval — admins can deny unpaid applicants (`backend/code.gs`)
+  - [x] **9A-2** Supabase sync now only fires on approval — denial no longer reverts rented property to available (`backend/code.gs`)
+  - [x] **9A-3** All `p.monthly_rent.toLocaleString()` calls null-guarded — property detail page no longer crashes on null rent (`Choice/property.html`, 10 occurrences)
 
   ### Phase 9B — Important (Fix After 9A)
   - [ ] **9B-1** Emergency Contact Phone field name mismatch — phone never normalized (`backend/code.gs`)
