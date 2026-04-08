@@ -1,6 +1,6 @@
-START HERE — ACTIVE WORK DOCUMENT:
-  Any AI resuming work on this project MUST read this file after PROJECT_STATUS.md and PROJECT_RULES.md.
-  This is the source of truth for all Phase 9 bug fixes and improvements.
+COMPLETED RECORD — Phase 9 is fully done. Do not treat this as active work.
+  All items below are marked complete [x]. This file is a historical fix log.
+  For current project status, read PROJECT_STATUS.md.
 
   ---
 
