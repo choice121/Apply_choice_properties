@@ -345,27 +345,50 @@ All 5 verification checks passed:
 
 ---
 
-NEXT AI INSTRUCTIONS:
-- Read `PROJECT_STATUS.md` (this file) first
-- Read `PROJECT_RULES.md` second
-- Read `docs/IMPLEMENTATION_PLAN.md` third
-- ALL 8 PHASES ARE COMPLETE. The system is feature-complete as of April 7, 2026.
-- Phase 7 (GAS Automation) is permanently cancelled — do NOT implement automated triggers or scheduled emails
-- All emails and status updates are admin-initiated through the dashboard only
-- Do not introduce any infrastructure not already in the project
-- Any new work should be treated as a Phase 9 or bug-fix request — scope carefully against `PROJECT_RULES.md`
+  NEXT AI INSTRUCTIONS:
+  - Read `PROJECT_STATUS.md` (this file) first
+  - Read `PROJECT_RULES.md` second
+  - Read `PHASE9_BUG_FIXES.md` third — this is the active work document
+  - Phases 1–8 are complete. Phase 9 (Bug Fixes & Improvements) is STARTING.
+  - A full deep scan was completed April 8, 2026 — all bugs are documented in `PHASE9_BUG_FIXES.md`
+  - Fix in strict priority order: Phase 9A (critical) → 9B (important) → 9C (improvements)
+  - Architecture constraints in `PROJECT_RULES.md` are non-negotiable — read before every change
+  - Phase 7 (GAS Automation) is permanently cancelled — do NOT implement automated triggers
+  - Do not introduce any infrastructure not already in the project
 
----
+  ---
 
-## Post-Phase Security Hardening (April 7, 2026)
+  ## Post-Phase Security Hardening (April 7, 2026)
 
-**Status:** COMPLETE
+  **Status:** COMPLETE
 
-Actions taken after all 8 phases completed:
+  Actions taken after all 8 phases completed:
 
-- [x] Redacted plaintext admin credentials from `AUDIT_REPORT.md` (they had been quoted verbatim in the issue description)
-- [ ] Decommission dead Supabase Edge Functions (process-application, sign-lease, get-application-status, mark-paid, generate-lease, mark-movein, update-status) — no longer called by any page
-- [ ] Add rate limiting / honeypot to GAS `doPost()` endpoint
-- [ ] Add file type validation to GAS document upload handler
-- [ ] Add holding fee confirmation email to tenant (MISSING-T01)
-- [ ] Add 48-hour lease signing reminder trigger (MISSING-T02)
+  - [x] Redacted plaintext admin credentials from `AUDIT_REPORT.md`
+  - [ ] Decommission dead Supabase Edge Functions (process-application, sign-lease, get-application-status, mark-paid, generate-lease, mark-movein, update-status) — no longer called by any page
+  - [ ] Add rate limiting / honeypot to GAS `doPost()` endpoint
+
+  ---
+
+  ## Phase 9 — Bug Fixes & Integration Improvements
+
+  **Status:** STARTING — April 8, 2026
+  **Triggered by:** Deep scan of both repos (Apply_choice_properties + Choice)
+  **Full detail:** See `PHASE9_BUG_FIXES.md` in this repo and `KNOWN_ISSUES.md` in the Choice repo
+
+  ### Phase 9A — Critical (Fix First)
+  - [ ] **9A-1** `updateStatus()` payment guard blocks denial of unpaid applicants (`backend/code.gs`)
+  - [ ] **9A-2** Denial syncs `'active'` to Supabase — reverts rented property to available (`backend/code.gs`)
+  - [ ] **9A-3** `p.monthly_rent.toLocaleString()` crashes property detail page on null rent (`Choice/property.html`)
+
+  ### Phase 9B — Important (Fix After 9A)
+  - [ ] **9B-1** Emergency Contact Phone field name mismatch — phone never normalized (`backend/code.gs`)
+  - [ ] **9B-2** Date of Birth saved to localStorage — not excluded from auto-save (`js/script.js`)
+  - [ ] **9B-3** Pets/smoking `"false"` string treated as truthy — policy flags misbehave (`js/script.js`, `Choice/property.html`)
+  - [ ] **9B-4** Rent range filter silent failure when min > max — users see empty results with no explanation (`Choice/listings.html`)
+
+  ### Phase 9C — Improvements (After bugs are fixed)
+  - [ ] **9C-1** Application fee fully dynamic — remove `APPLICATION_FEE` hardcoded fallback; fee must always come from property data via URL param (`backend/code.gs`)
+  - [ ] **9C-2** Add "Back to listing" link on application success screen (`js/script.js`, `index.html`)
+  - [ ] **9C-3** Email-based App ID recovery on applicant dashboard login (`backend/code.gs`)
+  
