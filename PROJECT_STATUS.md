@@ -8,8 +8,8 @@ Do NOT proceed without verifying the last completed phase.
 
 **System:** Choice Properties Rental Application System
 **Stack:** Pure static HTML/CSS/Vanilla JS + Google Apps Script (GAS) backend + Google Sheets database
-**Last Updated:** April 7, 2026
-**Active Phase:** Phase 8 — COMPLETE (all 8 phases done)
+**Last Updated:** April 8, 2026
+**Active Phase:** Phase 9 — COMPLETE (all 9 phases done)
 
 ---
 
@@ -25,6 +25,7 @@ Do NOT proceed without verifying the last completed phase.
 | 6 | Payment Flow Improvements | COMPLETE |
 | 7 | Automation (GAS Triggers) | CANCELLED — all emails are manual |
 | 8 | UX & Flow Completion | COMPLETE |
+| 9 | Bug Fixes & Integration Improvements | COMPLETE |
 
 ---
 
@@ -247,7 +248,42 @@ Do NOT proceed without verifying the last completed phase.
 
 ---
 
-## Completed Tasks Log
+
+  ---
+
+  ## Phase 9 — Bug Fixes & Integration Improvements
+
+  **Status:** COMPLETE — April 8, 2026
+  **Triggered by:** Deep scan of both repos (choice121/Choice + choice121/Apply_choice_properties)
+  **Full detail:** See `PHASE9_BUG_FIXES.md` for exact fixes, root causes, and commit references.
+
+  ### Phase 9A — Critical
+
+  - [x] **9A-1** Admin can now deny unpaid applicants — payment guard in `updateStatus()` restricted to approval only
+  - [x] **9A-2** Denying an applicant no longer reverts a rented property back to "available" — Supabase sync only fires on approval
+  - [x] **9A-3** Property detail page null-rent crash fixed — `monthly_rent` null-guarded throughout `renderProperty()` in Choice repo
+
+  ### Phase 9B — Important
+
+  - [x] **9B-1** Emergency Contact Phone field name fixed in phone normalization loop (`'Emergency Phone'` → `'Emergency Contact Phone'`)
+  - [x] **9B-2** Date of Birth and Co-Applicant DOB excluded from localStorage saves (privacy fix)
+  - [x] **9B-3** Pets/smoking URL param truthy issue — verified safe, no truthy conditional found in Apply form
+  - [x] **9B-4** Rent range filter swaps min/max automatically when user sets them backwards — no more silent empty results
+
+  ### Phase 9C — Improvements
+
+  - [x] **9C-1** Application fee fallback changed from hardcoded constant to `0`; `buildApplyURL()` always sends fee param (even if zero)
+  - [x] **9C-2** "Back to listing" link added to application success screen — source URL passed as URL param from Choice listing
+  - [x] **9C-3** Email-based App ID recovery added to applicant dashboard login — "Forgot your App ID?" flow via `lookupAppIdByEmail()`
+
+  ### Files Modified
+  - `backend/code.gs` (9A-1, 9A-2, 9B-1, 9C-1, 9C-3)
+  - `js/script.js` (9B-2, 9C-2)
+  - `property.html` in **choice121/Choice** (9A-3)
+  - `listings.html` in **choice121/Choice** (9B-4)
+  - `js/cp-api.js` in **choice121/Choice** (9C-1, 9C-2)
+
+  ## Completed Tasks Log
 
 ### Phase 8 — April 7, 2026
 - **8.1** Added "Reapplication Protection" card to denied applicant dashboard: 30-day no-fee reapplication window, 60-day results validity, phone + email CTAs.
