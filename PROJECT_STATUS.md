@@ -372,7 +372,7 @@ All 5 verification checks passed:
 
   ## Phase 9 — Bug Fixes & Integration Improvements
 
-  **Status:** Phase 9A COMPLETE — April 8, 2026
+  **Status:** Phase 9B COMPLETE — April 8, 2026
   **Triggered by:** Deep scan of both repos (Apply_choice_properties + Choice)
   **Full detail:** See `PHASE9_BUG_FIXES.md` in this repo and `KNOWN_ISSUES.md` in the Choice repo
 
@@ -381,11 +381,11 @@ All 5 verification checks passed:
   - [x] **9A-2** Supabase sync now only fires on approval — denial no longer reverts rented property to available (`backend/code.gs`)
   - [x] **9A-3** All `p.monthly_rent.toLocaleString()` calls null-guarded — property detail page no longer crashes on null rent (`Choice/property.html`, 10 occurrences)
 
-  ### Phase 9B — Important (Fix After 9A)
-  - [ ] **9B-1** Emergency Contact Phone field name mismatch — phone never normalized (`backend/code.gs`)
-  - [ ] **9B-2** Date of Birth saved to localStorage — not excluded from auto-save (`js/script.js`)
-  - [ ] **9B-3** Pets/smoking `"false"` string treated as truthy — policy flags misbehave (`js/script.js`, `Choice/property.html`)
-  - [ ] **9B-4** Rent range filter silent failure when min > max — users see empty results with no explanation (`Choice/listings.html`)
+  ### Phase 9B — Important (COMPLETE — April 8, 2026)
+  - [x] **9B-1** Emergency Contact Phone field name fixed in phone normalization array (`backend/code.gs`)
+  - [x] **9B-2** Date of Birth and Co-Applicant DOB now excluded from localStorage saves (`js/script.js`)
+  - [x] **9B-3** Verified safe — no truthy `if (pets)` / `if (smoking)` conditionals found; values go directly to hidden inputs (`js/script.js`, `Choice/property.html`)
+  - [x] **9B-4** Rent swap guard added to `fetchAndRender()` — min/max are silently corrected before query fires (`Choice/listings.html`)
 
   ### Phase 9C — Improvements (After bugs are fixed)
   - [ ] **9C-1** Application fee fully dynamic — remove `APPLICATION_FEE` hardcoded fallback; fee must always come from property data via URL param (`backend/code.gs`)
