@@ -86,7 +86,7 @@
   ## 🟠 IMPORTANT ISSUES (I-series)
 
   ### [I1] No Validation That Property ID Exists in the Listing Platform
-  - **Status:** `[ ]`
+  - **Status:** `[x]`
   - **File:** `backend/code.gs`
   - **Function:** `processApplication()`
   - **Severity:** IMPORTANT — applications for non-existent/rented properties get through
@@ -341,7 +341,7 @@
   ---
 
   ### [M6] Empty `catch` Blocks Swallow Errors Silently
-  - **Status:** `[ ]`
+  - **Status:** `[x]`
   - **File:** `js/script.js`
   - **Severity:** MODERATE — makes debugging impossible in production
   - **Problem:** Multiple `catch (e) {}` blocks with no logging. When something breaks, there's zero trace of what happened.
@@ -396,7 +396,7 @@
   ---
 
   ### [B3] No Health Check Between Systems
-  - **Status:** `[ ]`
+  - **Status:** `[x]`
   - **Files:** `backend/code.gs`, `js/cp-api.js` (Choice repo)
   - **Severity:** MODERATE — no proactive failure detection
   - **Problem:** If the GAS backend goes down (quota exceeded, script error, service outage), the listing platform's Apply button silently redirects users to a broken form with no indication anything is wrong.
