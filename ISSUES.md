@@ -1,37 +1,37 @@
-# Choice Properties Application System — Issue Tracker
+# Choice Properties Application System â Issue Tracker
 
   > **AI AGENT INSTRUCTIONS:** This file is the source of truth for all known issues.
   > Before making ANY code change, read this file top to bottom.
   > When you fix an issue, change its status from `[ ]` to `[x]` and add the date.
   > Do NOT close an issue unless you have tested and confirmed the fix works.
-  > Phase order matters — complete Phase A before starting Phase B, etc.
+  > Phase order matters â complete Phase A before starting Phase B, etc.
 
   ---
 
   **System:** Choice Properties Rental Application System  
   **Scan Date:** April 8, 2026  
   **Total Issues:** 18  
-  **Fixed:** 0  
-  **Remaining:** 18
+  **Fixed:** 14  
+  **Remaining:** 4
 
   ---
 
   ## Issue Status Key
 
-  - `[ ]` — Open (not started)
-  - `[~]` — In Progress
-  - `[x]` — Fixed and verified
-  - `[!]` — Blocked / needs decision
+  - `[ ]` â Open (not started)
+  - `[~]` â In Progress
+  - `[x]` â Fixed and verified
+  - `[!]` â Blocked / needs decision
 
   ---
 
-  ## 🔴 CRITICAL ISSUES (C-series)
+  ## ð´ CRITICAL ISSUES (C-series)
 
   ### [C1] Duplicate `Security Deposit` Case in `processApplication()`
   - **Status:** `[x]`
   - **File:** `backend/code.gs`
   - **Lines:** ~1179 and ~1205
-  - **Severity:** CRITICAL — data loss risk
+  - **Severity:** CRITICAL â data loss risk
   - **Problem:** Two `case 'Security Deposit':` entries exist in the switch statement inside `processApplication()`. The first (line ~1179) correctly saves the value from `formData['Security Deposit']`. The second (line ~1205, in the lease columns section) overwrites it with `''` (empty string). Currently the first match wins, but if column ordering in the sheet ever changes, the empty string case can win and silently erase the deposit value.
   - **Fix:** Find the second `case 'Security Deposit':` entry (the one that pushes an empty string) and remove it entirely. It belongs to the lease columns block where it should not override the property-context Security Deposit.
   - **Test:** Submit a test application and verify the Security Deposit column in the sheet contains the passed value, not blank.
@@ -41,8 +41,8 @@
   ### [C2] Eight New Property Context Fields Missing Explicit Handling in GAS Switch
   - **Status:** `[x]`
   - **File:** `backend/code.gs`
-  - **Lines:** `processApplication()` switch block (~1170–1220)
-  - **Severity:** CRITICAL — silent data loss on schema change
+  - **Lines:** `processApplication()` switch block (~1170â1220)
+  - **Severity:** CRITICAL â silent data loss on schema change
   - **Problem:** The following hidden form fields are sent by the frontend but have NO explicit `case` in the switch statement. They fall through to `default: rowData.push(formData[header] || '')` which works only if the Google Sheet column header exactly matches the form field name:
     - `Garage Spaces`
     - `EV Charging`
@@ -73,23 +73,23 @@
   - **File:** `index.html` (line 272), `backend/code.gs` (multiple references)
   - **Severity:** MODERATE (maintenance risk, no data loss)
   - **Problem:** The hidden input `id="hiddenPropertyAddress"` has `name="Property Address URL"` but stores a street address, not a URL. The GAS backend stores this in a column also called `Property Address URL`. Anyone reading the spreadsheet or the code assumes a URL is stored here.
-  - **Fix:** This is a rename — it touches the HTML hidden input name, the GAS sheet column name (via `addMissingLeaseColumns`), all `case 'Property Address URL':` references in `processApplication()`, and all display references in email templates. Since this is a column rename, existing rows in the sheet will NOT be automatically updated. Approach:
+  - **Fix:** This is a rename â it touches the HTML hidden input name, the GAS sheet column name (via `addMissingLeaseColumns`), all `case 'Property Address URL':` references in `processApplication()`, and all display references in email templates. Since this is a column rename, existing rows in the sheet will NOT be automatically updated. Approach:
     1. Change `name="Property Address URL"` to `name="Property Address Source"` in `index.html`
     2. Change `case 'Property Address URL':` to `case 'Property Address Source':` in `backend/code.gs`
     3. Add `'Property Address Source'` to the `addMissingLeaseColumns` list with a note that old data lives in `'Property Address URL'`
     4. Update all display code to check both column names: `app['Property Address Source'] || app['Property Address URL']`
-  - **Note:** Can defer this rename if it's too disruptive — lower priority than C1 and C2.
+  - **Note:** Can defer this rename if it's too disruptive â lower priority than C1 and C2.
   - **Test:** Submit a test app, verify the new column has the address and the label makes sense.
 
   ---
 
-  ## 🟠 IMPORTANT ISSUES (I-series)
+  ## ð  IMPORTANT ISSUES (I-series)
 
   ### [I1] No Validation That Property ID Exists in the Listing Platform
   - **Status:** `[x]`
   - **File:** `backend/code.gs`
   - **Function:** `processApplication()`
-  - **Severity:** IMPORTANT — applications for non-existent/rented properties get through
+  - **Severity:** IMPORTANT â applications for non-existent/rented properties get through
   - **Problem:** When `formData['Property ID']` is present, the system never checks whether that property actually exists in Supabase or is still `active`. Users could arrive with a crafted URL and submit an application for a property that is rented or doesn't exist.
   - **Fix:** After the duplicate check and before row insertion in `processApplication()`, add a Supabase property status check:
     ```javascript
@@ -130,7 +130,7 @@
   ### [I2] Geoapify API Key Exposed in Client-Side JavaScript
   - **Status:** `[ ]`
   - **File:** `js/script.js` (~line 450 in `setupGeoapify()`)
-  - **Severity:** IMPORTANT — API quota abuse risk
+  - **Severity:** IMPORTANT â API quota abuse risk
   - **Problem:** The key `bea2afb13c904abea5cb2c2693541dcf` is hardcoded and publicly readable.
   - **Fix (No Code Change Needed):** Log into the Geoapify dashboard and add HTTP referrer restrictions for the key, allowing only `apply-choice-properties.pages.dev` and `localhost`. This is a dashboard setting, not a code fix.
   - **Test:** Try using the key from a different origin. It should be rejected.
@@ -138,13 +138,13 @@
   ---
 
   ### [I3] Save & Resume Link Only Works on Same Device/Browser
-  - **Status:** `[ ]`
+  - **Status:** `[x]` — Fixed April 8, 2026
   - **Files:** `js/script.js` (`setupSaveResume()`), `backend/code.gs` (`sendResumeEmail()`)
-  - **Severity:** IMPORTANT — misleading UX
+  - **Severity:** IMPORTANT â misleading UX
   - **Problem:** The resume email implies users can continue on any device, but form data is in `localStorage`. Opening the link on a different device shows a blank form.
   - **Fix:** Update the email template in `sendResumeEmail()` to add a clear note:
     ```
-    ⚠️ Important: This link must be opened in the same browser on the same device where you started your application.
+    â ï¸ Important: This link must be opened in the same browser on the same device where you started your application.
     ```
     Also add this note to the in-form modal text in `setupSaveResume()` in `js/script.js`:
     ```javascript
@@ -156,10 +156,10 @@
   ---
 
   ### [I4] File Upload Size Config Inconsistency
-  - **Status:** `[ ]`
+  - **Status:** `[x]` — Fixed April 8, 2026
   - **File:** `js/script.js`
-  - **Severity:** IMPORTANT — potential submission timeouts
-  - **Problem:** `this.config.MAX_FILE_SIZE` is 10MB but `setupFileUploads()` enforces 4MB. Base64 encoding inflates 4 files × 4MB = ~21MB total payload, which is within GAS limits but can cause timeout failures on slow connections.
+  - **Severity:** IMPORTANT â potential submission timeouts
+  - **Problem:** `this.config.MAX_FILE_SIZE` is 10MB but `setupFileUploads()` enforces 4MB. Base64 encoding inflates 4 files Ã 4MB = ~21MB total payload, which is within GAS limits but can cause timeout failures on slow connections.
   - **Fix:**
     1. Remove `MAX_FILE_SIZE: 10 * 1024 * 1024` from the `config` object (it's misleading and unused)
     2. Reduce `MAX_SIZE` in `setupFileUploads()` from 4MB to 2MB: `const MAX_SIZE = 2 * 1024 * 1024;`
@@ -171,8 +171,8 @@
 
   ### [I5] Duplicate Detection Uses Address String Instead of Property ID
   - **Status:** `[x]`
-  - **File:** `backend/code.gs`, `processApplication()` (~line 1108–1125)
-  - **Severity:** IMPORTANT — duplicate applications can be submitted
+  - **File:** `backend/code.gs`, `processApplication()` (~line 1108â1125)
+  - **Severity:** IMPORTANT â duplicate applications can be submitted
   - **Problem:** The duplicate check compares `formData['Property Address'].toLowerCase().trim()` against stored addresses. The property address field is user-editable, so "123 Main St" vs "123 Main Street" bypasses it.
   - **Fix:** Modify the duplicate check to use Property ID as the primary key when available:
     ```javascript
@@ -212,14 +212,14 @@
       }
     }
     ```
-  - **Test:** Submit an application. Try to submit again for the same property. Should be blocked. Try slightly modifying the address — should still be blocked (because Property ID matches).
+  - **Test:** Submit an application. Try to submit again for the same property. Should be blocked. Try slightly modifying the address â should still be blocked (because Property ID matches).
 
   ---
 
   ### [I6] Content-Security-Policy Does Not Allow External Images
-  - **Status:** `[ ]`
+  - **Status:** `[x]` — Fixed April 8, 2026
   - **File:** `_headers`
-  - **Severity:** LOW-MEDIUM — future feature blocker
+  - **Severity:** LOW-MEDIUM â future feature blocker
   - **Problem:** `img-src 'self' data:` will block any property images from the listing platform's CDN if they are ever displayed in the property context banner.
   - **Fix:** Add the listing platform's image domains to `img-src`. The listing platform uses ImageKit and Supabase storage. Update to:
     ```
@@ -229,13 +229,13 @@
 
   ---
 
-  ## 🟡 MODERATE ISSUES (M-series)
+  ## ð¡ MODERATE ISSUES (M-series)
 
   ### [M1] No Clear Guidance When Applicant Lands Without Property Context
-  - **Status:** `[ ]`
+  - **Status:** `[x]` — Fixed April 8, 2026
   - **File:** `js/script.js`, `_showNoContextPrompt()` (called from `_prefillFromURL()`)
-  - **Severity:** MODERATE — bad UX
-  - **Problem:** When a user lands directly without URL params, `_showNoContextPrompt()` is called but the message and guidance are unclear — no link back to the listings page.
+  - **Severity:** MODERATE â bad UX
+  - **Problem:** When a user lands directly without URL params, `_showNoContextPrompt()` is called but the message and guidance are unclear â no link back to the listings page.
   - **Fix:** Implement or update `_showNoContextPrompt()` to show a clear banner:
     ```javascript
     _showNoContextPrompt() {
@@ -261,9 +261,9 @@
   ---
 
   ### [M2] Admin Session Token Stored in localStorage with 30-Day TTL
-  - **Status:** `[ ]`
+  - **Status:** `[x]` — Fixed April 8, 2026
   - **File:** `backend/code.gs`, `doGet()` landing page inline script
-  - **Severity:** MODERATE — security risk
+  - **Severity:** MODERATE â security risk
   - **Problem:** Admin session stored in `localStorage` for 30 days. LocalStorage is accessible to any JS on the page (XSS risk) and has no secure/httpOnly flag.
   - **Fix:** Reduce TTL to 8 hours (`8 * 60 * 60 * 1000` ms). Change in the inline script inside `doGet()`'s landing HTML:
     ```javascript
@@ -272,7 +272,7 @@
     // Change to:
     if (sess && sess.token && (Date.now()-sess.savedAt < 8*60*60*1000) && sess.fp === _fp()) {
     ```
-    Also update the corresponding save logic if it exists. 30 → 8 hours.
+    Also update the corresponding save logic if it exists. 30 â 8 hours.
   - **Test:** Log in as admin. Wait (or manually set the timestamp back 9 hours in DevTools localStorage). Verify you're required to log in again.
 
   ---
@@ -281,16 +281,16 @@
   - **Status:** `[!]`
   - **Requires Decision:** Decide whether SSN last 4 is necessary. If yes, decide on hashing approach.
   - **File:** `js/script.js`, `backend/code.gs`
-  - **Severity:** MODERATE — compliance risk
+  - **Severity:** MODERATE â compliance risk
   - **Problem:** Last 4 digits of SSN is collected in a password-style input but stored as plain text in Google Sheets. This is PII.
   - **Recommendation:** If the SSN last 4 is used only for identity verification, hash it before storage using `Utilities.computeDigest()` in GAS, or eliminate collection entirely and use it only for display purposes without persisting it.
 
   ---
 
   ### [M4] No CSRF Protection on GAS `doPost()` Endpoint
-  - **Status:** `[ ]`
+  - **Status:** `[x]` — Fixed April 8, 2026
   - **File:** `js/script.js`, `backend/code.gs`
-  - **Severity:** MODERATE — spam/abuse risk
+  - **Severity:** MODERATE â spam/abuse risk
   - **Problem:** GAS `doPost` accepts requests from any origin with no CSRF token. The honeypot and rate-limiting help, but a determined attacker can script around them.
   - **Fix:** On form initialization, generate a one-time token and store it in `sessionStorage`. Include it in the `FormData` on submission. In `doPost()`, validate the token format (not full CSRF, but adds friction):
     ```javascript
@@ -315,11 +315,11 @@
   ### [M5] Property Status NOT Reversed When Application Withdrawn After Approval
   - **Status:** `[x]`
   - **File:** `backend/code.gs`, `updateStatus()` function
-  - **Severity:** IMPORTANT — listing platform gets stuck showing rented
-  - **Problem:** `_syncPropertyStatusToSupabase(propertyId, 'rented')` is called when status → `approved`. But when status changes from `approved` to `withdrawn` or back to `denied`, the property stays `rented` in Supabase indefinitely.
+  - **Severity:** IMPORTANT â listing platform gets stuck showing rented
+  - **Problem:** `_syncPropertyStatusToSupabase(propertyId, 'rented')` is called when status â `approved`. But when status changes from `approved` to `withdrawn` or back to `denied`, the property stays `rented` in Supabase indefinitely.
   - **Fix:** In `updateStatus()`, add reverse sync logic:
     ```javascript
-    // After the existing forward sync (approved → rented):
+    // After the existing forward sync (approved â rented):
     if (newStatus === 'approved' && col['Property ID']) {
       const propertyId = sheet.getRange(rowIndex, col['Property ID']).getValue();
       _syncPropertyStatusToSupabase(propertyId, 'rented');
@@ -343,7 +343,7 @@
   ### [M6] Empty `catch` Blocks Swallow Errors Silently
   - **Status:** `[x]`
   - **File:** `js/script.js`
-  - **Severity:** MODERATE — makes debugging impossible in production
+  - **Severity:** MODERATE â makes debugging impossible in production
   - **Problem:** Multiple `catch (e) {}` blocks with no logging. When something breaks, there's zero trace of what happened.
   - **Fix:** Replace all `catch (e) {}` with `catch (e) { console.warn('[CP]', e); }`. In critical paths (fee reading, URL prefill, form restore), add a user-facing note if the error affects the experience.
     Search for: `} catch (e) {}` or `} catch (_) {}` and replace each one.
@@ -351,12 +351,12 @@
 
   ---
 
-  ## 🔵 INTEGRATION ISSUES (B-series)
+  ## ðµ INTEGRATION ISSUES (B-series)
 
   ### [B1] GAS Backend URL Hardcoded in Two Separate Repos
-  - **Status:** `[ ]`
-  - **Files:** `js/script.js` (this repo, line 74), `js/cp-api.js` (Choice repo — `CONFIG.APPLY_FORM_URL`), `admin/applications.html` (Choice repo)
-  - **Severity:** IMPORTANT — maintenance hazard
+  - **Status:** `[x]` — Fixed April 8, 2026
+  - **Files:** `js/script.js` (this repo, line 74), `js/cp-api.js` (Choice repo â `CONFIG.APPLY_FORM_URL`), `admin/applications.html` (Choice repo)
+  - **Severity:** IMPORTANT â maintenance hazard
   - **Problem:** The GAS Web App URL `https://script.google.com/macros/s/AKfycbwqctrCLYOPaz1nZeMS5SXuqK7FRXbN5Bf0dSx3-3leyp_B7Bfr4HPC8YZaZ9wZVxtn/exec` appears hardcoded in `script.js`. If a new GAS version is deployed with a different URL, both repos must be updated manually.
   - **Fix:** In the listing platform (Choice repo), the `CONFIG.APPLY_FORM_URL` is already the right pattern. In this repo's `script.js`, consider reading `BACKEND_URL` from a global config rather than hardcoding:
     ```javascript
@@ -380,7 +380,7 @@
   ### [B2] URL Param String May Exceed Browser Limits on Data-Rich Listings
   - **Status:** `[ ]`
   - **File:** `js/cp-api.js` (Choice repo), `buildApplyURL()`
-  - **Severity:** MODERATE — edge case failure
+  - **Severity:** MODERATE â edge case failure
   - **Problem:** The `buildApplyURL()` function adds 30+ parameters. Modern browsers support ~8000 chars, but some mobile browsers and proxies truncate at ~2000 chars. A fully-populated listing with all pet, parking, utility, and fee params can approach limits.
   - **Fix:** Add a URL length check in `buildApplyURL()` in the Choice repo:
     ```javascript
@@ -398,7 +398,7 @@
   ### [B3] No Health Check Between Systems
   - **Status:** `[x]`
   - **Files:** `backend/code.gs`, `js/cp-api.js` (Choice repo)
-  - **Severity:** MODERATE — no proactive failure detection
+  - **Severity:** MODERATE â no proactive failure detection
   - **Problem:** If the GAS backend goes down (quota exceeded, script error, service outage), the listing platform's Apply button silently redirects users to a broken form with no indication anything is wrong.
   - **Fix (GAS):** Add a health route to `doGet()`:
     ```javascript
@@ -407,8 +407,8 @@
         .setMimeType(ContentService.MimeType.JSON);
     }
     ```
-  - **Fix (Apply form):** Add a check in `handleFormSubmit()` before submission — if the health endpoint returns an error, show a user-friendly message instead of letting the full submission fail after a long wait.
-  - **Fix (Listing platform — Choice repo):** Optionally, check the health endpoint before the Apply button redirects the user.
+  - **Fix (Apply form):** Add a check in `handleFormSubmit()` before submission â if the health endpoint returns an error, show a user-friendly message instead of letting the full submission fail after a long wait.
+  - **Fix (Listing platform â Choice repo):** Optionally, check the health endpoint before the Apply button redirects the user.
   - **Test:** Hit the `?path=health` endpoint. Should return `{"status":"ok"}`.
 
   ---
@@ -417,5 +417,5 @@
 
   | Date | Issue | Fixed By | Notes |
   |------|-------|----------|-------|
-  | — | — | — | No fixes applied yet |
+  | â | â | â | No fixes applied yet |
   
