@@ -147,6 +147,13 @@ class RentalApplication {
           } else {
               this.restoreSavedProgress();
           }
+          // [10A-1] Re-run employer field toggle after progress restore so that a
+          // saved employment status (e.g. Unemployed) immediately shows/hides the
+          // correct fields without requiring the user to interact with the dropdown.
+          if (this._toggleEmployerSection) {
+              const _empEl = document.getElementById('employmentStatus');
+              if (_empEl) this._toggleEmployerSection(_empEl.value);
+          }
           this.setupGeoapify();
         this.setupInputFormatting();
         this._readApplicationFee();
@@ -1108,7 +1115,7 @@ class RentalApplication {
         const list  = document.getElementById('uploadedFiles');
         if (!input || !zone || !list) return;
 
-        const MAX_SIZE  = 2 * 1024 * 1024; // I4: reduced from 4MB to prevent GAS timeout risk
+        const MAX_SIZE  = 1 * 1024 * 1024; // [10A-3] 1 MB per file — keeps total base64 payload safe
         const MAX_FILES = 4;
 
         const renderList = () => {
@@ -1140,7 +1147,7 @@ class RentalApplication {
                     _showUploadErr(`Maximum ${MAX_FILES} files allowed.`); return;
                 }
                 if (file.size > MAX_SIZE) {
-                    _showUploadErr(`"${file.name}" exceeds the 2 MB limit and was not added.`); return;
+                    _showUploadErr(`"${file.name}" exceeds the 1 MB limit and was not added.`); return;
                 }
                 if (this._uploadedFiles.some(f => f.name === file.name)) return;
                 this._uploadedFiles.push(file);
@@ -2259,26 +2266,40 @@ class RentalApplication {
             // Property context fields are carried by hidden inputs in index.html
             // and serialised automatically by FormData — no manual appending needed.
 
-            // Phase 8.2: Encode any attached documents as base64 and append to form data
+            // [10A-3] Encode attached documents as base64 and append to form data.
+            // Guard: if total raw size > 3 MB the base64-expanded payload risks
+            // exceeding the GAS 10 MB content limit and silently failing. In that
+            // case we skip file attachment so the application record is never lost.
             if (this._uploadedFiles && this._uploadedFiles.length > 0) {
-                const encodeFile = (file) => new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = () => {
-                        const b64 = reader.result.split(',')[1];
-                        resolve(b64);
-                    };
-                    reader.onerror = reject;
-                    reader.readAsDataURL(file);
-                });
-                const encoded = await Promise.all(this._uploadedFiles.map(encodeFile));
-                encoded.forEach((b64, i) => {
-                    formData.append(`_docFile_${i}_name`, this._uploadedFiles[i].name);
-                    formData.append(`_docFile_${i}_type`, this._uploadedFiles[i].type || 'application/octet-stream');
-                    formData.append(`_docFile_${i}_data`, b64);
-                });
+                const MAX_TOTAL_BYTES = 3 * 1024 * 1024; // 3 MB raw → ~4 MB base64
+                const totalBytes = this._uploadedFiles.reduce((sum, f) => sum + f.size, 0);
+                if (totalBytes > MAX_TOTAL_BYTES) {
+                    console.warn('[CP] Files too large (' + (totalBytes / 1024 / 1024).toFixed(1) + ' MB total) — skipping attachments.');
+                    const uploadWarn = document.getElementById('uploadError');
+                    if (uploadWarn) {
+                        uploadWarn.textContent = 'Your attached files are too large to submit together. They have been removed from this submission. Please email your documents to us separately after submitting.';
+                        uploadWarn.style.display = 'block';
+                    }
+                } else {
+                    const encodeFile = (file) => new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                            const b64 = reader.result.split(',')[1];
+                            resolve(b64);
+                        };
+                        reader.onerror = reject;
+                        reader.readAsDataURL(file);
+                    });
+                    const encoded = await Promise.all(this._uploadedFiles.map(encodeFile));
+                    encoded.forEach((b64, i) => {
+                        formData.append(`_docFile_${i}_name`, this._uploadedFiles[i].name);
+                        formData.append(`_docFile_${i}_type`, this._uploadedFiles[i].type || 'application/octet-stream');
+                        formData.append(`_docFile_${i}_data`, b64);
+                    });
+                }
             }
 
-            this.updateSubmissionProgress(2, t.validating);
+                        this.updateSubmissionProgress(2, t.validating);
 
             // M4: Attach CSRF token to submission
             formData.append('_cp_csrf', this._csrfToken || sessionStorage.getItem('_cp_csrf') || '');
