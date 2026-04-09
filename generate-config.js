@@ -8,7 +8,14 @@
 
   const config = {
     // Google Apps Script backend URL — handles form submissions
-    BACKEND_URL: (process.env.BACKEND_URL || 'https://script.google.com/macros/s/AKfycbwqctrCLYOPaz1nZeMS5SXuqK7FRXbN5Bf0dSx3-3leyp_B7Bfr4HPC8YZaZ9wZVxtn/exec').replace(/\/$/, ''),
+    BACKEND_URL: (() => {
+      if (!process.env.BACKEND_URL) {
+        console.error('❌ BACKEND_URL environment variable is required but not set.');
+        console.error('   Set it in Cloudflare Pages → Settings → Environment Variables.');
+        process.exit(1);
+      }
+      return process.env.BACKEND_URL.replace(/\/$/, '');
+    })(),
     // Geoapify key for address autocomplete — set in Cloudflare Pages env vars
     GEOAPIFY_API_KEY: process.env.GEOAPIFY_API_KEY || '',
     // Base URL of the listing platform — used for back-to-listing links
