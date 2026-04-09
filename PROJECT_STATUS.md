@@ -554,3 +554,25 @@ All 5 verification checks passed:
   - **10A-5 (Issue 5)** — Honeypot / bot protection — intentionally not implemented
 
   
+  ---
+
+  ## Phase 10B — Data Quality & Privacy Fixes
+
+  **Status:** COMPLETE — April 9, 2026
+  **Triggered by:** Deep scan report (REPORT_Application_Form_Issues.md)
+
+  ### Phase 10B Tasks
+
+  - [x] **10B-8** Server-side `processApplication()` now validates presence of 5 additional required fields: Property Address, Reference 1 Name, Reference 1 Phone, Emergency Contact Name, Emergency Contact Phone. Returns a specific field-name error to the frontend rather than throwing a generic exception.
+  - [x] **10B-9** Monthly income input now has `inputmode="decimal"` and updated placeholder so mobile users get a numeric keyboard. Backend income normalization (strip `$`, commas, non-numeric characters before `parseFloat`) was already in place from Phase 3.
+  - [x] **10B-11** Backend now validates co-applicant consent server-side: if `Has Co-Applicant` = "Yes" but `Co-Applicant Consent` is not "on", submission is rejected with a clear message. Frontend already validated this in `validateStep()`.
+  - [x] **10B-12** Hardcoded GAS endpoint URL removed from `js/script.js`. `BACKEND_URL` is now set from `config.js` only (injected at Cloudflare build time). If `BACKEND_URL` is blank at runtime, `handleFormSubmit()` shows a user-facing error with the support phone number instead of silently routing submissions to the exposed URL.
+  - [x] **10B-14 (verified already fixed)** SSN and Co-Applicant SSN were already excluded from localStorage saves. `clearSavedProgress()` was already called on successful submission. No code change needed.
+  - [x] **10B-15 (verified already fixed)** Co-applicant consent checkbox was already validated in `validateStep()`. No code change needed.
+
+  ### Files Modified
+  - `js/script.js` (10B-12)
+  - `index.html` (10B-9)
+  - `backend/code.gs` (10B-8, 10B-11)
+
+  
