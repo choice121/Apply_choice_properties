@@ -106,9 +106,6 @@ class RentalApplication {
                 toggle.innerHTML = '<i class="fas fa-eye"></i>';
             }
         });
-        ssnInput.addEventListener('input', (e) => {
-            e.target.value = e.target.value.replace(/\D/g, '').substring(0, 4);
-        });
     }
 
     // ---------- Event listeners ----------
@@ -944,7 +941,7 @@ class RentalApplication {
         const scrollTarget = field.closest('.form-group') || field;
         scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
         field.classList.add('shake', 'highlight-field');
-        setTimeout(() => field.focus(), 600);
+        setTimeout(() => field.focus(), 100);
         setTimeout(() => field.classList.remove('shake', 'highlight-field'), 2000);
     }
 
@@ -1099,9 +1096,17 @@ class RentalApplication {
                     <i class="fas fa-file-alt" style="color:var(--secondary);flex-shrink:0;"></i>
                     <span class="upload-file-name">${f.name}</span>
                     <span class="upload-file-size">(${(f.size / 1024).toFixed(0)} KB)</span>
-                    <button type="button" class="upload-remove-btn" onclick="window._rentalApp.removeUploadedFile(${i})" aria-label="Remove ${f.name}"><i class="fas fa-xmark"></i></button>
+                    <button type="button" class="upload-remove-btn" data-remove-idx="${i}" aria-label="Remove ${f.name}"><i class="fas fa-xmark"></i></button>
                 </div>`).join('');
         };
+        list.addEventListener('click', (e) => {
+            const btn = e.target.closest('[data-remove-idx]');
+            if (btn) {
+                const idx = parseInt(btn.getAttribute('data-remove-idx'), 10);
+                this._uploadedFiles.splice(idx, 1);
+                renderList();
+            }
+        });
 
         const _showUploadErr = (msg) => {
               const _ue = document.getElementById('uploadError');
@@ -1130,8 +1135,6 @@ class RentalApplication {
             handleFiles(e.dataTransfer.files);
         });
 
-        this.removeUploadedFile = (i) => { this._uploadedFiles.splice(i, 1); renderList(); };
-        window._rentalApp = this;
     }
 
     // ---------- Save & Resume Later ----------
@@ -1251,6 +1254,9 @@ class RentalApplication {
     setupCharacterCounters() {
         const textareas = document.querySelectorAll('textarea');
         textareas.forEach(textarea => {
+            if (!textarea.hasAttribute('maxlength')) {
+                textarea.setAttribute('maxlength', '500');
+            }
             const parent = textarea.parentElement;
             const counter = document.createElement('div');
             counter.className = 'character-count';
@@ -1260,7 +1266,7 @@ class RentalApplication {
             parent.appendChild(counter);
             const updateCounter = () => {
                 const len = textarea.value.length;
-                const max = textarea.getAttribute('maxlength') || 500;
+                const max = textarea.getAttribute('maxlength');
                 const tC = this.getTranslations();
                 counter.textContent = `${len}/${max} ${tC.charCount}`;
             };
@@ -2043,7 +2049,7 @@ class RentalApplication {
                     spinner.style.color = '';
                 }
                 this.updateSubmissionProgress(1, t.processing);
-                this.handleFormSubmit(new Event('submit'));
+                this.handleFormSubmit(new Event('submit'), true);
             }, delay);
             return;
         }
@@ -2138,7 +2144,7 @@ class RentalApplication {
     }
 
     // ---------- MODIFIED: handleFormSubmit with retry reset ----------
-    async handleFormSubmit(e) {
+    async handleFormSubmit(e, isRetry = false) {
         e.preventDefault();
         const t = this.getTranslations();
 
@@ -2155,7 +2161,7 @@ class RentalApplication {
         }
         // ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
-        this.retryCount = 0;
+        if (!isRetry) this.retryCount = 0;
         if (this.retryTimeout) {
             clearTimeout(this.retryTimeout);
             this.retryTimeout = null;
@@ -2204,11 +2210,13 @@ class RentalApplication {
           const _declErrEl = document.getElementById('declarationError');
           if (_declErrEl) _declErrEl.style.display = 'none';
 
-        for (let i = 1; i <= 5; i++) {
-            if (!this.validateStep(i)) {
-                this.showSection(i);
-                this.updateProgressBar();
-                return;
+        if (!isRetry) {
+            for (let i = 1; i <= 5; i++) {
+                if (!this.validateStep(i)) {
+                    this.showSection(i);
+                    this.updateProgressBar();
+                    return;
+                }
             }
         }
 
