@@ -12,3 +12,7 @@ Thumbs.db
 
 # Archives
 *.zip
+
+  # Auto-generated at build time from environment variables — never commit
+  config.js
+  
