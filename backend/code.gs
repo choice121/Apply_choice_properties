@@ -13,7 +13,7 @@ const SHEET_NAME = 'Applications';
 const SETTINGS_SHEET = 'Settings';
 const LOG_SHEET = 'EmailLogs';
 const ADMIN_EMAILS_RANGE = 'AdminEmails';
-const APPLICATION_FEE = 50; // D-014: single source of truth for the application fee amount
+const APPLICATION_FEE = 0; // Phase 2: default is now 0 (free/no-fee) when no fee data available. Fee comes from property URL params.
 // Phase 1 fix 1.1: null-safe fee helper — treats 0 as a valid fee (free applications)
 function safeFee(val) { const n = parseFloat(val); return (!isNaN(n) && val !== '' && val !== null && val !== undefined) ? n : APPLICATION_FEE; }
 
@@ -4680,10 +4680,8 @@ function withdrawApplication(appId) {
     const curr     = sheet.getRange(rowIndex, col['Admin Notes']).getValue();
     const noteText = `[${now.toLocaleString()}] Application withdrawn by applicant.`;
     sheet.getRange(rowIndex, col['Admin Notes']).setValue(curr ? curr + '\n' + noteText : noteText);
-    if (col['Property ID']) {
-      const propertyId = sheet.getRange(rowIndex, col['Property ID']).getValue();
-      if (propertyId) _syncPropertyStatusToSupabase(propertyId, 'active');
-    }
+    // Phase 2: _syncPropertyStatusToSupabase removed (owner decision April 9, 2026).
+    // Admin must update listing status manually in the Choice platform after withdrawal.
     return { success: true, message: 'Your application has been withdrawn.' };
   } catch (error) {
     console.error('withdrawApplication error:', error);
@@ -4692,63 +4690,8 @@ function withdrawApplication(appId) {
 }
 
 // ============================================================
-// _syncPropertyStatusToSupabase()
-// Keeps the listing platform's Supabase database in sync when
-// an application is approved or denied.
-//
-// approved Ã¢ÂÂ property.status = 'rented'  (takes it off the market)
-// denied   Ã¢ÂÂ property.status = 'active'  (makes it available again)
-//
-// SETUP REQUIRED Ã¢ÂÂ add these two Script Properties in the GAS editor:
-//   Extensions Ã¢ÂÂ Apps Script Ã¢ÂÂ Project Settings Ã¢ÂÂ Script Properties
-//     SUPABASE_URL         e.g. https://abcdefgh.supabase.co
-//     SUPABASE_SERVICE_KEY Your Supabase service role key
-//                          (Dashboard Ã¢ÂÂ Settings Ã¢ÂÂ API Ã¢ÂÂ service_role)
-//
-// This call is fire-and-forget Ã¢ÂÂ errors are logged but never block
-// the approval flow. If credentials are not set, it silently skips.
-// ============================================================
-function _syncPropertyStatusToSupabase(propertyId, supabaseStatus) {
-  try {
-    const props      = PropertiesService.getScriptProperties();
-    const supabaseUrl = props.getProperty('SUPABASE_URL');
-    const serviceKey  = props.getProperty('SUPABASE_SERVICE_KEY');
-
-    if (!supabaseUrl || !serviceKey) {
-      console.warn('_syncPropertyStatusToSupabase: SUPABASE_URL or SUPABASE_SERVICE_KEY not set in Script Properties. Skipping sync.');
-      return;
-    }
-    if (!propertyId) {
-      console.warn('_syncPropertyStatusToSupabase: No Property ID on this application. Skipping sync.');
-      return;
-    }
-
-    const url = supabaseUrl.replace(/\/$/, '') + '/rest/v1/properties?id=eq.' + encodeURIComponent(propertyId);
-    const options = {
-      method: 'PATCH',
-      contentType: 'application/json',
-      headers: {
-        'apikey':         serviceKey,
-        'Authorization':  'Bearer ' + serviceKey,
-        'Prefer':         'return=minimal'
-      },
-      payload:            JSON.stringify({ status: supabaseStatus }),
-      muteHttpExceptions: true
-    };
-
-    const response = UrlFetchApp.fetch(url, options);
-    const code     = response.getResponseCode();
-
-    if (code >= 200 && code < 300) {
-      console.log('_syncPropertyStatusToSupabase: Property ' + propertyId + ' Ã¢ÂÂ "' + supabaseStatus + '" (HTTP ' + code + ')');
-    } else {
-      console.error('_syncPropertyStatusToSupabase: Supabase returned HTTP ' + code + ': ' + response.getContentText());
-    }
-  } catch (err) {
-    // Never let a sync failure block the approval flow
-    console.error('_syncPropertyStatusToSupabase error (non-fatal):', err.toString());
-  }
-}
+// _syncPropertyStatusToSupabase() — REMOVED (Phase 2, April 9 2026)
+// Owner decision: admin updates listing status manually in the Choice platform.
 
 // ============================================================
 // updateStatus()
@@ -4910,24 +4853,10 @@ function _syncPropertyStatusToSupabase(propertyId, supabaseStatus) {
       issueApplicationCredits(emailForCredits, appId);
     }
 
-    // Sync property availability to the listing platform (Supabase).
-      // Only fires on approval Ã¢ÂÂ denial does not change property availability.
-      if (newStatus === 'approved' && col['Property ID']) {
-        const propertyId = sheet.getRange(rowIndex, col['Property ID']).getValue();
-        _syncPropertyStatusToSupabase(propertyId, 'rented');
-      }
+    // Phase 2: Supabase sync removed (owner decision April 9, 2026).
+    // Admin must update property status manually in the Choice listing platform
+    // after approving, denying, or reversing an application.
 
-      // [FIXED-M5] Reverse sync: if an approved application is later reversed (withdrawn or denied),
-      // restore the listing back to 'active' so it appears available again on the platform.
-      if ((newStatus === 'withdrawn' || newStatus === 'denied')
-          && String(currentStatus).toLowerCase() === 'approved'
-          && col['Property ID']) {
-        const propertyId = sheet.getRange(rowIndex, col['Property ID']).getValue();
-        if (propertyId) {
-          _syncPropertyStatusToSupabase(propertyId, 'active');
-          console.log('updateStatus: Restored property ' + propertyId + ' to active after reversal from approved Ã¢ÂÂ ' + newStatus);
-        }
-      }
 
     return { success: true, message: `Status updated to ${newStatus}` };
   } catch (error) {

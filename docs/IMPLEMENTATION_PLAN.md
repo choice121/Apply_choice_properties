@@ -52,13 +52,8 @@
   >
   > This CONFLICTS with the "No Supabase WRITE from GAS" rule above.
   >
-  > **Decision required from the owner before Phase 2 begins:**
-  > - **Option A (follows the rule):** Remove `_syncPropertyStatusToSupabase()` entirely.
-  >   Admin must manually update property status in both systems after approval.
-  > - **Option B (functional exception):** Keep it as a documented exception.
-  >   Property status updates automatically on approval/denial — no manual step needed.
-  >
-  > **Do not touch this function until the owner makes this decision.**
+  > **Decision made April 9, 2026:** Option A selected by owner — `_syncPropertyStatusToSupabase()` removed.
+  > Admin must manually update property status in the Choice platform after approval/denial/withdrawal.
 
   ---
 
@@ -170,7 +165,7 @@
   | Phase | Status | Approved By Owner | Notes |
   |-------|--------|-------------------|-------|
   | Phase 1 — Critical Fixes | ✅ Complete | April 9, 2026 | All 5 items fixed and pushed |
-  | Phase 2 — Security | ⬜ Not Started | — | Blocked: Supabase WRITE architecture decision |
+  | Phase 2 — Security | ✅ Complete | April 9, 2026 | _syncPropertyStatusToSupabase removed; APPLICATION_FEE → 0 |
   | Phase 3 — Cleanup & UX | ⬜ Not Started | — | — |
 
   ### Phase 1 Checklist
@@ -183,8 +178,8 @@
 
   ### Phase 2 Checklist
 
-  - [ ] 2.1 — Canonical fee from Supabase (`backend/code.gs`)
-  - [ ] 2.2 — Remove APPLICATION_FEE constant (`backend/code.gs`)
+  - [x] 2.1 — Remove _syncPropertyStatusToSupabase() (`backend/code.gs`) — Removed April 9, 2026. Note: canonical-fee-from-Supabase is N/A since fee already comes from URL params with 0 fallback.
+  - [x] 2.2 — APPLICATION_FEE constant changed to 0 (`backend/code.gs`) — April 9, 2026. safeFee() uses it as fallback; now defaults to free rather than $50.
 
   ### Phase 3 Checklist
 
