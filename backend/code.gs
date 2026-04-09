@@ -2427,6 +2427,21 @@ function renderLeaseSigningPage(appId) {
 
         <!-- Step 1: Signature input -->
       <div id="step1Panel">
+<!-- Email verification — identity check before signature -->
+        <div id="step1Panel_emailVerif" style="margin-bottom:20px;">
+          <label class="sig-label">Confirm Your Email Address
+            <span style="font-weight:400;color:#64748b;font-size:12px;margin-left:6px;">
+              — must match the email on your application
+            </span>
+          </label>
+          <input type="email"
+                 id="signerEmail"
+                 class="sig-input"
+                 placeholder="e.g. jane@example.com"
+                 autocomplete="email"
+                 style="font-size:15px;letter-spacing:normal;font-family:sans-serif;">
+        </div>
+        <!-- Signature input -->
         <label class="sig-label">Your Full Legal Name
           <span style="font-weight:400;color:#64748b;font-size:12px;margin-left:6px;">
             Ã¢ÂÂ Type exactly as it appears on your government-issued ID
@@ -2531,8 +2546,9 @@ function renderLeaseSigningPage(appId) {
 </div><!-- /wrapper -->
 
 <script>
-  const APP_ID   = '${appId}';
-  const BASE_URL = '${baseUrl}';
+  const APP_ID    = '${appId}';
+  const BASE_URL  = '${baseUrl}';
+  const APP_EMAIL = '${app[\'Email\']}'; // pre-filled from server for identity verification
   let   capturedIP = '';
   let   allChecked = false;
 
@@ -2632,7 +2648,12 @@ function renderLeaseSigningPage(appId) {
       } catch(e) { capturedIP = 'unavailable'; }
     }
 
-    const insuranceAgreed = document.getElementById('agreeInsurance').checked;
+    const signerEmail = (document.getElementById('signerEmail')?.value || '').trim().toLowerCase();
+      if (!signerEmail || !signerEmail.includes('@')) {
+        showAlert('Please enter your email address to verify your identity.', 'danger');
+        return;
+      }
+      const insuranceAgreed = document.getElementById('agreeInsurance').checked;
     const btn = document.getElementById('signBtn');
     btn.disabled = true;
     btn.textContent = 'Ã¢ÂÂ³ Securing signature...';
@@ -2679,7 +2700,7 @@ function renderLeaseSigningPage(appId) {
         });
         showAlert('Submission failed. Please try again or text us at 707-706-3137.', 'danger');
       })
-      .signLease(APP_ID, sig, capturedIP, insuranceAgreed);
+      .signLease(APP_ID, sig, capturedIP, insuranceAgreed, signerEmail);
   }
 
   function showAlert(msg, type) {
