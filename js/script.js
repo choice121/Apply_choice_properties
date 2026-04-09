@@ -143,8 +143,14 @@ class RentalApplication {
         this.setupFileUploads();
         this.setupConditionalFields();
         this.setupCharacterCounters();
-        this.restoreSavedProgress();
-        this.setupGeoapify();
+        // [L4 fix] If URL has a server-side resume token, restore from backend; else use localStorage
+          const _resumeParam = new URLSearchParams(window.location.search).get('resume');
+          if (_resumeParam && _resumeParam !== '1') {
+              this._restoreFromServer(_resumeParam);
+          } else {
+              this.restoreSavedProgress();
+          }
+          this.setupGeoapify();
         this.setupInputFormatting();
         this._readApplicationFee();
         this.setupLanguageToggle();
@@ -1138,7 +1144,7 @@ class RentalApplication {
                 <div class="save-resume-card">
                     <h3><i class="fas fa-bookmark" style="color:var(--secondary);margin-right:8px;"></i><span data-i18n="saveResumeLater">Save &amp; Resume Later</span></h3>
                     <p data-i18n="saveResumeDesc">Enter your email and we'll send you a link to resume your application exactly where you left off.</p>
-                    <p style="font-size:12px;color:#c0392b;margin:4px 0 0;"><i class="fas fa-exclamation-triangle"></i> This link must be opened in the same browser on the same device where you started your application.</p>
+                    <p style="font-size:12px;color:#27ae60;margin:4px 0 0;"><i class="fas fa-check-circle"></i> Your progress is saved for 7 days. The link works on any device or browser.</p>
                     <div class="form-group">
                         <input type="email" id="resumeEmailInput" placeholder="your@email.com" autocomplete="email" />
                     </div>
@@ -1190,34 +1196,52 @@ class RentalApplication {
 
         // Send link
         document.getElementById('sendResumeLinkBtn')?.addEventListener('click', () => {
-            const emailInput = document.getElementById('resumeEmailInput');
-            const email = emailInput ? emailInput.value.trim() : '';
-            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                emailInput.style.borderColor = '#e74c3c';
-                emailInput.focus();
-                return;
-            }
-            emailInput.style.borderColor = '';
-            this.saveProgress();
-            // Build a resume URL with the saved data encoded as a param
-            const savedKey = this.config.LOCAL_STORAGE_KEY;
-            const currentParams = new URLSearchParams(window.location.search);
-            currentParams.set('resume', '1');
-            const resumeUrl = window.location.origin + window.location.pathname + '?' + currentParams.toString();
-            // Send via GAS backend (fire-and-forget, no blocking)
-            const payload = new FormData();
-            payload.append('_action', 'sendResumeEmail');
-            payload.append('email', email);
-            payload.append('resumeUrl', resumeUrl);
-            payload.append('step', this.getCurrentSection());
-            fetch(this.BACKEND_URL, { method: 'POST', body: payload }).catch(() => {});
-            const successEl = document.getElementById('saveResumeSuccess');
-            if (successEl) successEl.classList.add('show');
-            setTimeout(() => {
-                document.getElementById('saveResumeModal').classList.remove('open');
-                if (successEl) successEl.classList.remove('show');
-            }, 2500);
-        });
+              const emailInput = document.getElementById('resumeEmailInput');
+              const email = emailInput ? emailInput.value.trim() : '';
+              if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                  emailInput.style.borderColor = '#e74c3c';
+                  emailInput.focus();
+                  return;
+              }
+              emailInput.style.borderColor = '';
+
+              // [L4 fix] Generate a unique resume token for cross-device/browser support
+              const token = Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+
+              // Save progress locally (fast path) and collect snapshot
+              this.saveProgress();
+              const rawData = this.getAllFormData();
+              ['SSN', 'Application ID', 'Co-Applicant SSN', 'DOB', 'Co-Applicant DOB'].forEach(k => delete rawData[k]);
+              rawData._last_updated = new Date().toISOString();
+              const progressJson = JSON.stringify(rawData);
+
+              // Build resume URL with token — works on any device or browser
+              const currentParams = new URLSearchParams(window.location.search);
+              currentParams.set('resume', token);
+              const resumeUrl = window.location.origin + window.location.pathname + '?' + currentParams.toString();
+
+              // Save progress server-side (fire-and-forget)
+              const savePayload = new FormData();
+              savePayload.append('_action', 'saveResumeProgress');
+              savePayload.append('token', token);
+              savePayload.append('progressJson', progressJson);
+              fetch(this.BACKEND_URL, { method: 'POST', body: savePayload }).catch(() => {});
+
+              // Send resume email with token-based URL
+              const emailPayload = new FormData();
+              emailPayload.append('_action', 'sendResumeEmail');
+              emailPayload.append('email', email);
+              emailPayload.append('resumeUrl', resumeUrl);
+              emailPayload.append('step', this.getCurrentSection());
+              fetch(this.BACKEND_URL, { method: 'POST', body: emailPayload }).catch(() => {});
+
+              const successEl = document.getElementById('saveResumeSuccess');
+              if (successEl) successEl.classList.add('show');
+              setTimeout(() => {
+                  document.getElementById('saveResumeModal').classList.remove('open');
+                  if (successEl) successEl.classList.remove('show');
+              }, 2500);
+          });
     }
 
     setupCharacterCounters() {
@@ -1241,8 +1265,26 @@ class RentalApplication {
         });
     }
 
-    restoreSavedProgress() {
-        const saved = localStorage.getItem(this.config.LOCAL_STORAGE_KEY);
+    // [L4 fix] Fetches saved progress from the server by token, falls back to localStorage
+      async _restoreFromServer(token) {
+          try {
+              const resp = await fetch(this.BACKEND_URL + '?path=loadProgress&token=' + encodeURIComponent(token));
+              const result = await resp.json();
+              if (result.success && result.data) {
+                  // Store in localStorage so restoreSavedProgress() can read it
+                  localStorage.setItem(this.config.LOCAL_STORAGE_KEY, result.data);
+                  this.restoreSavedProgress();
+                  return;
+              }
+          } catch (e) {
+              console.warn('[CP App] Server-side resume fetch failed, falling back to localStorage:', e);
+          }
+          // Fallback to whatever is in localStorage
+          this.restoreSavedProgress();
+      }
+
+      restoreSavedProgress() {
+          const saved = localStorage.getItem(this.config.LOCAL_STORAGE_KEY);
         if (saved) {
             try {
                 const data = JSON.parse(saved);
@@ -1261,9 +1303,14 @@ class RentalApplication {
                     if (firstEl.type === 'radio') {
                         els.forEach(el => { if (el.value === value) el.checked = true; });
                     } else if (firstEl.type === 'checkbox') {
-                        firstEl.checked = !!(value);
-                    } else {
-                        firstEl.value = value;
+                          // [L1 fix] Handle array (multi-checkbox group) and single values
+                          if (Array.isArray(value)) {
+                              els.forEach(el => { el.checked = value.includes(el.value); });
+                          } else {
+                              els.forEach(el => { el.checked = (el.value === value); });
+                          }
+                      } else {
+                          firstEl.value = value;
                     }
                 });
                 if (data._language) this.state.language = data._language;
@@ -1292,12 +1339,20 @@ class RentalApplication {
     }
 
     getAllFormData() {
-        const form = document.getElementById('rentalApplication');
-        const formData = new FormData(form);
-        const data = {};
-        formData.forEach((value, key) => { data[key] = value; });
-        return data;
-    }
+          const form = document.getElementById('rentalApplication');
+          const formData = new FormData(form);
+          const data = {};
+          // [L1 fix] Collect duplicate keys (multi-checkboxes like Preferred Contact Method / Preferred Time) into arrays
+          formData.forEach((value, key) => {
+              if (Object.prototype.hasOwnProperty.call(data, key)) {
+                  if (!Array.isArray(data[key])) data[key] = [data[key]];
+                  data[key].push(value);
+              } else {
+                  data[key] = value;
+              }
+          });
+          return data;
+      }
 
     debounce(func, wait) {
         let timeout;
