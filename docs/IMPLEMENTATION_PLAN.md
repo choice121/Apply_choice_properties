@@ -169,17 +169,17 @@
 
   | Phase | Status | Approved By Owner | Notes |
   |-------|--------|-------------------|-------|
-  | Phase 1 — Critical Fixes | ⬜ Not Started | — | — |
+  | Phase 1 — Critical Fixes | ✅ Complete | April 9, 2026 | All 5 items fixed and pushed |
   | Phase 2 — Security | ⬜ Not Started | — | Blocked: Supabase WRITE architecture decision |
   | Phase 3 — Cleanup & UX | ⬜ Not Started | — | — |
 
   ### Phase 1 Checklist
 
-  - [ ] 1.1 — Fee fallback bug (`backend/code.gs`)
-  - [ ] 1.2 — Pet policy enforcement (`js/script.js`)
-  - [ ] 1.3 — Smoking policy enforcement (`js/script.js`)
-  - [ ] 1.4 — GAS lease term validation (`backend/code.gs`)
-  - [ ] 1.5 — Pet Types column name mismatch
+  - [x] 1.1 — Fee fallback bug (`backend/code.gs`) — Fixed April 9, 2026
+  - [x] 1.2 — Pet policy enforcement (`js/script.js`) — Fixed April 9, 2026
+  - [x] 1.3 — Smoking policy enforcement (`js/script.js`) — Fixed April 9, 2026
+  - [x] 1.4 — GAS lease term validation (`backend/code.gs`) — Fixed April 9, 2026
+  - [x] 1.5 — Pet Types column name verified — names already match (April 9, 2026)
 
   ### Phase 2 Checklist
 
