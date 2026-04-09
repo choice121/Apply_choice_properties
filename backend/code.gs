@@ -2548,7 +2548,7 @@ function renderLeaseSigningPage(appId) {
 <script>
   const APP_ID    = '${appId}';
   const BASE_URL  = '${baseUrl}';
-  const APP_EMAIL = '${app[\'Email\']}'; // pre-filled from server for identity verification
+  const APP_EMAIL = '${app['Email']}'; // pre-filled from server for identity verification
   let   capturedIP = '';
   let   allChecked = false;
 
