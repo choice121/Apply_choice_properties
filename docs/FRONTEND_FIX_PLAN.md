@@ -69,7 +69,7 @@
 
 ## PHASE 1 — CRITICAL CRASHES & BLOCKERS
 **Priority:** Highest — these break the form for all users or a large subset
-**Status:** [ ] IN PROGRESS
+**Status:** [x] DONE
 
 These must be fixed first. They cause JavaScript TypeErrors, block form progression,
 or silently lose user state.
@@ -77,7 +77,7 @@ or silently lose user state.
 ---
 
 ### ISSUE C1 — TypeError crash: `getTranslations()` called before translations exist
-**Status:** [ ] PENDING
+**Status:** [x] DONE
 **Severity:** CRITICAL — crashes on every page load (affects all textareas)
 **Files:** `js/script.js`
 
@@ -134,7 +134,7 @@ should show a character counter like "0/500 characters".
 ---
 
 ### ISSUE C2 — Saved Spanish language preference is always lost on page reload
-**Status:** [ ] PENDING
+**Status:** [x] DONE
 **Severity:** CRITICAL — breaks language persistence for all Spanish-speaking returning users
 **Files:** `js/script.js`
 
@@ -213,7 +213,7 @@ adding this block at line 165 satisfies both conditions.
 ---
 
 ### ISSUE C3 — Co-applicant validation blocks on optional fields
-**Status:** [ ] PENDING
+**Status:** [x] DONE
 **Severity:** CRITICAL — prevents any user with a co-applicant from advancing past Step 1
 **Files:** `js/script.js`
 

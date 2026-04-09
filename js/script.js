@@ -909,15 +909,17 @@ class RentalApplication {
                             this.clearError(input);
                         }
                     } else {
-                        if (!input.value.trim()) {
+                        if (input.hasAttribute('required') && !input.value.trim()) {
                             this.showError(input, this.state.language === 'en' ? 'Required' : 'Campo obligatorio');
                             input.classList.add('is-invalid');
                             isStepValid = false;
                             if (!firstInvalidField) firstInvalidField = input;
                         } else {
-                            if (!this.validateField(input)) {
+                            if (input.value.trim() && !this.validateField(input)) {
                                 isStepValid = false;
                                 if (!firstInvalidField) firstInvalidField = input;
+                            } else {
+                                this.clearError(input);
                             }
                         }
                     }
@@ -1975,7 +1977,13 @@ class RentalApplication {
         };
 
         this.translations = translations;
-        this.state.language = 'en';
+        const _savedLang = (() => {
+            try {
+                const _s = localStorage.getItem(this.config.LOCAL_STORAGE_KEY);
+                return (_s ? (JSON.parse(_s)._language || 'en') : 'en');
+            } catch (_e) { return 'en'; }
+        })();
+        this.state.language = _savedLang;
         const btn = document.getElementById('langToggle');
         const text = document.getElementById('langText');
         
@@ -2037,6 +2045,28 @@ class RentalApplication {
 
                 this.saveProgress();
             });
+        }
+
+        if (_savedLang === 'es' && btn && text) {
+            const t = translations['es'];
+            text.textContent = t.langText;
+            const HTML_KEYS = new Set(['spamWarning']);
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (t[key] !== undefined) {
+                    if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                        if (el.placeholder !== undefined) el.placeholder = t[key];
+                    } else if (el.tagName === 'OPTION') {
+                        el.textContent = t[key];
+                    } else if (HTML_KEYS.has(key)) {
+                        el.innerHTML = t[key];
+                    } else {
+                        el.textContent = t[key];
+                    }
+                }
+            });
+            document.documentElement.setAttribute('lang', 'es');
+            document.title = t.pageTitle;
         }
     }
 
@@ -2600,6 +2630,7 @@ class RentalApplication {
     }
 
     getTranslations() {
+        if (!this.translations) return {};
         return this.translations[this.state.language] || this.translations['en'];
     }
 
