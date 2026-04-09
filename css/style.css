@@ -1554,7 +1554,7 @@ button {
     margin-bottom: 0;
 }
 
-.step-number {
+.step-row .step-number {
     width: 32px;
     height: 32px;
     background: linear-gradient(135deg, var(--primary), var(--secondary));
@@ -1948,16 +1948,6 @@ button {
     color: var(--primary);
 }
 
-/* ===== SUBMISSION PROGRESS ===== */
-.submission-progress {
-    background: linear-gradient(to right, var(--primary), var(--secondary));
-    color: white;
-    padding: 40px;
-    border-radius: var(--border-radius);
-    text-align: center;
-    margin: 20px 0;
-    display: none;
-}
 
 .progress-steps {
     display: flex;
@@ -2186,17 +2176,6 @@ footer {
     font-weight: 600;
 }
 
-/* ---------- Modern Submission Progress ---------- */
-.submission-progress {
-    background: white;
-    border-radius: 24px;
-    padding: 32px 24px;
-    box-shadow: 0 20px 40px -10px rgba(0,0,0,0.15);
-    max-width: 500px;
-    margin: 20px auto;
-    text-align: center;
-    display: none;
-}
 
 .progress-bar-segments {
     display: flex;

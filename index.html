@@ -1,10 +1,10 @@
 <!--
 =======================================================================
-  â ARCHITECTURE ENFORCEMENT HEADER â READ BEFORE MODIFYING â
+  â ARCHITECTURE ENFORCEMENT HEADER — READ BEFORE MODIFYING â
 =======================================================================
   PROJECT:      Choice Properties - Rental Application
   FRONTEND:     Cloudflare Pages (HTML/CSS/JS only)
-  BACKEND:      Google Apps Script (GAS) â NO other backend allowed
+  BACKEND:      Google Apps Script (GAS) — NO other backend allowed
 
   DO NOT INSTALL dependencies.
   DO NOT RUN this file in a local/cloud server environment.
@@ -55,7 +55,7 @@
                 </div>
                 <div class="language-toggle">
                     <button type="button" id="langToggle">
-                        <i class="fas fa-language"></i> <span id="langText" data-i18n="langText">EspaÃ±ol</span>
+                        <i class="fas fa-language"></i> <span id="langText" data-i18n="langText">Español</span>
                     </button>
                 </div>
             </div>
@@ -132,7 +132,7 @@
     <div class="submission-note" data-i18n="submissionMessage">Please don't close this window. This may take a few moments...</div>
 </div>
 
-        <!-- Success State â hidden by default; JS populates and shows via showSuccessState() -->
+        <!-- Success State — hidden by default; JS populates and shows via showSuccessState() -->
         <div class="success-state" id="successState" style="display:none;">
             <div class="success-card">
                 <div class="success-header">
@@ -198,7 +198,7 @@
                     <i class="fas fa-gem"></i>
                     <div>
                         <strong data-i18n="reapplicationPolicyTitle">Reapplication Protection</strong>
-                        <p data-i18n="reapplicationPolicyText">If your application is denied, you may apply for any other available property within 30 days â no new application fee. Your screening results remain valid for 60 days.</p>
+                        <p data-i18n="reapplicationPolicyText">If your application is denied, you may apply for any other available property within 30 days — no new application fee. Your screening results remain valid for 60 days.</p>
                     </div>
                 </div>
                 <div class="action-buttons">
@@ -210,7 +210,7 @@
                     </button>
                 </div>
                 <div class="help-line">
-                    <span data-i18n="questions">Questions? Call or text</span> <strong>707-706-3137</strong> â <span data-i18n="helpText">we're here to help.</span>
+                    <span data-i18n="questions">Questions? Call or text</span> <strong>707-706-3137</strong> — <span data-i18n="helpText">we're here to help.</span>
                 </div>
             </div>
         </div>
@@ -234,7 +234,7 @@
                                 <p data-i18n="step1Desc">Fill out your application completely</p>
                             </div>
                         </div>
-                        <div class="explainer-arrow">â</div>
+                        <div class="explainer-arrow">→</div>
                         <div class="explainer-card">
                             <div class="explainer-icon">ð°</div>
                             <div class="explainer-content">
@@ -242,7 +242,7 @@
                                 <p data-i18n="step2Desc">We contact you for the $50 fee</p>
                             </div>
                         </div>
-                        <div class="explainer-arrow">â</div>
+                        <div class="explainer-arrow">→</div>
                         <div class="explainer-card">
                             <div class="explainer-icon">â</div>
                             <div class="explainer-content">
@@ -254,7 +254,7 @@
                 </details>
 
                 <h2><i class="fas fa-home"></i> <span data-i18n="propertyHeader">Property & Applicant Details</span></h2>
-                <p class="required-legend"><span>*</span> Required field &nbsp;Â·&nbsp; <i class="fas fa-shield-alt" style="color:var(--success);font-size:11px;"></i> &nbsp;Your progress is automatically saved</p>
+                <p class="required-legend"><span>*</span> Required field &nbsp;·&nbsp; <i class="fas fa-shield-alt" style="color:var(--success);font-size:11px;"></i> &nbsp;Your progress is automatically saved</p>
 
                 <h3 data-i18n="propertyInfo">Property Information</h3>
                 <div class="form-group">
@@ -262,7 +262,7 @@
                     <input type="text" id="propertyAddress" name="Property Address" required placeholder="Street address, city, state, zip" data-i18n="propertyAddressPlaceholder">
                     <div class="error-message" data-i18n="errAddress">Please enter the property address</div>
                 </div>
-                <!-- Hidden inputs â carry URL param property context through FormData automatically -->
+                <!-- Hidden inputs — carry URL param property context through FormData automatically -->
                 <input type="hidden" id="hiddenPropertyId"    name="Property ID">
                 <input type="hidden" id="hiddenPropertyName"  name="Property Name">
                 <input type="hidden" id="hiddenPropertyCity"  name="Property City">
@@ -797,6 +797,7 @@
                 <div class="form-group">
                     <label class="required" for="ref1Relationship" data-i18n="ref1RelationshipLabel">Relationship to Reference 1</label>
                     <input type="text" id="ref1Relationship" name="Reference 1 Relationship" placeholder="e.g., Former Landlord, Employer, Coworker, Friend" data-i18n="ref1RelationshipPlaceholder" required>
+                    <div class="error-message" id="ref1Relationship-error"></div>
                 </div>
 
                 <div class="form-row">
@@ -868,7 +869,7 @@
 
                     <div class="form-group">
                         <select id="primaryPayment" name="Primary Payment Method" required class="payment-selector">
-                            <option value="" data-i18n="selectPrimary">â Select your primary method â</option>
+                            <option value="" data-i18n="selectPrimary">— Select your primary method —</option>
                             <option value="Venmo">Venmo</option>
                             <option value="PayPal">PayPal</option>
                             <option value="Cash App">Cash App</option>
@@ -892,7 +893,7 @@
                     <div class="form-group">
                         <label for="secondaryPayment" data-i18n="secondaryMethod">Secondary Method</label>
                         <select id="secondaryPayment" name="Alternative Payment Method" class="payment-selector">
-                            <option value="" data-i18n="selectBackup">â Select a backup (optional) â</option>
+                            <option value="" data-i18n="selectBackup">— Select a backup (optional) —</option>
                             <option value="Venmo">Venmo</option>
                             <option value="PayPal">PayPal</option>
                             <option value="Cash App">Cash App</option>
@@ -910,7 +911,7 @@
                     <div class="form-group">
                         <label for="thirdPayment" data-i18n="thirdMethod">Third Method (Optional)</label>
                         <select id="thirdPayment" name="Third Choice Payment Method" class="payment-selector">
-                            <option value="" data-i18n="selectAnother">â Select another (optional) â</option>
+                            <option value="" data-i18n="selectAnother">— Select another (optional) —</option>
                             <option value="Venmo">Venmo</option>
                             <option value="PayPal">PayPal</option>
                             <option value="Cash App">Cash App</option>
@@ -987,7 +988,7 @@
                                 <h5 data-i18n="flexible">Flexible</h5>
                                 <div class="checkbox-item">
                                     <input type="checkbox" id="timeAnytime" name="Preferred Time" value="Anytime">
-                                    <label for="timeAnytime" data-i18n="timeAnytime">Anytime â I'm flexible</label>
+                                    <label for="timeAnytime" data-i18n="timeAnytime">Anytime — I'm flexible</label>
                                 </div>
                             </div>
                         </div>
@@ -1021,7 +1022,7 @@
                       <i class="fas fa-ticket-alt" style="color:#2e7d32;font-size:18px;"></i>
                       <div>
                           <strong style="color:#1b5e20;font-size:14px;">Application Credit Applied</strong>
-                          <p style="color:#2e7d32;font-size:13px;margin:2px 0 0;" id="creditNoticeText">You have application credits â your application fee is covered.</p>
+                          <p style="color:#2e7d32;font-size:13px;margin:2px 0 0;" id="creditNoticeText">You have application credits — your application fee is covered.</p>
                       </div>
                   </div>
 
@@ -1047,13 +1048,13 @@
                 <!-- Phase 8.2: Supporting Document Upload -->
                 <div class="upload-section" style="margin:20px 0;">
                     <h3 style="font-size:16px;font-weight:700;color:var(--primary);margin:0 0 6px;display:flex;align-items:center;gap:8px;"><i class="fas fa-paperclip" style="color:var(--secondary);"></i> Supporting Documents <span style="font-weight:400;font-size:13px;color:#64748b;">(Optional)</span></h3>
-                    <p style="font-size:13px;color:#5f6b7a;margin:0 0 12px;line-height:1.5;">Attaching documents now can speed up your review. You may also provide them when our team contacts you. <strong>Accepted:</strong> PDF, JPG, PNG Â· Max 4 MB per file Â· Up to 4 files.</p>
+                    <p style="font-size:13px;color:#5f6b7a;margin:0 0 12px;line-height:1.5;">Attaching documents now can speed up your review. You may also provide them when our team contacts you. <strong>Accepted:</strong> PDF, JPG, PNG · Max 4 MB per file · Up to 4 files.</p>
                     <div class="upload-zone" id="uploadZone">
                         <input type="file" id="docUpload" multiple accept=".pdf,.jpg,.jpeg,.png" style="display:none;" aria-label="Upload supporting documents">
                         <label for="docUpload" class="upload-label" id="uploadLabel">
                             <i class="fas fa-cloud-upload-alt" style="font-size:30px;color:var(--secondary);margin-bottom:8px;display:block;"></i>
-                            <strong>Click to upload â or drag files here</strong><br>
-                            <span class="upload-hint">Government ID &nbsp;Â·&nbsp; Pay stubs &nbsp;Â·&nbsp; Bank statements</span>
+                            <strong>Click to upload — or drag files here</strong><br>
+                            <span class="upload-hint">Government ID &nbsp;·&nbsp; Pay stubs &nbsp;·&nbsp; Bank statements</span>
                         </label>
                         <div id="uploadedFiles" class="uploaded-files-list"></div>
                         <div id="uploadError" class="error-message" style="display:none;margin-top:8px;padding:8px 10px;"></div>
@@ -1065,17 +1066,17 @@
 
                     <div class="legal-checkbox-group">
                         <div class="custom-checkbox">
-                            <input type="checkbox" id="certifyCorrect" required>
+                            <input type="checkbox" id="certifyCorrect" name="certifyCorrect" required>
                             <label for="certifyCorrect" data-i18n="legalCertify">I certify that the information provided in this application is true and correct to the best of my knowledge.</label>
                         </div>
 
                         <div class="custom-checkbox">
-                            <input type="checkbox" id="authorizeVerify" required>
+                            <input type="checkbox" id="authorizeVerify" name="authorizeVerify" required>
                             <label for="authorizeVerify" data-i18n="legalAuthorize">I authorize verification of the information provided, including employment, income, and references.</label>
                         </div>
 
                         <div class="custom-checkbox">
-                            <input type="checkbox" id="termsAgree" required>
+                            <input type="checkbox" id="termsAgree" name="termsAgree" required>
                             <label for="termsAgree" data-i18n="termsAgreeLabel">I certify that all information provided in this application is accurate and complete, and I authorize Choice Properties to verify it.</label>
                         </div>
 
@@ -1110,8 +1111,8 @@
                 <p class="submit-disclaimer" data-i18n="submitDisclaimer">By clicking submit, your application will be securely transmitted to Choice Properties.</p>
             </div>
 
-          <!-- HONEYPOT â do not remove. Hidden from real users, catches bots. -->
-          <div style="position:absolute;left:-9999px;top:-9999px;opacity:0;pointer-events:none;aria-hidden:true">
+          <!-- HONEYPOT — do not remove. Hidden from real users, catches bots. -->
+          <div style="position:absolute;left:-9999px;top:-9999px;opacity:0;pointer-events:none;" aria-hidden="true">
               <label for="website">Leave this empty</label>
               <input type="text" id="website" name="website" tabindex="-1" autocomplete="off" value="">
           </div>
@@ -1126,8 +1127,8 @@
             </div>
             <p>&copy; 2026 Choice Properties. All rights reserved.</p>
             <div class="footer-links">
-                <a href="mailto:choicepropertygroup@hotmail.com" title="Privacy Policy â contact us for details"><i class="fas fa-shield-alt"></i> <span data-i18n="privacyPolicy">Privacy Policy</span></a>
-                <a href="mailto:choicepropertygroup@hotmail.com" title="Terms of Service â contact us for details"><i class="fas fa-file-contract"></i> <span data-i18n="termsOfService">Terms of Service</span></a>
+                <a href="mailto:choicepropertygroup@hotmail.com" title="Privacy Policy — contact us for details"><i class="fas fa-shield-alt"></i> <span data-i18n="privacyPolicy">Privacy Policy</span></a>
+                <a href="mailto:choicepropertygroup@hotmail.com" title="Terms of Service — contact us for details"><i class="fas fa-file-contract"></i> <span data-i18n="termsOfService">Terms of Service</span></a>
                 <a href="mailto:choicepropertygroup@hotmail.com"><i class="fas fa-envelope"></i> <span data-i18n="contactSupport">Contact Support</span></a>
             </div>
             <div class="security-badges">

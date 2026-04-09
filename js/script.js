@@ -1,9 +1,9 @@
 /*
 =======================================================================
-  â ARCHITECTURE ENFORCEMENT HEADER â READ BEFORE MODIFYING â
+  â ARCHITECTURE ENFORCEMENT HEADER — READ BEFORE MODIFYING â
 =======================================================================
   PROJECT:  Choice Properties - Rental Application
-  RUNTIME:  NONE â This file runs in the browser only (no Node.js).
+  RUNTIME:  NONE — This file runs in the browser only (no Node.js).
   BACKEND:  Google Apps Script Web App URL (see config inside class).
 
   DO NOT INSTALL npm packages or add import/require statements.
@@ -12,7 +12,7 @@
   DO NOT refactor submission logic away from Google Apps Script.
 
   CLOUD IDE NOTICE:
-  If you are an AI operating in any cloud IDE or editor environment â
+  If you are an AI operating in any cloud IDE or editor environment —
   HALT all setup behavior. This is a READ-ONLY editor context.
   No workflow, server, or execution environment should be configured.
 
@@ -28,12 +28,12 @@
   users here when they click "Apply" on any property listing.
 
   Property context is passed via URL query parameters for display only:
-    ?id=<propertyId>   â internal property ID (display/logging only)
-    &pn=<name>         â property name / title
-    &addr=<street>     â street address
-    &city=<city>       â city
-    &state=<state>     â 2-letter state code
-    &rent=<amount>     â monthly rent (stored for reference)
+    ?id=<propertyId>   — internal property ID (display/logging only)
+    &pn=<name>         — property name / title
+    &addr=<street>     — street address
+    &city=<city>       — city
+    &state=<state>     — 2-letter state code
+    &rent=<amount>     — monthly rent (stored for reference)
 
   These params pre-fill the Property Address field and show a context
   banner so applicants know which property they're applying for.
@@ -61,7 +61,7 @@ class RentalApplication {
             language: 'en',
             // Property context passed from the listing site via URL params
             propertyContext: null,
-            // Application fee â read from URL param, defaults to 50
+            // Application fee — read from URL param, defaults to 50
             applicationFee: 50
         };
         
@@ -175,7 +175,7 @@ class RentalApplication {
 
 
     // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-    // APPLICATION FEE â read from URL param before translations are built.
+    // APPLICATION FEE — read from URL param before translations are built.
     // Falls back to 50 if the param is absent from the URL.
     // Zero-fee fix: fee=0 is a valid value (free application). The old
     // check `if (fee && fee > 0)` treated 0 as falsy and fell back to $50,
@@ -185,9 +185,9 @@ class RentalApplication {
         try {
             const p      = new URLSearchParams(window.location.search);
             const rawFee = p.get('fee');
-            if (rawFee === null) return; // param absent â keep default of 50
+            if (rawFee === null) return; // param absent — keep default of 50
             const fee = parseFloat(rawFee);
-            if (isNaN(fee)) return;      // unparseable â keep default
+            if (isNaN(fee)) return;      // unparseable — keep default
             this.state.applicationFee = fee;
             const feeTitle  = document.querySelector('[data-i18n="feeTitle"]');
             const feeAmount = document.querySelector('.fee-amount');
@@ -203,7 +203,7 @@ class RentalApplication {
     }
 
     // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-    // URL PRE-FILL â reads context passed by the main listing platform.
+    // URL PRE-FILL — reads context passed by the main listing platform.
     // Params: id, pn (name), addr, city, state, rent
     // All values are display-only. Backend never uses or validates these.
     // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
@@ -217,7 +217,7 @@ class RentalApplication {
             const state = p.get('state') || '';
             const rent  = p.get('rent') || '';
 
-            // Nothing useful in the URL â show manual-entry prompt and return
+            // Nothing useful in the URL — show manual-entry prompt and return
             if (!id && !name && !addr && !city) { this._showNoContextPrompt(); return; }
 
             // Store context on instance for later use (success page, etc.)
@@ -315,7 +315,7 @@ class RentalApplication {
                 ? streetParts.join(', ')
                 : name; // fallback: use property name if no address parts
 
-            // Pre-fill the property address field (Step 1) â URL params always take priority
+            // Pre-fill the property address field (Step 1) — URL params always take priority
             const addrField = document.getElementById('propertyAddress');
             if (addrField && formattedAddr) {
                 addrField.value = formattedAddr;
@@ -326,13 +326,13 @@ class RentalApplication {
             this._showPropertyBanner({ id, name, addr, city, state, rent, beds, baths, deposit, avail, terms, lastMonthsRent, adminFee, moveInSpecial, laundryType, heatingType, coolingType, garageSpaces, evCharging, parkingFee });
 
         } catch (err) {
-            // Silent â never break the form over a missing URL param
+            // Silent — never break the form over a missing URL param
             console.warn('_prefillFromURL error (non-fatal):', err);
         }
     }
 
     // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-    // PROPERTY CONTEXT BANNER â shown between header and progress bar.
+    // PROPERTY CONTEXT BANNER — shown between header and progress bar.
     // Lets applicants confirm they're applying for the right property.
     // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
     _showPropertyBanner({ id, name, addr, city, state, rent, beds, baths, deposit, avail, terms, lastMonthsRent, adminFee, moveInSpecial, laundryType, heatingType, coolingType, garageSpaces, evCharging, parkingFee }) {
@@ -346,7 +346,7 @@ class RentalApplication {
             : '';
 
         const metaParts = [locationLine, rentLine].filter(Boolean);
-        const metaLine = metaParts.join(' &nbsp;Â·&nbsp; ');
+        const metaLine = metaParts.join(' &nbsp;·&nbsp; ');
 
         // Build listing detail chips (beds / baths / deposit / available / lease terms)
         const chips = [];
@@ -374,7 +374,7 @@ class RentalApplication {
         if (parkingFee)     chips.push('<span class="pcb-chip"><i class="fas fa-dollar-sign"></i> $' + parseFloat(parkingFee).toLocaleString('en-US') + '/mo Parking</span>');
         const chipsHtml = chips.length ? '<div class="pcb-chips">' + chips.join('') + '</div>' : '';
 
-        // Back-to-listing link â only shown when a property ID was passed
+        // Back-to-listing link — only shown when a property ID was passed
         const backLinkHtml = id
             ? '<a href="' + (window.CP_CONFIG && window.CP_CONFIG.LISTING_SITE_URL ? window.CP_CONFIG.LISTING_SITE_URL : 'https://choice-properties-site.pages.dev') + '/property.html?id=' + encodeURIComponent(id) + '" class="pcb-back-link" target="_blank" rel="noopener">' +
                   '<i class="fas fa-arrow-left"></i> View listing' +
@@ -417,7 +417,7 @@ class RentalApplication {
     }
 
     // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-    // NO-CONTEXT PROMPT â shown when the form is opened without URL params.
+    // NO-CONTEXT PROMPT — shown when the form is opened without URL params.
     // Guides the applicant to manually enter the property address on Step 1.
     // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
     _showNoContextPrompt() {
@@ -618,13 +618,13 @@ class RentalApplication {
             const ssnVal = field.value.replace(/\D/g, '');
             if (!ssnVal) {
                 isValid = false;
-                errorMessage = this.state.language === 'en' ? 'Please enter the last 4 digits of your SSN.' : 'Por favor ingrese los Ãºltimos 4 dÃ­gitos de su SSN.';
+                errorMessage = this.state.language === 'en' ? 'Please enter the last 4 digits of your SSN.' : 'Por favor ingrese los últimos 4 dígitos de su SSN.';
             } else if (ssnVal.length < 4) {
                 isValid = false;
-                errorMessage = this.state.language === 'en' ? 'SSN must contain 4 digits.' : 'El SSN debe contener 4 dÃ­gitos.';
+                errorMessage = this.state.language === 'en' ? 'SSN must contain 4 digits.' : 'El SSN debe contener 4 dígitos.';
             } else if (/[^0-9]/.test(field.value)) {
                 isValid = false;
-                errorMessage = this.state.language === 'en' ? 'SSN must contain numbers only.' : 'El SSN debe contener solo nÃºmeros.';
+                errorMessage = this.state.language === 'en' ? 'SSN must contain numbers only.' : 'El SSN debe contener solo números.';
             }
         } else if (field.id === 'dob' || field.id === 'coDob') {
             const birthDate = new Date(field.value);
@@ -634,14 +634,14 @@ class RentalApplication {
                 errorMessage = this.state.language === 'en' ? 'Please enter your date of birth.' : 'Por favor ingrese su fecha de nacimiento.';
             } else if (isNaN(birthDate.getTime())) {
                 isValid = false;
-                errorMessage = this.state.language === 'en' ? 'Please enter a valid date of birth (18+ required).' : 'Por favor ingrese una fecha vÃ¡lida (18+ requerido).';
+                errorMessage = this.state.language === 'en' ? 'Please enter a valid date of birth (18+ required).' : 'Por favor ingrese una fecha válida (18+ requerido).';
             } else {
                 let age = today.getFullYear() - birthDate.getFullYear();
                 const m = today.getMonth() - birthDate.getMonth();
                 if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
                 if (age < 18) {
                     isValid = false;
-                    errorMessage = this.state.language === 'en' ? 'Applicants must be at least 18 years old.' : 'Los solicitantes deben tener al menos 18 aÃ±os.';
+                    errorMessage = this.state.language === 'en' ? 'Applicants must be at least 18 years old.' : 'Los solicitantes deben tener al menos 18 años.';
                 }
             }
         } else if (field.id === 'requestedMoveIn') {
@@ -670,17 +670,17 @@ class RentalApplication {
                 const email = field.value.trim();
                 if (!email.includes('@')) {
                     isValid = false;
-                    errorMessage = this.state.language === 'en' ? 'Email must include an @ symbol.' : 'El correo debe incluir un sÃ­mbolo @.';
+                    errorMessage = this.state.language === 'en' ? 'Email must include an @ symbol.' : 'El correo debe incluir un símbolo @.';
                 } else {
                     const parts = email.split('@');
                     if (!parts[1] || !parts[1].includes('.')) {
                         isValid = false;
-                        errorMessage = this.state.language === 'en' ? 'Add a valid domain (e.g., gmail.com).' : 'Agregue un dominio vÃ¡lido (ej. gmail.com).';
+                        errorMessage = this.state.language === 'en' ? 'Add a valid domain (e.g., gmail.com).' : 'Agregue un dominio válido (ej. gmail.com).';
                     } else {
                         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                         isValid = emailRegex.test(email);
                         if (!isValid) {
-                            errorMessage = this.state.language === 'en' ? 'Enter a valid email (example: name@email.com).' : 'Ingrese un correo vÃ¡lido (ejemplo: nombre@email.com).';
+                            errorMessage = this.state.language === 'en' ? 'Enter a valid email (example: name@email.com).' : 'Ingrese un correo válido (ejemplo: nombre@email.com).';
                         }
                     }
                 }
@@ -688,7 +688,7 @@ class RentalApplication {
                 const phoneDigits = field.value.replace(/\D/g, '');
                 isValid = phoneDigits.length >= 10;
                 if (!isValid) {
-                    errorMessage = this.state.language === 'en' ? 'Invalid phone' : 'TelÃ©fono invÃ¡lido';
+                    errorMessage = this.state.language === 'en' ? 'Invalid phone' : 'Teléfono inválido';
                 }
             }
         }
@@ -865,7 +865,7 @@ class RentalApplication {
                         }
                     } else if (input.type === 'checkbox') {
                         if (input.id === 'coConsent' && !input.checked) {
-                            this.showError(input, this.state.language === 'en' ? 'You must authorize verification' : 'Debe autorizar la verificaciÃ³n');
+                            this.showError(input, this.state.language === 'en' ? 'You must authorize verification' : 'Debe autorizar la verificación');
                             input.classList.add('is-invalid');
                             isStepValid = false;
                             if (!firstInvalidField) firstInvalidField = input;
@@ -1051,27 +1051,27 @@ class RentalApplication {
             } else if (status === 'Retired') {
                 showField('employer', false, 'Former Employer (Optional)', 'Empleador Anterior (Opcional)');
                 showField('jobTitle', false, 'Former Job Title (Optional)', 'Cargo Anterior (Opcional)');
-                showField('employmentDuration', false, 'How long at this job?', 'Â¿CuÃ¡nto tiempo en este trabajo?');
+                showField('employmentDuration', false, 'How long at this job?', '¿Cuánto tiempo en este trabajo?');
                 hideField('supervisorName');
                 hideField('supervisorPhone');
             } else if (status === 'Student') {
-                showField('employer', false, 'School / Institution Name (Optional)', 'Escuela / InstituciÃ³n (Opcional)');
+                showField('employer', false, 'School / Institution Name (Optional)', 'Escuela / Institución (Opcional)');
                 showField('jobTitle', false, 'Program / Field of Study (Optional)', 'Programa / Campo de Estudio (Opcional)');
-                showField('employmentDuration', false, 'Years at Institution', 'AÃ±os en la instituciÃ³n');
+                showField('employmentDuration', false, 'Years at Institution', 'Años en la institución');
                 hideField('supervisorName');
                 hideField('supervisorPhone');
             } else if (status === 'Self-employed') {
                 showField('employer', true, 'Business Name', 'Nombre del Negocio');
                 showField('jobTitle', true, 'Your Role / Title', 'Su Rol / Cargo');
-                showField('employmentDuration', true, 'How long in business?', 'Â¿CuÃ¡nto tiempo en el negocio?');
+                showField('employmentDuration', true, 'How long in business?', '¿Cuánto tiempo en el negocio?');
                 hideField('supervisorName');
                 hideField('supervisorPhone');
             } else {
                 showField('employer', true, 'Employer', 'Empleador');
                 showField('jobTitle', true, 'Job Title', 'Puesto');
-                showField('employmentDuration', true, 'How long at this job?', 'Â¿CuÃ¡nto tiempo en este trabajo?');
+                showField('employmentDuration', true, 'How long at this job?', '¿Cuánto tiempo en este trabajo?');
                 showField('supervisorName', true, 'Supervisor Name', 'Nombre del supervisor');
-                showField('supervisorPhone', true, 'Supervisor Phone', 'TelÃ©fono del supervisor');
+                showField('supervisorPhone', true, 'Supervisor Phone', 'Teléfono del supervisor');
             }
         };
 
@@ -1372,7 +1372,7 @@ class RentalApplication {
         const freeApp = fee <= 0; // zero-fee: no payment step needed
         const translations = {
             en: {
-                langText: 'EspaÃ±ol',
+                langText: 'Español',
                 logoText: 'Choice Properties',
                 tagline: 'Professional Property Management Solutions',
                 confidentialStamp: 'CONFIDENTIAL & SECURE',
@@ -1399,7 +1399,7 @@ class RentalApplication {
                 immediateNextSteps: 'Immediate Next Steps',
                 paymentRequiredTitle: freeApp ? 'No Application Fee' : 'Payment Required Before Review',
                 paymentRequiredDesc: freeApp
-                    ? 'Great news â there is no application fee for this property. Your application will go straight to review.'
+                    ? 'Great news — there is no application fee for this property. Your application will go straight to review.'
                     : `Our team will contact you shortly at the phone number provided to arrange the $${fee} application fee.`,
                 completePaymentTitle: freeApp ? 'Application Complete' : 'Complete Payment',
                 completePaymentDesc: freeApp
@@ -1411,7 +1411,7 @@ class RentalApplication {
                     : 'Once payment is confirmed, your application enters the formal review process. You can track status online with your ID.',
                 importantNote: 'Important:',
                 paymentUrgentText: freeApp
-                    ? 'There is no application fee for this property â your application goes straight to review.'
+                    ? 'There is no application fee for this property — your application goes straight to review.'
                     : `Your application is not complete until the $${fee} fee has been paid. Please keep your phone nearby.`,
                 yourPreferences: 'Your Preferences',
                 contactMethod: 'Contact Method:',
@@ -1424,11 +1424,11 @@ class RentalApplication {
                 trackStatus: 'Track My Application',
                 newApplication: 'New Application',
                 reapplicationPolicyTitle: 'Reapplication Protection',
-                reapplicationPolicyText: 'If your application is denied, you may apply for any other available property within 30 days â no new application fee. Your screening results remain valid for 60 days.',
+                reapplicationPolicyText: 'If your application is denied, you may apply for any other available property within 30 days — no new application fee. Your screening results remain valid for 60 days.',
                 step1YouSubmit: '1. You Submit',
                 step1Desc: 'Fill out your application completely',
                 step2PaymentArranged: freeApp ? '2. Application Received' : '2. Payment Arranged',
-                step2Desc: freeApp ? 'No fee required â review starts right away' : `We contact you for the $${fee} fee`,
+                step2Desc: freeApp ? 'No fee required — review starts right away' : `We contact you for the $${fee} fee`,
                 step3ReviewBegins: '3. Review Begins',
                 step3Desc: freeApp ? 'We review your application promptly' : 'After payment, we review your application',
                 propertyHeader: 'Property & Applicant Details',
@@ -1494,7 +1494,7 @@ class RentalApplication {
                 timeLateEvening: 'Late Evening (8pm-10pm)',
                 timeWeekend: 'Weekend',
                 flexible: 'Flexible',
-                timeAnytime: 'Anytime â I\'m flexible',
+                timeAnytime: 'Anytime — I\'m flexible',
                 additionalNotesLabel: 'Additional Notes (Optional)',
                 additionalNotesPlaceholder: 'e.g., Best after 7pm, avoid Wednesdays',
                 preferencesNote: 'These preferences are for non-urgent follow-up after your payment is complete.',
@@ -1571,26 +1571,26 @@ class RentalApplication {
                     ? 'There is no application fee for this property. Please share your contact preferences so our team can reach you during the review process.'
                     : `Tell us which payment services you use. When we contact you about the $${fee} application fee, we'll discuss options you're familiar with.`,
                 paymentImportant: freeApp
-                    ? 'There is no application fee â your application will be reviewed promptly after submission.'
+                    ? 'There is no application fee — your application will be reviewed promptly after submission.'
                     : 'Payment must be completed before your application can be reviewed. Our team will contact you promptly after submission to arrange this.',
                 primaryPref: 'Primary Preference',
                 mainPaymentMethod: 'Your Main Payment Method',
                 mainPaymentDesc: 'Which payment service do you use most often?',
-                selectPrimary: 'â Select your primary method â',
+                selectPrimary: '— Select your primary method —',
                 other: 'Other',
                 otherPaymentPlaceholder: 'Enter payment method',
                 backupPref: 'Backup Options (Optional)',
                 otherMethods: 'Other Methods You Use',
                 otherMethodsDesc: 'If your primary isn\'t available, what else works for you?',
                 secondaryMethod: 'Secondary Method',
-                selectBackup: 'â Select a backup (optional) â',
+                selectBackup: '— Select a backup (optional) —',
                 thirdMethod: 'Third Method (Optional)',
-                selectAnother: 'â Select another (optional) â',
+                selectAnother: '— Select another (optional) —',
                 duplicateWarning: 'Please select different payment methods for each choice.',
                 reviewHeader: 'Review & Submit',
                 feeTitle: freeApp ? 'Application Fee: Free' : `Application Fee: $${fee}.00`,
                 feeDesc: freeApp
-                    ? 'Great news â this property has no application fee. Your application goes straight to review.'
+                    ? 'Great news — this property has no application fee. Your application goes straight to review.'
                     : 'This fee is required before review can begin. Our team will contact you immediately after submission to arrange payment.',
                 paymentReminderTitle: freeApp ? 'No Application Fee' : 'Payment Required Before Review',
                 paymentReminderDesc: freeApp
@@ -1647,17 +1647,17 @@ class RentalApplication {
                 networkError: 'Unable to reach our servers. Please check your connection and try again.',
                 serverError: 'Our system is temporarily unavailable. Please try again in a few minutes, or contact us at 707-706-3137.',
                 copied: 'Copied!',
-                pageTitle: 'Rental Application â Choice Properties'
+                pageTitle: 'Rental Application — Choice Properties'
             },
             es: {
                 langText: 'English',
                 logoText: 'Choice Properties',
-                tagline: 'Soluciones Profesionales de AdministraciÃ³n de Propiedades',
+                tagline: 'Soluciones Profesionales de Administración de Propiedades',
                 confidentialStamp: 'CONFIDENCIAL & SEGURO',
-                trustIndicator: 'Su informaciÃ³n estÃ¡ encriptada y protegida',
+                trustIndicator: 'Su información está encriptada y protegida',
                 timeEstimate: 'Tiempo estimado: 15-20 minutos',
                 step1Label: 'Propiedad y Solicitante',
-                step2Label: 'Residencia y OcupaciÃ³n',
+                step2Label: 'Residencia y Ocupación',
                 step3Label: 'Empleo e Ingresos',
                 step4Label: 'Referencias y Contacto de Emergencia',
                 step5Label: 'Preferencias de Pago',
@@ -1674,46 +1674,46 @@ class RentalApplication {
                 successText: 'Gracias por elegir Choice Properties',
                 appId: 'Su ID de Solicitud',
                 clickToCopy: 'Copiar ID',
-                immediateNextSteps: 'PrÃ³ximos Pasos Inmediatos',
-                paymentRequiredTitle: freeApp ? 'Sin Tarifa de Solicitud' : 'Pago Requerido Antes de la RevisiÃ³n',
+                immediateNextSteps: 'Próximos Pasos Inmediatos',
+                paymentRequiredTitle: freeApp ? 'Sin Tarifa de Solicitud' : 'Pago Requerido Antes de la Revisión',
                 paymentRequiredDesc: freeApp
-                    ? 'Buenas noticias: no hay tarifa de solicitud para esta propiedad. Su solicitud pasarÃ¡ directamente a revisiÃ³n.'
-                    : `Nuestro equipo se comunicarÃ¡ con usted en breve al nÃºmero proporcionado para coordinar el pago de $${fee}.`,
+                    ? 'Buenas noticias: no hay tarifa de solicitud para esta propiedad. Su solicitud pasará directamente a revisión.'
+                    : `Nuestro equipo se comunicará con usted en breve al número proporcionado para coordinar el pago de $${fee}.`,
                 completePaymentTitle: freeApp ? 'Solicitud Completa' : 'Completar el Pago',
                 completePaymentDesc: freeApp
-                    ? 'No se requiere pago. Su solicitud serÃ¡ revisada tal como fue enviada.'
-                    : `Su solicitud no estÃ¡ completa hasta que se haya pagado la tarifa de $${fee}. Discutiremos opciones de pago que conozca.`,
-                reviewBeginsTitle: 'Comienza la RevisiÃ³n',
+                    ? 'No se requiere pago. Su solicitud será revisada tal como fue enviada.'
+                    : `Su solicitud no está completa hasta que se haya pagado la tarifa de $${fee}. Discutiremos opciones de pago que conozca.`,
+                reviewBeginsTitle: 'Comienza la Revisión',
                 reviewBeginsDesc: freeApp
-                    ? 'Su solicitud ha sido recibida y entrarÃ¡ de inmediato al proceso de revisiÃ³n formal. Puede seguir el estado en lÃ­nea con su ID.'
-                    : 'Una vez que se confirme el pago, su solicitud entra en el proceso de revisiÃ³n formal. Puede seguir el estado en lÃ­nea con su ID.',
+                    ? 'Su solicitud ha sido recibida y entrará de inmediato al proceso de revisión formal. Puede seguir el estado en línea con su ID.'
+                    : 'Una vez que se confirme el pago, su solicitud entra en el proceso de revisión formal. Puede seguir el estado en línea con su ID.',
                 importantNote: 'Importante:',
                 paymentUrgentText: freeApp
-                    ? 'No hay tarifa de solicitud para esta propiedad â su solicitud pasa directamente a revisiÃ³n.'
-                    : `Su solicitud no estÃ¡ completa hasta que se haya pagado la tarifa de $${fee}. Por favor mantenga su telÃ©fono cerca.`,
+                    ? 'No hay tarifa de solicitud para esta propiedad — su solicitud pasa directamente a revisión.'
+                    : `Su solicitud no está completa hasta que se haya pagado la tarifa de $${fee}. Por favor mantenga su teléfono cerca.`,
                 yourPreferences: 'Sus Preferencias',
-                contactMethod: 'MÃ©todo de Contacto:',
+                contactMethod: 'Método de Contacto:',
                 bestTimes: 'Mejores Horarios:',
                 paymentPref: 'Preferencias de Pago:',
-                preferenceNote: 'Usaremos estas para seguimiento no urgente despuÃ©s de que se complete su pago.',
-                questions: 'Â¿Preguntas? Llame o envÃ­e un mensaje de texto al',
-                helpText: 'estamos aquÃ­ para ayudar.',
-                spamWarning: 'ð§ Se le ha enviado un correo de confirmaciÃ³n. Si no lo ve en unos minutos, revise su carpeta de <strong>spam o correo no deseado</strong>.',
+                preferenceNote: 'Usaremos estas para seguimiento no urgente después de que se complete su pago.',
+                questions: '¿Preguntas? Llame o envíe un mensaje de texto al',
+                helpText: 'estamos aquí para ayudar.',
+                spamWarning: 'ð§ Se le ha enviado un correo de confirmación. Si no lo ve en unos minutos, revise su carpeta de <strong>spam o correo no deseado</strong>.',
                 trackStatus: 'Seguir Mi Solicitud',
                 newApplication: 'Nueva Solicitud',
-                reapplicationPolicyTitle: 'ProtecciÃ³n de ReaplicaciÃ³n',
-                reapplicationPolicyText: 'Si su solicitud es denegada, puede solicitar cualquier otra propiedad disponible dentro de los 30 dÃ­as sin pagar otra tarifa de solicitud. Sus resultados de evaluaciÃ³n siguen siendo vÃ¡lidos por 60 dÃ­as.',
-                step1YouSubmit: '1. Usted EnvÃ­a',
+                reapplicationPolicyTitle: 'Protección de Reaplicación',
+                reapplicationPolicyText: 'Si su solicitud es denegada, puede solicitar cualquier otra propiedad disponible dentro de los 30 días sin pagar otra tarifa de solicitud. Sus resultados de evaluación siguen siendo válidos por 60 días.',
+                step1YouSubmit: '1. Usted Envía',
                 step1Desc: 'Complete su solicitud completamente',
                 step2PaymentArranged: freeApp ? '2. Solicitud Recibida' : '2. Pago Acordado',
-                step2Desc: freeApp ? 'Sin tarifa â la revisiÃ³n comienza de inmediato' : `Lo contactamos para la tarifa de $${fee}`,
-                step3ReviewBegins: '3. Comienza la RevisiÃ³n',
-                step3Desc: freeApp ? 'Revisamos su solicitud de inmediato' : 'DespuÃ©s del pago, revisamos su solicitud',
+                step2Desc: freeApp ? 'Sin tarifa — la revisión comienza de inmediato' : `Lo contactamos para la tarifa de $${fee}`,
+                step3ReviewBegins: '3. Comienza la Revisión',
+                step3Desc: freeApp ? 'Revisamos su solicitud de inmediato' : 'Después del pago, revisamos su solicitud',
                 propertyHeader: 'Detalles de la Propiedad y el Solicitante',
-                propertyInfo: 'InformaciÃ³n de la Propiedad',
-                propertyAddressLabel: 'DirecciÃ³n de la Propiedad que Solicita',
-                propertyAddressPlaceholder: 'Calle, ciudad, estado, cÃ³digo postal',
-                errAddress: 'Por favor ingrese la direcciÃ³n de la propiedad',
+                propertyInfo: 'Información de la Propiedad',
+                propertyAddressLabel: 'Dirección de la Propiedad que Solicita',
+                propertyAddressPlaceholder: 'Calle, ciudad, estado, código postal',
+                errAddress: 'Por favor ingrese la dirección de la propiedad',
                 moveInLabel: 'Fecha de Mudanza Solicitada',
                 errRequired: 'Obligatorio',
                 leaseTermLabel: 'Plazo de Arrendamiento Deseado',
@@ -1723,30 +1723,30 @@ class RentalApplication {
                 months18: '18 Meses',
                 months24: '24 Meses',
                 monthToMonth: 'Mes a mes',
-                primaryApplicantInfo: 'InformaciÃ³n del Solicitante Principal',
+                primaryApplicantInfo: 'Información del Solicitante Principal',
                 firstNameLabel: 'Nombre',
                 lastNameLabel: 'Apellido',
-                emailLabel: 'Correo ElectrÃ³nico',
+                emailLabel: 'Correo Electrónico',
                 emailPlaceholder: 'email@ejemplo.com',
-                emailHint: 'AsegÃºrese de que el correo proporcionado sea correcto y accesible. La confirmaciÃ³n y actualizaciones se enviarÃ¡n aquÃ­.',
-                errEmail: 'Correo invÃ¡lido',
-                phoneLabel: 'NÃºmero de TelÃ©fono',
+                emailHint: 'Asegúrese de que el correo proporcionado sea correcto y accesible. La confirmación y actualizaciones se enviarán aquí.',
+                errEmail: 'Correo inválido',
+                phoneLabel: 'Número de Teléfono',
                 phonePlaceholder: '(555) 000-0000',
-                phoneHint: 'Nuestro equipo lo contactarÃ¡ aquÃ­.',
-                errPhone: 'TelÃ©fono invÃ¡lido',
+                phoneHint: 'Nuestro equipo lo contactará aquí.',
+                errPhone: 'Teléfono inválido',
                 dobLabel: 'Fecha de Nacimiento',
-                ssnLabel: 'NÃºmero de Seguro Social (Ãltimos 4 dÃ­gitos)',
-                ssnHint: 'Solo Ãºltimos 4 dÃ­gitos requeridos',
+                ssnLabel: 'Número de Seguro Social (Ãltimos 4 dígitos)',
+                ssnHint: 'Solo últimos 4 dígitos requeridos',
                 ssnPlaceholder: '1234',
                 coApplicantCheckbox: 'Tengo un co-solicitante o fiador',
-                coApplicantInfo: 'InformaciÃ³n de Co-Solicitante / Garante',
+                coApplicantInfo: 'Información de Co-Solicitante / Garante',
                 coRoleLabel: 'Rol (Seleccione uno)',
-                roleCoApplicant: 'Co-solicitante (vivirÃ¡ en la unidad)',
+                roleCoApplicant: 'Co-solicitante (vivirá en la unidad)',
                 roleGuarantor: 'Fiador (solo respaldo financiero)',
                 coFirstNameLabel: 'Nombre',
                 coLastNameLabel: 'Apellido',
-                coEmailLabel: 'Correo ElectrÃ³nico',
-                coPhoneLabel: 'TelÃ©fono',
+                coEmailLabel: 'Correo Electrónico',
+                coPhoneLabel: 'Teléfono',
                 coDobLabel: 'Fecha de Nacimiento',
                 coSsnLabel: 'SSN (Ãltimos 4)',
                 employmentIncome: 'Empleo e Ingresos',
@@ -1755,55 +1755,55 @@ class RentalApplication {
                 coMonthlyIncomeLabel: 'Ingreso Mensual Bruto ($)',
                 coMonthlyIncomePlaceholder: 'ej., 4000',
                 coEmploymentDurationLabel: 'Tiempo en el empleo',
-                coEmploymentDurationPlaceholder: 'ej., 2 aÃ±os',
-                coConsentLabel: 'Autorizo la verificaciÃ³n de la informaciÃ³n proporcionada para esta persona adicional, incluyendo verificaciÃ³n de crÃ©dito y antecedentes.',
+                coEmploymentDurationPlaceholder: 'ej., 2 años',
+                coConsentLabel: 'Autorizo la verificación de la información proporcionada para esta persona adicional, incluyendo verificación de crédito y antecedentes.',
                 contactPrefsHeader: 'Preferencias de Contacto',
-                prefContactMethod: 'MÃ©todo de Contacto Preferido',
+                prefContactMethod: 'Método de Contacto Preferido',
                 contactMethodText: 'Mensaje de Texto',
-                contactMethodEmail: 'Correo ElectrÃ³nico',
-                contactMethodHint: 'Puede seleccionar ambos mÃ©todos',
+                contactMethodEmail: 'Correo Electrónico',
+                contactMethodHint: 'Puede seleccionar ambos métodos',
                 availabilityLabel: 'Disponibilidad',
-                weekdays: 'DÃ­as de semana',
-                timeMorning: 'MaÃ±ana (8am-11am)',
-                timeMidday: 'MediodÃ­a (11am-2pm)',
+                weekdays: 'Días de semana',
+                timeMorning: 'Mañana (8am-11am)',
+                timeMidday: 'Mediodía (11am-2pm)',
                 timeAfternoon: 'Tarde (2pm-5pm)',
                 eveningsWeekends: 'Tardes y Fines de Semana',
                 timeEarlyEvening: 'Temprano en la tarde (5pm-8pm)',
                 timeLateEvening: 'Tarde noche (8pm-10pm)',
                 timeWeekend: 'Fin de semana',
                 flexible: 'Flexible',
-                timeAnytime: 'En cualquier momento â soy flexible',
+                timeAnytime: 'En cualquier momento — soy flexible',
                 additionalNotesLabel: 'Notas Adicionales (Opcional)',
-                additionalNotesPlaceholder: 'ej., Mejor despuÃ©s de las 7pm, evitar miÃ©rcoles',
-                preferencesNote: 'Usaremos estas para seguimiento no urgente despuÃ©s de que se complete su pago.',
+                additionalNotesPlaceholder: 'ej., Mejor después de las 7pm, evitar miércoles',
+                preferencesNote: 'Usaremos estas para seguimiento no urgente después de que se complete su pago.',
                 nextStep: 'Siguiente Paso',
                 prevStep: 'Anterior',
-                editSection: 'Editar SecciÃ³n',
-                residencyHeader: 'Residencia y OcupaciÃ³n',
+                editSection: 'Editar Sección',
+                residencyHeader: 'Residencia y Ocupación',
                 currentResidence: 'Residencia Actual',
-                currentAddressLabel: 'DirecciÃ³n Actual',
-                currentAddressPlaceholder: 'Calle, NÃºmero, Ciudad, Estado, CÃ³digo Postal',
-                residencyStartLabel: 'Â¿CuÃ¡nto tiempo en esta direcciÃ³n?',
-                residencyStartPlaceholder: 'ej., 2 aÃ±os 3 meses',
+                currentAddressLabel: 'Dirección Actual',
+                currentAddressPlaceholder: 'Calle, Número, Ciudad, Estado, Código Postal',
+                residencyStartLabel: '¿Cuánto tiempo en esta dirección?',
+                residencyStartPlaceholder: 'ej., 2 años 3 meses',
                 rentAmountLabel: 'Monto Actual de Alquiler/Hipoteca',
                 rentAmountPlaceholder: '$',
-                reasonLeavingLabel: 'RazÃ³n para mudarse',
+                reasonLeavingLabel: 'Razón para mudarse',
                 landlordNameLabel: 'Nombre del Propietario/Administrador Actual',
-                landlordPhoneLabel: 'TelÃ©fono del Propietario/Administrador',
+                landlordPhoneLabel: 'Teléfono del Propietario/Administrador',
                 occupantsPets: 'Ocupantes y Mascotas',
-                totalOccupantsLabel: 'NÃºmero total de ocupantes (incluyendo niÃ±os)',
-                occupantNamesLabel: 'Nombres y edades de todos los demÃ¡s ocupantes',
-                occupantNamesPlaceholder: 'Lista de nombres, edades y relaciÃ³n (ej., Juan PÃ©rez, 7, hijo)',
-                hasPetsLabel: 'Â¿Tiene mascotas?',
-                yes: 'SÃ­',
+                totalOccupantsLabel: 'Número total de ocupantes (incluyendo niños)',
+                occupantNamesLabel: 'Nombres y edades de todos los demás ocupantes',
+                occupantNamesPlaceholder: 'Lista de nombres, edades y relación (ej., Juan Pérez, 7, hijo)',
+                hasPetsLabel: '¿Tiene mascotas?',
+                yes: 'Sí',
                 no: 'No',
                 petDetailsLabel: 'Detalles de la mascota (tipo, raza, peso)',
                 petDetailsPlaceholder: 'Describa sus mascotas...',
-                vehicleInfo: 'InformaciÃ³n del VehÃ­culo',
-                hasVehicleLabel: 'Â¿Tiene vehÃ­culo?',
+                vehicleInfo: 'Información del Vehículo',
+                hasVehicleLabel: '¿Tiene vehículo?',
                 vehicleMakeLabel: 'Marca',
                 vehicleModelLabel: 'Modelo',
-                vehicleYearLabel: 'AÃ±o',
+                vehicleYearLabel: 'Año',
                 vehicleYearPlaceholder: 'ej., 2020',
                 vehiclePlateLabel: 'Placa (Opcional)',
                 employmentHeader: 'Empleo e Ingresos',
@@ -1818,114 +1818,114 @@ class RentalApplication {
                 unemployed: 'Desempleado',
                 employerLabel: 'Empleador',
                 jobTitleLabel: 'Puesto',
-                employmentDurationLabel: 'Â¿CuÃ¡nto tiempo en este trabajo?',
-                employmentDurationPlaceholder: 'ej., 3 aÃ±os',
+                employmentDurationLabel: '¿Cuánto tiempo en este trabajo?',
+                employmentDurationPlaceholder: 'ej., 3 años',
                 supervisorNameLabel: 'Nombre del supervisor',
-                supervisorPhoneLabel: 'TelÃ©fono del supervisor',
-                incomeVerification: 'InformaciÃ³n de Ingresos',
+                supervisorPhoneLabel: 'Teléfono del supervisor',
+                incomeVerification: 'Información de Ingresos',
                 monthlyIncomeLabel: 'Ingreso Mensual Bruto',
                 monthlyIncomePlaceholder: '$',
                 incomeHint: 'Antes de impuestos y deducciones',
                 otherIncomeLabel: 'Otros Ingresos Mensuales (Opcional)',
                 otherIncomePlaceholder: '$',
-                otherIncomeHint: 'PensiÃ³n alimenticia, discapacidad, etc.',
+                otherIncomeHint: 'Pensión alimenticia, discapacidad, etc.',
                 financialHeader: 'Referencias y Contacto de Emergencia',
                 personalReferences: 'Referencias Personales',
                 referencesHint: 'Por favor proporcione dos referencias que no sean parientes',
                 ref1NameLabel: 'Nombre de Referencia 1',
-                ref1PhoneLabel: 'TelÃ©fono de Referencia 1',
+                ref1PhoneLabel: 'Teléfono de Referencia 1',
                 ref2NameLabel: 'Nombre de Referencia 2 (Opcional)',
-                ref2PhoneLabel: 'TelÃ©fono de Referencia 2 (Opcional)',
+                ref2PhoneLabel: 'Teléfono de Referencia 2 (Opcional)',
                 emergencyInfo: 'Contacto de Emergencia',
                 emergencyNameLabel: 'Nombre de Contacto de Emergencia',
-                emergencyPhoneLabel: 'TelÃ©fono de Contacto de Emergencia',
-                emergencyRelationshipLabel: 'RelaciÃ³n con usted',
-                emergencyRelationshipPlaceholder: 'ej., CÃ³nyuge, Padre, Amigo',
-                additionalInfo: 'InformaciÃ³n Adicional',
-                evictedLabel: 'Â¿Ha sido desalojado alguna vez?',
-                smokerLabel: 'Â¿Fuma?',
+                emergencyPhoneLabel: 'Teléfono de Contacto de Emergencia',
+                emergencyRelationshipLabel: 'Relación con usted',
+                emergencyRelationshipPlaceholder: 'ej., Cónyuge, Padre, Amigo',
+                additionalInfo: 'Información Adicional',
+                evictedLabel: '¿Ha sido desalojado alguna vez?',
+                smokerLabel: '¿Fuma?',
                 paymentHeader: 'Preferencias de Pago',
                 paymentIntro: freeApp
-                    ? 'No hay tarifa de solicitud para esta propiedad. Por favor comparta sus preferencias de contacto para que nuestro equipo pueda comunicarse con usted durante el proceso de revisiÃ³n.'
-                    : `DÃ­ganos quÃ© servicios de pago utiliza. Cuando lo contactemos acerca de la tarifa de solicitud de $${fee}, discutiremos opciones con las que estÃ© familiarizado.`,
+                    ? 'No hay tarifa de solicitud para esta propiedad. Por favor comparta sus preferencias de contacto para que nuestro equipo pueda comunicarse con usted durante el proceso de revisión.'
+                    : `Díganos qué servicios de pago utiliza. Cuando lo contactemos acerca de la tarifa de solicitud de $${fee}, discutiremos opciones con las que esté familiarizado.`,
                 paymentImportant: freeApp
-                    ? 'No hay tarifa de solicitud â su solicitud serÃ¡ revisada rÃ¡pidamente despuÃ©s del envÃ­o.'
-                    : 'El pago debe completarse antes de que su solicitud pueda ser revisada. Nuestro equipo lo contactarÃ¡ rÃ¡pidamente despuÃ©s del envÃ­o para organizar esto.',
+                    ? 'No hay tarifa de solicitud — su solicitud será revisada rápidamente después del envío.'
+                    : 'El pago debe completarse antes de que su solicitud pueda ser revisada. Nuestro equipo lo contactará rápidamente después del envío para organizar esto.',
                 primaryPref: 'Preferencia Principal',
-                mainPaymentMethod: 'Su MÃ©todo de Pago Principal',
-                mainPaymentDesc: 'Â¿QuÃ© servicio de pago usa con mÃ¡s frecuencia?',
-                selectPrimary: 'â Seleccione su mÃ©todo principal â',
+                mainPaymentMethod: 'Su Método de Pago Principal',
+                mainPaymentDesc: '¿Qué servicio de pago usa con más frecuencia?',
+                selectPrimary: '— Seleccione su método principal —',
                 other: 'Otro',
-                otherPaymentPlaceholder: 'Ingrese mÃ©todo de pago',
+                otherPaymentPlaceholder: 'Ingrese método de pago',
                 backupPref: 'Opciones de Respaldo (Opcional)',
-                otherMethods: 'Otros MÃ©todos Que Usa',
-                otherMethodsDesc: 'Si su principal no estÃ¡ disponible, Â¿quÃ© mÃ¡s le funciona?',
-                secondaryMethod: 'MÃ©todo Secundario',
-                selectBackup: 'â Seleccione un respaldo (opcional) â',
-                thirdMethod: 'Tercer MÃ©todo (Opcional)',
-                selectAnother: 'â Seleccione otro (opcional) â',
-                duplicateWarning: 'Por favor seleccione diferentes mÃ©todos de pago para cada opciÃ³n.',
+                otherMethods: 'Otros Métodos Que Usa',
+                otherMethodsDesc: 'Si su principal no está disponible, ¿qué más le funciona?',
+                secondaryMethod: 'Método Secundario',
+                selectBackup: '— Seleccione un respaldo (opcional) —',
+                thirdMethod: 'Tercer Método (Opcional)',
+                selectAnother: '— Seleccione otro (opcional) —',
+                duplicateWarning: 'Por favor seleccione diferentes métodos de pago para cada opción.',
                 reviewHeader: 'Revisar y Enviar',
                 feeTitle: freeApp ? 'Tarifa de Solicitud: Gratis' : `Tarifa de Solicitud: $${fee}.00`,
                 feeDesc: freeApp
-                    ? 'Buenas noticias: esta propiedad no tiene tarifa de solicitud. Su solicitud pasa directamente a revisiÃ³n.'
-                    : 'Esta tarifa es requerida antes de que la revisiÃ³n pueda comenzar. Nuestro equipo lo contactarÃ¡ inmediatamente despuÃ©s del envÃ­o para organizar el pago.',
-                paymentReminderTitle: freeApp ? 'Sin Tarifa de Solicitud' : 'Pago Requerido Antes de la RevisiÃ³n',
+                    ? 'Buenas noticias: esta propiedad no tiene tarifa de solicitud. Su solicitud pasa directamente a revisión.'
+                    : 'Esta tarifa es requerida antes de que la revisión pueda comenzar. Nuestro equipo lo contactará inmediatamente después del envío para organizar el pago.',
+                paymentReminderTitle: freeApp ? 'Sin Tarifa de Solicitud' : 'Pago Requerido Antes de la Revisión',
                 paymentReminderDesc: freeApp
-                    ? 'Esta propiedad no tiene tarifa de solicitud. Su envÃ­o estÃ¡ completo y pasarÃ¡ directamente a revisiÃ³n.'
-                    : `Su solicitud no estÃ¡ completa hasta que se haya pagado la tarifa de $${fee}. Nuestro equipo lo contactarÃ¡ poco despuÃ©s del envÃ­o para organizar esto.`,
-                verificationTitle: 'Verifique Su InformaciÃ³n de Contacto',
+                    ? 'Esta propiedad no tiene tarifa de solicitud. Su envío está completo y pasará directamente a revisión.'
+                    : `Su solicitud no está completa hasta que se haya pagado la tarifa de $${fee}. Nuestro equipo lo contactará poco después del envío para organizar esto.`,
+                verificationTitle: 'Verifique Su Información de Contacto',
                 verificationDesc: freeApp
-                    ? 'Por favor confirme que su correo electrÃ³nico y nÃºmero de telÃ©fono sean correctos. AsÃ­ es como nuestro equipo lo contactarÃ¡ durante el proceso de revisiÃ³n.'
-                    : `Por favor confirme que su correo electrÃ³nico y nÃºmero de telÃ©fono sean correctos. AsÃ­ es como nuestro equipo lo contactarÃ¡ acerca de la tarifa de $${fee}.`,
-                reapplicationPolicyTextShort: 'Si es denegado, puede aplicar nuevamente dentro de 30 dÃ­as sin nueva tarifa. Resultados de evaluaciÃ³n vÃ¡lidos por 60 dÃ­as.',
-                legalDeclaration: 'DeclaraciÃ³n Legal',
-                legalCertify: 'Certifico que la informaciÃ³n proporcionada en esta solicitud es verdadera y correcta a mi leal saber y entender.',
-                legalAuthorize: 'Autorizo la verificaciÃ³n de la informaciÃ³n proporcionada, incluyendo empleo, ingresos y referencias.',
-                termsAgreeLabel: 'Certifico que toda la informaciÃ³n proporcionada en esta solicitud es exacta y completa, y autorizo a Choice Properties a verificarla.',
+                    ? 'Por favor confirme que su correo electrónico y número de teléfono sean correctos. Así es como nuestro equipo lo contactará durante el proceso de revisión.'
+                    : `Por favor confirme que su correo electrónico y número de teléfono sean correctos. Así es como nuestro equipo lo contactará acerca de la tarifa de $${fee}.`,
+                reapplicationPolicyTextShort: 'Si es denegado, puede aplicar nuevamente dentro de 30 días sin nueva tarifa. Resultados de evaluación válidos por 60 días.',
+                legalDeclaration: 'Declaración Legal',
+                legalCertify: 'Certifico que la información proporcionada en esta solicitud es verdadera y correcta a mi leal saber y entender.',
+                legalAuthorize: 'Autorizo la verificación de la información proporcionada, incluyendo empleo, ingresos y referencias.',
+                termsAgreeLabel: 'Certifico que toda la información proporcionada en esta solicitud es exacta y completa, y autorizo a Choice Properties a verificarla.',
                 submitBtn: 'Enviar Solicitud',
-                submitDisclaimer: 'Al hacer clic en enviar, su solicitud serÃ¡ transmitida de forma segura a Choice Properties.',
-                privacyPolicy: 'PolÃ­tica de Privacidad',
-                termsOfService: 'TÃ©rminos de Servicio',
+                submitDisclaimer: 'Al hacer clic en enviar, su solicitud será transmitida de forma segura a Choice Properties.',
+                privacyPolicy: 'Política de Privacidad',
+                termsOfService: 'Términos de Servicio',
                 contactSupport: 'Contactar Soporte',
                 progressSaved: 'Progreso Guardado',
-                offlineMessage: 'Actualmente estÃ¡ sin conexiÃ³n. El progreso se guardarÃ¡ localmente.',
+                offlineMessage: 'Actualmente está sin conexión. El progreso se guardará localmente.',
                 notSpecified: 'No especificado',
                 notSelected: 'No seleccionado',
                 retry: 'Reintentar',
-                offlineError: 'EstÃ¡s sin conexiÃ³n. Por favor verifica tu conexiÃ³n a internet e intenta de nuevo.',
+                offlineError: 'Estás sin conexión. Por favor verifica tu conexión a internet e intenta de nuevo.',
                 submissionFailed: 'Error al enviar. Por favor intenta de nuevo.',
                 backgroundQuestions: 'Preguntas de Antecedentes',
-                ref1RelationshipLabel: 'RelaciÃ³n con Referencia 1',
-                ref1RelationshipPlaceholder: 'ej., Propietario anterior, Empleador, CompaÃ±ero, Amigo',
-                ref2RelationshipLabel: 'RelaciÃ³n con Referencia 2 (Opcional)',
-                ref2RelationshipPlaceholder: 'ej., Propietario anterior, Empleador, CompaÃ±ero, Amigo',
-                saveResumeLater: 'Guardar y Continuar DespuÃ©s',
-                saveResumeDesc: 'Ingrese su correo y le enviaremos un enlace para continuar su solicitud exactamente donde la dejÃ³.',
+                ref1RelationshipLabel: 'Relación con Referencia 1',
+                ref1RelationshipPlaceholder: 'ej., Propietario anterior, Empleador, Compañero, Amigo',
+                ref2RelationshipLabel: 'Relación con Referencia 2 (Opcional)',
+                ref2RelationshipPlaceholder: 'ej., Propietario anterior, Empleador, Compañero, Amigo',
+                saveResumeLater: 'Guardar y Continuar Después',
+                saveResumeDesc: 'Ingrese su correo y le enviaremos un enlace para continuar su solicitud exactamente donde la dejó.',
                 sendLink: 'Enviar Enlace',
                 cancel: 'Cancelar',
-                linkSent: 'Â¡Enlace enviado! Revise su bandeja de entrada.',
+                linkSent: '¡Enlace enviado! Revise su bandeja de entrada.',
                 ratioQualifies: 'Califica',
-                ratioBorderline: 'LÃ­mite',
+                ratioBorderline: 'Límite',
                 ratioLow: 'Bajo',
-                noContextTitle: 'Â¿Para quÃ© propiedad estÃ¡ solicitando?',
-                noContextSub: 'Por favor ingrese la direcciÃ³n completa de la propiedad en el Paso 1 para que podamos vincular su solicitud con el listado correcto.',
+                noContextTitle: '¿Para qué propiedad está solicitando?',
+                noContextSub: 'Por favor ingrese la dirección completa de la propiedad en el Paso 1 para que podamos vincular su solicitud con el listado correcto.',
                 managedBy: 'Administrado por',
                 charCount: 'caracteres',
                 summaryPropertyApplicant: 'Propiedad y Solicitante',
                 summaryCoApplicant: 'Co-Solicitante',
                 summaryResidency: 'Residencia',
-                summaryOccupancy: 'Ocupantes y VehÃ­culos',
+                summaryOccupancy: 'Ocupantes y Vehículos',
                 summaryEmployment: 'Empleo e Ingresos',
                 summaryFinancial: 'Referencias y Contacto de Emergencia',
                 summaryPayment: 'Preferencias de Pago',
                 retryIn: 'en',
                 retryAttempt: 'intento',
                 pleaseAgreeDeclarations: 'Por favor acepte todas las declaraciones legales antes de enviar.',
-                networkError: 'No es posible conectarse con nuestros servidores. Por favor verifique su conexiÃ³n e intente de nuevo.',
-                serverError: 'Nuestro sistema estÃ¡ temporalmente no disponible. Por favor intente de nuevo en unos minutos, o contÃ¡ctenos al 707-706-3137.',
-                copied: 'Â¡Copiado!',
-                pageTitle: 'Solicitud de Arrendamiento â Choice Properties'
+                networkError: 'No es posible conectarse con nuestros servidores. Por favor verifique su conexión e intente de nuevo.',
+                serverError: 'Nuestro sistema está temporalmente no disponible. Por favor intente de nuevo en unos minutos, o contáctenos al 707-706-3137.',
+                copied: '¡Copiado!',
+                pageTitle: 'Solicitud de Arrendamiento — Choice Properties'
             }
         };
 
@@ -2003,7 +2003,7 @@ class RentalApplication {
                msg.includes('ECONNREFUSED') ||
                msg.includes('Internet') ||
                msg.includes('offline') ||
-               msg.includes('conexiÃ³n') ||
+               msg.includes('conexión') ||
                msg.includes('conexion');
     }
 
@@ -2028,7 +2028,7 @@ class RentalApplication {
             const delay = Math.pow(2, this.retryCount) * 1000; // 2,4,8 seconds
             this.retryCount++;
             
-            msgEl.innerHTML = `${errorMessage} â ${t.retry} ${t.retryIn} ${delay/1000}s (${t.retryAttempt} ${this.retryCount}/${this.maxRetries})`;
+            msgEl.innerHTML = `${errorMessage} – ${t.retry} ${t.retryIn} ${delay/1000}s (${t.retryAttempt} ${this.retryCount}/${this.maxRetries})`;
             statusArea.classList.add('error');
             if (spinner) {
                 spinner.className = 'fas fa-spinner fa-pulse';
@@ -2228,7 +2228,7 @@ class RentalApplication {
             const formData = new FormData(form);
 
             // Property context fields are carried by hidden inputs in index.html
-            // and serialised automatically by FormData â no manual appending needed.
+            // and serialised automatically by FormData — no manual appending needed.
 
             // Phase 8.2: Encode any attached documents as base64 and append to form data
             if (this._uploadedFiles && this._uploadedFiles.length > 0) {
@@ -2487,7 +2487,7 @@ class RentalApplication {
                 </div>
 
                 <div class="help-line">
-                    ${t.questions} <strong>707-706-3137</strong> â ${t.helpText}
+                    ${t.questions} <strong>707-706-3137</strong> — ${t.helpText}
                 </div>
             </div>
         `;
@@ -2508,7 +2508,7 @@ class RentalApplication {
                 });
             }
         } catch (qrErr) {
-            // Non-fatal â QR code is a convenience feature only
+            // Non-fatal — QR code is a convenience feature only
             const qrContainer = document.getElementById('successQRCode');
             if (qrContainer) qrContainer.style.display = 'none';
         }
@@ -2646,7 +2646,7 @@ window.copyAppId = function() {
                 setTimeout(() => { btn.innerHTML = original; }, 2000);
             }
         }).catch(() => {
-            // Clipboard API blocked â fall back to prompt
+            // Clipboard API blocked — fall back to prompt
             window.prompt('Copy your Application ID:', appId);
         });
     } else {
@@ -2657,7 +2657,7 @@ window.copyAppId = function() {
 // ============================================================
 // Initialize app
 // ============================================================
-// NOTE: test-fill functionality was removed â see git history if needed.
+// NOTE: test-fill functionality was removed — see git history if needed.
 
 document.addEventListener('DOMContentLoaded', () => {
     window.app = new RentalApplication();
