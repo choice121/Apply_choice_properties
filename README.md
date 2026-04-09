@@ -1,8 +1,8 @@
 # Choice Properties - Rental Application System
 
 ## Overview
-A fully self-contained rental application system for Choice Properties. Pure static web
-application — no build tools, package managers, or server-side runtime required.
+A fully self-contained rental application system for Choice Properties. static web application with a minimal build step that injects API keys at deploy time
+from Cloudflare Pages environment variables. No runtime server is involved.
 
 This is the **sole application processing system** for Choice Properties. The main listing
 platform (`choice-properties-site.pages.dev`) handles property browsing only. When a user
@@ -32,8 +32,8 @@ No data is shared, synced, or passed between systems beyond the one-way redirect
 
 ```
 .
-├── index.html          # Main entry point — 6-step application form
-├── css/style.css       # Mobile-first stylesheet (2,300+ lines)
+├── index.html              # Main entry point — 6-step application form
+├── css/style.css           # Mobile-first stylesheet (2,300+ lines)
 ├── js/script.js        # Application logic — RentalApplication class
 ├── backend/code.gs     # Google Apps Script — deploy to Google separately
 ├── PROJECT_RULES.md    # Architecture constraints (machine + human readable)
@@ -67,9 +67,14 @@ reads, validates, or uses these values — it processes only what the applicant 
 
 ## Deployment
 
-Deploy to Cloudflare Pages as a static site. No build step needed.
-- `publicDir` is the project root (`.`)
-- Connect to your Git repo and Cloudflare will auto-deploy on every push.
+Deploy to Cloudflare Pages as a static site with a build step for secret injection.
+
+**Build command:** `node generate-config.js`  
+**Output directory:** `.` (repo root)
+
+The build reads `GEOAPIFY_API_KEY`, `BACKEND_URL`, and `LISTING_SITE_URL` from Cloudflare
+environment variables and writes `config.js` (`window.CP_CONFIG`). API keys are never
+hardcoded in source files. See `DEPLOYMENT_GUIDE.md` for the full setup walkthrough.
 
 **Do not deploy `backend/code.gs` to Cloudflare.** It runs exclusively on Google's
 Apps Script runtime. Deploy it separately from the GAS editor at script.google.com.

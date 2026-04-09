@@ -481,3 +481,44 @@ All 5 verification checks passed:
   - [ ] Phase F fixes applied to Choice repo
   - [ ] All 18 issues marked `[x]` in `ISSUES.md`
   
+
+  ---
+
+  ## Phase 10 — Security Hardening & Deployment System
+
+  **Status:** COMPLETE
+  **Last Updated:** April 2026
+
+  ### Summary
+
+  Resolved production security issues and introduced a proper build system to keep secrets
+  out of the source code. Applied automatically via GitHub API and Cloudflare API.
+
+  ### Tasks
+
+  - [x] **10.1** Remove hardcoded Geoapify API key from `js/script.js` — it was committed in plain text in a public repo. Key is now loaded from `window.CP_CONFIG.GEOAPIFY_API_KEY` at runtime.
+  - [x] **10.2** Add `generate-config.js` — build script that reads Cloudflare env vars and writes `config.js` (`window.CP_CONFIG`) at deploy time. Uses only Node.js built-in `fs` module.
+  - [x] **10.3** Add `package.json` — defines the build command (`node generate-config.js`) for Cloudflare Pages.
+  - [x] **10.4** Update `index.html` — add `<script src="/config.js"></script>` before `js/script.js` so `window.CP_CONFIG` is available at runtime.
+  - [x] **10.5** Add `config.js` to `.gitignore` — prevents auto-generated secrets file from being committed.
+  - [x] **10.6** Fix `_headers` file — corrected indentation (Cloudflare Pages is strict), added `no-cache` rule for `config.js` so fresh secrets are always served.
+  - [x] **10.7** Fix broken back-link domain in `js/script.js` — was pointing to `choice-properties.pages.dev` (wrong), now correctly points to `choice-properties-site.pages.dev`.
+  - [x] **10.8** Set Cloudflare Pages build command to `node generate-config.js` for the `apply-choice-properties` project.
+  - [x] **10.9** Set Cloudflare Pages env vars: `GEOAPIFY_API_KEY`, `BACKEND_URL`, `LISTING_SITE_URL` for both production and preview environments.
+  - [x] **10.10** Updated `AGENTS.md`, `DEPLOYMENT_GUIDE.md`, `README.md` to reflect the new build system and prevent future contributors from accidentally reverting these security fixes.
+
+  ### ⚠ Outstanding Action Required
+
+  - **Rotate the Geoapify API key.** The old key (`bea2afb13c904abea5cb2c2693541dcf`) was
+    exposed in the public GitHub commit history. Go to **app.geoapify.com → API Keys**,
+    generate a new key, then update `GEOAPIFY_API_KEY` in Cloudflare Pages env vars and
+    trigger a redeploy. Delete the old key in Geoapify to invalidate it.
+
+  ### Files Changed
+  - `js/script.js` — removed hardcoded key, fixed domain link
+  - `index.html` — added `config.js` script tag
+  - `generate-config.js` — new file
+  - `package.json` — new file
+  - `.gitignore` — added `config.js`
+  - `_headers` — fixed indentation, added config.js no-cache rule
+  
