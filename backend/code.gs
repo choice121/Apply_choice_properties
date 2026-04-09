@@ -94,32 +94,32 @@ function getESignText(stateCode) {
 // Helper: get or create spreadsheet
 // ============================================================
 function getSpreadsheet() {
-  try {
-    let ss = SpreadsheetApp.getActiveSpreadsheet();
-    if (!ss) {
-      const scriptProperties = PropertiesService.getScriptProperties();
-      const savedSheetId = scriptProperties.getProperty('SPREADSHEET_ID');
-      if (savedSheetId) {
-        try {
-          ss = SpreadsheetApp.openById(savedSheetId);
-        } catch (e) {
-          ss = SpreadsheetApp.create('Choice Properties Rental Applications');
-          scriptProperties.setProperty('SPREADSHEET_ID', ss.getId());
-        }
-      } else {
-        ss = SpreadsheetApp.create('Choice Properties Rental Applications');
-        scriptProperties.setProperty('SPREADSHEET_ID', ss.getId());
-      }
-    }
-    return ss;
-  } catch (error) {
-    const ss = SpreadsheetApp.create('Choice Properties Rental Applications');
+    // [10A-6] Removed all SpreadsheetApp.create() fallbacks. If the sheet cannot
+    // be found we throw a clear error so the caller returns a user-facing message
+    // instead of silently routing submissions to a brand-new blank spreadsheet.
     const scriptProperties = PropertiesService.getScriptProperties();
-    scriptProperties.setProperty('SPREADSHEET_ID', ss.getId());
-    return ss;
-  }
-}
 
+    // Primary: use the bound spreadsheet (GAS web app deployed from inside the sheet)
+    try {
+      const active = SpreadsheetApp.getActiveSpreadsheet();
+      if (active) return active;
+    } catch (e) {
+      // Not bound — fall through to saved ID lookup
+    }
+
+    // Secondary: open by saved ID
+    const savedSheetId = scriptProperties.getProperty('SPREADSHEET_ID');
+    if (!savedSheetId) {
+      throw new Error('Application system unavailable: SPREADSHEET_ID is not configured. Please contact Choice Properties at 707-706-3137.');
+    }
+    try {
+      return SpreadsheetApp.openById(savedSheetId);
+    } catch (e) {
+      throw new Error('Application system temporarily unavailable. Please try again in a few minutes or call 707-706-3137. (Error: ' + e.message + ')');
+    }
+  }
+
+  
 // ============================================================
 // Initialize sheets Ã¢ÂÂ now includes lease columns
 // ============================================================
