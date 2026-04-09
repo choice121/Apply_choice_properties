@@ -70,11 +70,14 @@ class RentalApplication {
         this.retryCount = 0;
         this.retryTimeout = null;
         
-        this.BACKEND_URL = window.CP_CONFIG && window.CP_CONFIG.BACKEND_URL
-              ? window.CP_CONFIG.BACKEND_URL
-              : 'https://script.google.com/macros/s/AKfycbwqctrCLYOPaz1nZeMS5SXuqK7FRXbN5Bf0dSx3-3leyp_B7Bfr4HPC8YZaZ9wZVxtn/exec';
-        
-        // M4: Generate a session-scoped CSRF token for GAS doPost validation
+           // [10B-12] BACKEND_URL is set from config.js (injected at Cloudflare build time).
+          // No hardcoded fallback — if blank, the submit handler will show a user-facing
+          // error instead of routing submissions to an exposed endpoint URL in source code.
+          this.BACKEND_URL = (window.CP_CONFIG && window.CP_CONFIG.BACKEND_URL)
+                ? window.CP_CONFIG.BACKEND_URL
+                : '';
+
+                  // M4: Generate a session-scoped CSRF token for GAS doPost validation
         const _csrfToken = Math.random().toString(36).substring(2) + Date.now().toString(36);
         sessionStorage.setItem('_cp_csrf', _csrfToken);
         this._csrfToken = _csrfToken;
@@ -2179,6 +2182,12 @@ class RentalApplication {
         // ââ Duplicate submission guard ââââââââââââââââââââââââââââââ
         // Block if already mid-submission
         if (this.state.isSubmitting) return;
+          // [10B-12] Guard: if BACKEND_URL was not injected by the build pipeline,
+          // show a user-facing error rather than silently failing.
+          if (!this.BACKEND_URL) {
+              alert('The application system is temporarily unavailable. Please try again or call 707-706-3137.');
+              return;
+          }
         // Block if this session already produced a successful appId
         if (sessionStorage.getItem('lastSuccessAppId')) {
             const existingId = sessionStorage.getItem('lastSuccessAppId');
