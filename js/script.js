@@ -411,7 +411,7 @@ class RentalApplication {
         // Back-to-listing link — only shown when a property ID was passed
         const backLinkHtml = id
             ? '<a href="' + (window.CP_CONFIG && window.CP_CONFIG.LISTING_SITE_URL ? window.CP_CONFIG.LISTING_SITE_URL : 'https://choice-properties-site.pages.dev') + '/property.html?id=' + encodeURIComponent(id) + '" class="pcb-back-link" target="_blank" rel="noopener">' +
-                  '<i class="fas fa-arrow-left"></i> View listing' +
+                  '<i class="fas fa-arrow-left"></i> <span data-i18n="viewListing">View listing</span>' +
               '</a>'
             : '';
 
@@ -425,7 +425,7 @@ class RentalApplication {
                 '<div class="pcb-left">' +
                     '<div class="pcb-icon"><i class="fas fa-home"></i></div>' +
                     '<div class="pcb-text">' +
-                        '<div class="pcb-label">Applying for</div>' +
+                        '<div class="pcb-label" data-i18n="applyingFor">Applying for</div>' +
                         '<div class="pcb-name">' + this._escHtml(displayName) + '</div>' +
                         (metaLine ? '<div class="pcb-meta">' + metaLine + '</div>' : '') +
                         chipsHtml +
@@ -1680,6 +1680,8 @@ class RentalApplication {
                 noContextTitle: 'Which property are you applying for?',
                 noContextSub: 'Please enter the full property address in Step 1 below so we can match your application to the correct listing.',
                 managedBy: 'Managed by',
+                applyingFor: 'Applying for',
+                viewListing: 'View listing',
                 charCount: 'characters',
                 summaryPropertyApplicant: 'Property & Applicant',
                 summaryCoApplicant: 'Co-Applicant',
@@ -1958,6 +1960,8 @@ class RentalApplication {
                 noContextTitle: '¿Para qué propiedad está solicitando?',
                 noContextSub: 'Por favor ingrese la dirección completa de la propiedad en el Paso 1 para que podamos vincular su solicitud con el listado correcto.',
                 managedBy: 'Administrado por',
+                applyingFor: 'Solicitando para',
+                viewListing: 'Ver anuncio',
                 charCount: 'caracteres',
                 summaryPropertyApplicant: 'Propiedad y Solicitante',
                 summaryCoApplicant: 'Co-Solicitante',
@@ -2012,22 +2016,12 @@ class RentalApplication {
                 document.title = t.pageTitle;
 
                 document.querySelectorAll('.btn-next').forEach(b => {
-                    const icon = b.querySelector('i');
-                    const textSpan = document.createElement('span');
-                    textSpan.setAttribute('data-i18n', 'nextStep');
-                    textSpan.textContent = t.nextStep;
-                    b.innerHTML = '';
-                    b.appendChild(textSpan);
-                    if (icon) b.appendChild(icon);
+                    const span = b.querySelector('[data-i18n="nextStep"]') || b.querySelector('span');
+                    if (span) span.textContent = t.nextStep;
                 });
                 document.querySelectorAll('.btn-prev').forEach(b => {
-                    const icon = b.querySelector('i');
-                    const textSpan = document.createElement('span');
-                    textSpan.setAttribute('data-i18n', 'prevStep');
-                    textSpan.textContent = t.prevStep;
-                    b.innerHTML = '';
-                    if (icon) b.appendChild(icon);
-                    b.appendChild(textSpan);
+                    const span = b.querySelector('[data-i18n="prevStep"]') || b.querySelector('span');
+                    if (span) span.textContent = t.prevStep;
                 });
 
                 this.updateProgressBar();
@@ -2743,7 +2737,6 @@ class RentalApplication {
         this.updateProgressBar();
     }
 
-    updateBilingualLabels(t) {}
 }
 
 // ---------- Global copy function (single authoritative definition) ----------

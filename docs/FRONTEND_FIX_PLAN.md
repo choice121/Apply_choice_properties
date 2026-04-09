@@ -290,13 +290,13 @@ respect the `required` attribute, matching the pattern used in the main loop:
 
 ## PHASE 2 — TRANSLATION SYSTEM FIXES
 **Priority:** High — breaks the Spanish experience for all users
-**Status:** [ ] PENDING
+**Status:** [x] DONE
 **Prerequisite:** Phase 1 must be complete and approved before starting Phase 2.
 
 ---
 
 ### ISSUE T1 — Page load does not apply translations for returning Spanish users
-**Status:** [ ] PENDING
+**Status:** [x] DONE
 **Severity:** HIGH — Spanish language preference is visually lost on reload
 **Files:** `js/script.js`
 **Note:** This is partially resolved if C2 is fixed (C2's Step 2 adds DOM translation on load).
@@ -312,7 +312,7 @@ After the C2 fix, if the form renders in Spanish on reload, T1 is resolved.
 ---
 
 ### ISSUE T2 — `_readApplicationFee()` uses hardcoded English strings
-**Status:** [ ] PENDING
+**Status:** [x] DONE
 **Severity:** HIGH — fee display ignores language preference; never translates to Spanish
 **Files:** `js/script.js`
 
@@ -360,7 +360,7 @@ the fee from `this.state.applicationFee` and rebuilds the string using the curre
 ---
 
 ### ISSUE T3 — Language toggle rebuilds Next/Prev button HTML, structural fragility
-**Status:** [ ] PENDING
+**Status:** [x] DONE
 **Severity:** MEDIUM — can produce inconsistent button DOM on repeated toggles
 **Files:** `js/script.js`
 
@@ -412,7 +412,7 @@ already covers `nextStep` and `prevStep` key translations.
 ---
 
 ### ISSUE T4 — Property context banner has hardcoded English strings
-**Status:** [ ] PENDING
+**Status:** [x] DONE
 **Severity:** MEDIUM — "Applying for" and "View listing" never translate
 **Files:** `js/script.js`
 
@@ -465,7 +465,7 @@ Then in `_showPropertyBanner()`, replace the hardcoded strings:
 ---
 
 ### ISSUE T5 — `updateBilingualLabels()` is an empty stub
-**Status:** [ ] PENDING
+**Status:** [x] DONE
 **Severity:** LOW — dead code, no functional impact but causes confusion
 **Files:** `js/script.js`
 
