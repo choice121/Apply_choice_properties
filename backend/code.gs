@@ -314,7 +314,15 @@ function doGet(e) {
     return renderLeaseSigningPage(id);
   } else if (path === 'lease_confirm' && id) {
     return renderLeaseConfirmPage(id);
-    // [FIXED-B3] Health check endpoint Ã¢ÂÂ allows listing platform to verify backend is alive
+    // [L4 fix] Load saved form progress by resume token (cross-device resume)
+      } else if (path === 'loadProgress') {
+        const token = params.parameter.token || '';
+        if (!token) {
+          return ContentService.createTextOutput(JSON.stringify({ success: false, error: 'missing_token' })).setMimeType(ContentService.MimeType.JSON);
+        }
+        return ContentService.createTextOutput(JSON.stringify(loadResumeProgress(token))).setMimeType(ContentService.MimeType.JSON);
+
+      // [FIXED-B3] Health check endpoint Ã¢ÂÂ allows listing platform to verify backend is alive
     } else if (path === 'health') {
       return ContentService
         .createTextOutput(JSON.stringify({ status: 'ok', timestamp: new Date().toISOString(), version: '10.0' }))
@@ -997,10 +1005,16 @@ function doPost(e) {
       const result = validateAdminPassword(formData['username'] || '', formData['password'] || '');
       return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
     }
-    if (formData['_action'] === 'sendResumeEmail') {
-        const result = sendResumeEmail(formData['email'] || '', formData['resumeUrl'] || '', formData['step'] || '1');
+    // [L4 fix] Save form progress server-side so resume links work on any device/browser
+      if (formData['_action'] === 'saveResumeProgress') {
+        const result = saveResumeProgress(formData['token'] || '', formData['progressJson'] || '');
         return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
       }
+
+      if (formData['_action'] === 'sendResumeEmail') {
+          const result = sendResumeEmail(formData['email'] || '', formData['resumeUrl'] || '', formData['step'] || '1');
+          return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+        }
 
       // Ã¢ÂÂÃ¢ÂÂ Route: 9C-3 Ã¢ÂÂ email-based App ID lookup Ã¢ÂÂÃ¢ÂÂ
       if (formData['_action'] === 'lookupAppId') {
@@ -1156,7 +1170,9 @@ function processApplication(formData, fileBlob) {
       }
 
     // [FIXED-I1] Validate property exists and is active in Supabase before accepting application
-      if (formData['Property ID']) {
+      // [L3 fix] Track validation outcome — written to Admin Notes so admins can spot unverified property links
+      let propertyValidationNote = '';
+        if (formData['Property ID']) {
         const scriptProps  = PropertiesService.getScriptProperties();
         const supabaseUrl  = scriptProps.getProperty('SUPABASE_URL');
         const serviceKey   = scriptProps.getProperty('SUPABASE_SERVICE_KEY');
@@ -1181,8 +1197,10 @@ function processApplication(formData, fileBlob) {
             }
             // Non-200 from Supabase: log and fall through (graceful degradation)
           } catch (validErr) {
-            console.warn('processApplication: Property validation skipped (non-blocking):', validErr.toString());
-          }
+              console.warn('processApplication: Property validation skipped (non-blocking):', validErr.toString());
+              // [L3 fix] Flag the validation failure so it is visible in the spreadsheet
+              propertyValidationNote = '[WARN: Property ID validation failed - verify property link manually]';
+            }
         }
       }
 
@@ -1199,13 +1217,8 @@ function processApplication(formData, fileBlob) {
       }
     });
 
-    let fileUrl = '';
-    if (fileBlob) {
-      try {
-        const file = DriveApp.createFile(fileBlob);
-        fileUrl = file.getUrl();
-      } catch (err) { console.error('File upload error:', err); }
-    }
+    // [L5 fix] Dead fileBlob binary path removed — the form always sends files as base64 (_docFile_N_data fields)
+      // Active document storage is handled below in the Phase 8 base64 loop (writes to 'Document URLs' plural column)
 
     const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
     const rowData = [];
@@ -1216,8 +1229,8 @@ function processApplication(formData, fileBlob) {
         case 'Status':                rowData.push('pending'); break;
         case 'Payment Status':        rowData.push('unpaid'); break;
         case 'Payment Date':          rowData.push(''); break;
-        case 'Admin Notes':           rowData.push(''); break;
-        case 'Document URL':          rowData.push(fileUrl); break;
+        case 'Admin Notes':           rowData.push(propertyValidationNote); break; // [L3 fix] shows validation warning when property ID check failed
+        case 'Document URL':          rowData.push(''); break; // [L5 fix] Legacy column — always empty. Active storage uses 'Document URLs' (plural) below
         case 'Preferred Contact Method': rowData.push(getCheckboxValues(formData, 'Preferred Contact Method')); break;
         case 'Preferred Time':        rowData.push(getCheckboxValues(formData, 'Preferred Time')); break;
         // Ã¢ÂÂÃ¢ÂÂ D-001: Property context from URL params Ã¢ÂÂÃ¢ÂÂ
@@ -3767,7 +3780,47 @@ function sendAdminNotification(data, appId) {
 }
 
 // Ã¢ÂÂÃ¢ÂÂ Task 4.6: Refactored to use shared EMAIL_BASE_CSS, buildEmailHeader(), EMAIL_FOOTER Ã¢ÂÂÃ¢ÂÂ
-function sendResumeEmail(email, resumeUrl, step) {
+
+  // ============================================================
+  // [L4 fix] RESUME PROGRESS — server-side storage for cross-device resume
+  // Stored in ScriptProperties keyed by token with 7-day expiry.
+  // ============================================================
+  function saveResumeProgress(token, progressJson) {
+    try {
+      if (!token || !progressJson) return { success: false, error: 'missing_params' };
+      // Guard against oversized payloads (ScriptProperties limit is 500KB per key)
+      if (progressJson.length > 400000) return { success: false, error: 'data_too_large' };
+      const scriptProps = PropertiesService.getScriptProperties();
+      scriptProps.setProperty('resume_' + token, JSON.stringify({
+        data: progressJson,
+        expires: Date.now() + (7 * 24 * 60 * 60 * 1000) // 7 days
+      }));
+      return { success: true };
+    } catch (e) {
+      console.error('saveResumeProgress error:', e.toString());
+      return { success: false, error: e.toString() };
+    }
+  }
+
+  function loadResumeProgress(token) {
+    try {
+      if (!token) return { success: false, error: 'missing_token' };
+      const scriptProps = PropertiesService.getScriptProperties();
+      const stored = scriptProps.getProperty('resume_' + token);
+      if (!stored) return { success: false, error: 'not_found' };
+      const parsed = JSON.parse(stored);
+      if (Date.now() > parsed.expires) {
+        scriptProps.deleteProperty('resume_' + token);
+        return { success: false, error: 'expired' };
+      }
+      return { success: true, data: parsed.data };
+    } catch (e) {
+      console.error('loadResumeProgress error:', e.toString());
+      return { success: false, error: e.toString() };
+    }
+  }
+
+  function sendResumeEmail(email, resumeUrl, step) {
   try {
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return { success: false, error: 'Invalid email' };
