@@ -367,7 +367,7 @@
                     <div class="form-col">
                         <div class="form-group">
                             <label class="required" for="dob" data-i18n="dobLabel">Date of Birth</label>
-                            <input type="date" id="dob" name="DOB" required>
+                            <input type="date" id="dob" name="DOB" required autocomplete="bday">
                             <div class="error-message" data-i18n="errRequired">Required</div>
                         </div>
                     </div>
@@ -378,7 +378,7 @@
                                 <i class="fas fa-lock"></i> Only last 4 digits required
                             </div>
                             <div class="ssn-container">
-                                <input type="password" id="ssn" name="SSN" placeholder="1234" maxlength="4" inputmode="numeric" required data-i18n="ssnPlaceholder">
+                                <input type="password" id="ssn" name="SSN" placeholder="1234" maxlength="4" inputmode="numeric" required autocomplete="off" data-i18n="ssnPlaceholder">
                             </div>
                             <div class="error-message"></div>
                         </div>
