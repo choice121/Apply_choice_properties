@@ -1129,6 +1129,20 @@ function processApplication(formData, fileBlob) {
       if (formData[field]) formData[field] = normalizePhone(formData[field]);
     });
 
+    // ── LockService: serialize concurrent submissions ──────────────────────────────
+    // Prevents race conditions where two simultaneous submissions both pass the
+    // duplicate-detection check before either has committed its row to the sheet.
+    // getScriptLock() is shared across ALL concurrent GAS executions for this script.
+    // waitLock(15000) blocks up to 15 seconds; if the lock cannot be acquired the
+    // function returns a user-friendly error so the applicant can retry cleanly.
+    const lock = LockService.getScriptLock();
+    try {
+      lock.waitLock(15000);
+    } catch(lockErr) {
+      return { success: false, error: 'The server is briefly busy processing another submission. Please wait a few seconds and try again.' };
+    }
+    try {
+
     const ss = getSpreadsheet();
     initializeSheets();
     const sheet = ss.getSheetByName(SHEET_NAME);
@@ -1294,6 +1308,13 @@ function processApplication(formData, fileBlob) {
     });
 
     sheet.appendRow(rowData);
+
+    } finally {
+      // Release the script lock immediately after the row is committed.
+      // Document uploads and email sending (below) are NOT serialized — only the
+      // critical section (duplicate check + row insert) holds the lock.
+      lock.releaseLock();
+    }
 
     // Ã¢ÂÂÃ¢ÂÂ Phase 8: Save attached documents to Google Drive Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
     const docUrls = [];
