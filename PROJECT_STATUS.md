@@ -522,3 +522,35 @@ All 5 verification checks passed:
   - `.gitignore` — added `config.js`
   - `_headers` — fixed indentation, added config.js no-cache rule
   
+
+  ---
+
+  ## Phase 10A — Critical Bug Fixes (Round 2)
+
+  **Status:** COMPLETE — April 9, 2026
+  **Triggered by:** Deep scan report (REPORT_Application_Form_Issues.md) — 21-issue audit
+  **Full detail:** See REPORT_Application_Form_Issues.md for root causes and fix descriptions.
+
+  ### Phase 10A Tasks
+
+  - [x] **10A-1** Employer fields no longer block unemployed/student/retired applicants on first load
+    - Removed hardcoded `required` from `employer`, `jobTitle`, `employmentDuration`, `supervisorName`, `supervisorPhone` in `index.html`
+    - Removed matching `class="required"` from their labels (required state is now fully dynamic)
+    - Added post-restore re-invocation of `toggleEmployerSection()` in `js/script.js` `initialize()` so that a saved employment status (e.g. Unemployed from localStorage) immediately applies the correct field visibility without requiring user interaction
+  - [x] **10A-3** File attachments no longer risk silently destroying the entire submission payload
+    - Reduced per-file size limit from 2 MB to 1 MB in `setupFileUploads()`
+    - Added total payload size guard: if all files together exceed 3 MB raw (≈4 MB base64), files are dropped from the submission and the user is shown a clear message to email documents separately — form data always submits successfully
+  - [x] **10A-6** `getSpreadsheet()` no longer silently creates a second spreadsheet on GAS context reset
+    - Removed both `SpreadsheetApp.create()` fallback calls
+    - Function now throws a descriptive, user-facing error if the spreadsheet cannot be found
+    - Error includes the support phone number so applicants have a recovery path
+
+  ### Files Modified
+  - `index.html` (10A-1)
+  - `js/script.js` (10A-1, 10A-3)
+  - `backend/code.gs` (10A-6)
+
+  ### Issues Skipped (per user instruction)
+  - **10A-5 (Issue 5)** — Honeypot / bot protection — intentionally not implemented
+
+  
