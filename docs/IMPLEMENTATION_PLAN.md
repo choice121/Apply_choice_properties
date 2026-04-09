@@ -166,7 +166,7 @@
   |-------|--------|-------------------|-------|
   | Phase 1 — Critical Fixes | ✅ Complete | April 9, 2026 | All 5 items fixed and pushed |
   | Phase 2 — Security | ✅ Complete | April 9, 2026 | _syncPropertyStatusToSupabase removed; APPLICATION_FEE → 0 |
-  | Phase 3 — Cleanup & UX | ⬜ Not Started | — | — |
+  | Phase 3 — Cleanup & UX | ✅ Complete | April 9, 2026 | All 4 items complete |
 
   ### Phase 1 Checklist
 
@@ -183,10 +183,10 @@
 
   ### Phase 3 Checklist
 
-  - [ ] 3.1 — Archive session planning docs
-  - [ ] 3.2 — GAS admin link from Listing Platform
-  - [ ] 3.3 — Move-in date GAS validation
-  - [ ] 3.4 — Consolidate App ID generator
+  - [x] 3.1 — Archived AGENTS.md, CLAUDE.md, ISSUES.md, FIX_PLAN.md, PHASE9_BUG_FIXES.md, DYNAMIC_DATA_PLAN.md to `docs/archive/` — April 9, 2026
+  - [x] 3.2 — GAS admin panel link already present in `admin/dashboard.html` — confirmed April 9, 2026 (no change needed)
+  - [x] 3.3 — Move-in date validation added to `processApplication()` in `backend/code.gs` — April 9, 2026
+  - [x] 3.4 — `generateAppId()` confirmed only called from `generateUniqueAppId()`; marked as internal helper with comment — April 9, 2026
 
   ---
 

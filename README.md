@@ -145,22 +145,6 @@ See `PROJECT_RULES.md` for the full enforcement contract. Summary:
 - Backend = Google Apps Script only — no Supabase, no new backends
 - No connection to or sync with the main platform's Supabase backend
 
-## Dynamic Data Implementation Plan
-
-A full audit was conducted in Session 031 identifying all places where property
-data, legal jurisdiction, financial terms, and email content are hardcoded
-instead of being driven by the property being applied for.
-
-The complete plan — with 21 issues across 6 phases — is in:
-**`DYNAMIC_DATA_PLAN.md`** (project root)
-
-Any AI assistant starting a new session must read that file first.
-It is self-contained and requires no manual prompt context from the user.
-
-**All 6 phases complete (D-001–D-021). The Dynamic Data Implementation Plan is fully resolved.**
-
----
-
 ## Change History
 
 | Session | Changes |

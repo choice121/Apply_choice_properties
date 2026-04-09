@@ -1200,7 +1200,23 @@ function processApplication(formData, fileBlob) {
       }
     }
 
-    // ── LockService: serialize concurrent submissions ──────────────────────────────
+    // ── Phase 3.3: Server-side move-in date validation ─────────────────────────────
+      // Rejects submissions where the requested move-in is before the property's available date.
+      const requestedMoveIn = (formData['Requested Move-in Date'] || '').trim();
+      const availableDate = (formData['Available Date'] || '').trim();
+      if (requestedMoveIn && availableDate) {
+        const moveInDate = new Date(requestedMoveIn);
+        const availDate  = new Date(availableDate);
+        if (!isNaN(moveInDate.getTime()) && !isNaN(availDate.getTime())) {
+          moveInDate.setUTCHours(0, 0, 0, 0);
+          availDate.setUTCHours(0, 0, 0, 0);
+          if (moveInDate < availDate) {
+            return { success: false, error: 'Your requested move-in date is before the property's available date. Please select a move-in date on or after ' + availableDate + '.' };
+          }
+        }
+      }
+
+      // ── LockService: serialize concurrent submissions ──────────────────────────────
     // Prevents race conditions where two simultaneous submissions both pass the
     // duplicate-detection check before either has committed its row to the sheet.
     // getScriptLock() is shared across ALL concurrent GAS executions for this script.
@@ -1461,7 +1477,7 @@ function processApplication(formData, fileBlob) {
 }
 
 // ============================================================
-// generateAppId()
+// generateAppId() — internal helper; only call via generateUniqueAppId()
 // ============================================================
 function generateAppId() {
   const date = new Date();
