@@ -294,6 +294,27 @@ class RentalApplication {
               setHidden('hiddenPetDeposit',      petDeposit);
               setHidden('hiddenPetDetails',      petDetails);
               setHidden('hiddenSmokingAllowed',  smoking);
+              // ── Phase 1 fix 1.2: Enforce pet policy from URL param ──
+              if (pets && pets.toLowerCase() !== 'true') {
+                  const petsNoRadio = document.getElementById('petsNo');
+                  const petsYesRadio = document.getElementById('petsYes');
+                  if (petsNoRadio) { petsNoRadio.checked = true; petsNoRadio.dispatchEvent(new Event('change', { bubbles: true })); }
+                  if (petsYesRadio) petsYesRadio.disabled = true;
+                  if (petsNoRadio) petsNoRadio.disabled = true;
+                  const petDetailsGroup = document.getElementById('petDetailsGroup');
+                  if (petDetailsGroup) petDetailsGroup.style.display = 'none';
+              }
+
+              // ── Phase 1 fix 1.3: Enforce smoking policy from URL param ──
+              if (smoking && smoking.toLowerCase() !== 'true') {
+                  const smokeNoRadio = document.getElementById('smokeNo');
+                  const smokeYesRadio = document.getElementById('smokeYes');
+                  if (smokeNoRadio) { smokeNoRadio.checked = true; smokeNoRadio.dispatchEvent(new Event('change', { bubbles: true })); }
+                  if (smokeYesRadio) smokeYesRadio.disabled = true;
+                  if (smokeNoRadio) smokeNoRadio.disabled = true;
+              }
+
+
               setHidden('hiddenUtilities',       utilities);
               setHidden('hiddenParking',         parking);
               setHidden('hiddenParkingFee',      parkingFee);

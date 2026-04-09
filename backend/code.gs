@@ -14,6 +14,8 @@ const SETTINGS_SHEET = 'Settings';
 const LOG_SHEET = 'EmailLogs';
 const ADMIN_EMAILS_RANGE = 'AdminEmails';
 const APPLICATION_FEE = 50; // D-014: single source of truth for the application fee amount
+// Phase 1 fix 1.1: null-safe fee helper — treats 0 as a valid fee (free applications)
+function safeFee(val) { const n = parseFloat(val); return (!isNaN(n) && val !== '' && val !== null && val !== undefined) ? n : APPLICATION_FEE; }
 
 // ============================================================
 // D-002/D-003/D-004: JURISDICTION MAP
@@ -1187,6 +1189,16 @@ function processApplication(formData, fileBlob) {
       }
       // ── End file content validation ─────────────────────────────────────────
 
+
+
+    // ── Phase 1 fix 1.4: Validate submitted lease term against allowed values ──
+    if (formData['Lease Terms'] && formData['Lease Terms'].trim()) {
+      const allowedTerms = formData['Lease Terms'].split('|').map(function(t) { return t.trim().toLowerCase(); }).filter(Boolean);
+      const submittedTerm = (formData['Desired Lease Term'] || '').trim().toLowerCase();
+      if (submittedTerm && allowedTerms.length > 0 && allowedTerms.indexOf(submittedTerm) === -1) {
+        return { success: false, error: 'The selected lease term is not available for this property. Please choose from the allowed options.' };
+      }
+    }
 
     // ── LockService: serialize concurrent submissions ──────────────────────────────
     // Prevents race conditions where two simultaneous submissions both pass the
@@ -2988,7 +3000,7 @@ const EmailTemplates = {
     <div class="section">
       <div class="section-label">Your Selected Payment Methods</div>
       <div class="callout amber">
-        <h4>Application Fee Ã¢ÂÂ $${(data['Application Fee'] || APPLICATION_FEE)}.00</h4>
+        <h4>Application Fee Ã¢ÂÂ $${safeFee(data['Application Fee'])}.00</h4>
         <p style="margin-bottom:12px;">You have indicated the following preferred payment methods. Our team will reach out to you at the contact information above within 24 hours to arrange collection of your application fee.</p>
         <div>${paymentMethods.map(m => `<span class="pay-pill">${m}</span>`).join('')}</div>
       </div>
@@ -2998,7 +3010,7 @@ const EmailTemplates = {
     <div class="section">
       <div class="section-label">What Happens Next</div>
       <ul class="steps-list">
-        <li><span class="step-num">1</span><span><strong>Payment Arrangement</strong> Ã¢ÂÂ A member of our leasing team will contact you within 24 hours via text at <strong>${data['Phone']}</strong> to coordinate your $${(data['Application Fee'] || APPLICATION_FEE)}.00 application fee.</span></li>
+        <li><span class="step-num">1</span><span><strong>Payment Arrangement</strong> Ã¢ÂÂ A member of our leasing team will contact you within 24 hours via text at <strong>${data['Phone']}</strong> to coordinate your $${safeFee(data['Application Fee'])}.00 application fee.</span></li>
         <li><span class="step-num">2</span><span><strong>Payment Confirmation</strong> Ã¢ÂÂ Once your fee is received and confirmed, you will receive an email notification and your application will advance to the review stage.</span></li>
         <li><span class="step-num">3</span><span><strong>Application Review</strong> Ã¢ÂÂ Our team will conduct a thorough review of your application within 2Ã¢ÂÂ3 business days of payment confirmation.</span></li>
         <li><span class="step-num">4</span><span><strong>Decision Notification</strong> Ã¢ÂÂ You will be notified of our decision via email. If approved, our leasing team will prepare your lease agreement for signature.</span></li>
@@ -3058,7 +3070,7 @@ const EmailTemplates = {
 
     <p class="intro-text">
       A new rental application has been submitted and requires your attention. The applicant is awaiting contact
-      to arrange payment of the $${(data['Application Fee'] || APPLICATION_FEE)}.00 application fee. Please reach out within 24 hours.
+      to arrange payment of the $${safeFee(data['Application Fee'])}.00 application fee. Please reach out within 24 hours.
     </p>
 
     <!-- Applicant at a Glance -->
@@ -3080,7 +3092,7 @@ const EmailTemplates = {
     <div class="section">
       <div class="section-label">Payment Preferences</div>
       <div class="callout amber">
-        <h4>Contact Applicant to Collect $${(data['Application Fee'] || APPLICATION_FEE)}.00 Fee</h4>
+        <h4>Contact Applicant to Collect $${safeFee(data['Application Fee'])}.00 Fee</h4>
         <p style="margin-bottom:12px;">The applicant has indicated the following preferred payment methods:</p>
         <div>${paymentMethods.map(m => `<span class="pay-pill">${m}</span>`).join('')}</div>
       </div>
@@ -3145,7 +3157,7 @@ const EmailTemplates = {
     <p class="greeting">Dear ${applicantName.split(' ')[0]},</p>
 
     <p class="intro-text">
-      We are pleased to confirm that your $${fee || APPLICATION_FEE}.00 application fee has been received and successfully recorded.
+      We are pleased to confirm that your ${safeFee(fee)}.00 application fee has been received and successfully recorded.
       Your application is now active and has been placed in our review queue. Thank you for completing
       this step promptly.
     </p>
@@ -3159,7 +3171,7 @@ const EmailTemplates = {
         <div class="financial-row"><span class="f-label">Application ID</span><span class="f-value">${appId}</span></div>
         <div class="financial-row"><span class="f-label">Applicant</span><span class="f-value">${applicantName}</span></div>
         ${(propertyAddress || propertyName) ? `<div class="financial-row"><span class="f-label">Property</span><span class="f-value">${propertyName || propertyAddress}</span></div>` : ''}
-        <div class="financial-row"><span class="f-label">Application Fee</span><span class="f-value">$${fee || APPLICATION_FEE}.00</span></div>
+        <div class="financial-row"><span class="f-label">Application Fee</span><span class="f-value">${safeFee(fee)}.00</span></div>
         ${amountCollected ? `<div class="financial-row"><span class="f-label">Amount Collected</span><span class="f-value">$${parseFloat(amountCollected).toFixed(2)}</span></div>` : ''}
         <div class="financial-row"><span class="f-label">Payment Date</span><span class="f-value">${new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</span></div>
         ${actualMethod ? `<div class="financial-row"><span class="f-label">Payment Method</span><span class="f-value">${actualMethod}</span></div>` : ''}
@@ -4134,7 +4146,7 @@ function sendPaymentConfirmation(appId, applicantEmail, applicantName, phone, ac
       if (result.success) {
         propertyAddress = result.application['Property Address'] || '';
         propertyName    = result.application['Property Name']    || '';
-        applicationFee  = parseFloat(result.application['Application Fee']) || APPLICATION_FEE;
+        applicationFee  = safeFee(result.application['Application Fee']);
       }
     } catch (e) {}
     const propertyLabel   = propertyName || propertyAddress;
@@ -5667,7 +5679,7 @@ function logEmail(type, recipient, status, appId, errorMsg) {
     <!-- Payment pending card -->
     <div class="payment-alert" style="margin:20px 24px;">
       <h5>Ã¢ÂÂ³ Payment Required</h5>
-      <p>Your application is on hold. Our team will text you at <strong>${app['Phone']}</strong> within 24 hours to collect your $${app['Application Fee'] || APPLICATION_FEE} application fee.</p>
+      <p>Your application is on hold. Our team will text you at <strong>${app['Phone']}</strong> within 24 hours to collect your $${safeFee(app['Application Fee'])} application fee.</p>
       <div>
         ${paymentMethods.map(m => `<span class="pay-method-pill">Ã°ÂÂÂ¯ ${m.label}: ${m.value}</span>`).join('')}
       </div>
