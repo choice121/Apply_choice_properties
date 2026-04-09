@@ -1093,13 +1093,18 @@ class RentalApplication {
                 </div>`).join('');
         };
 
+        const _showUploadErr = (msg) => {
+              const _ue = document.getElementById('uploadError');
+              if (_ue) { _ue.textContent = msg; _ue.style.display = 'block'; setTimeout(() => { _ue.style.display = 'none'; }, 5000); }
+          };
+  
         const handleFiles = (files) => {
             Array.from(files).forEach(file => {
                 if (this._uploadedFiles.length >= MAX_FILES) {
-                    alert(`Maximum ${MAX_FILES} files allowed.`); return;
+                    _showUploadErr(`Maximum ${MAX_FILES} files allowed.`); return;
                 }
                 if (file.size > MAX_SIZE) {
-                    alert(`"${file.name}" is larger than 2 MB and was not added.`); return;
+                    _showUploadErr(`"${file.name}" exceeds the 2 MB limit and was not added.`); return;
                 }
                 if (this._uploadedFiles.some(f => f.name === file.name)) return;
                 this._uploadedFiles.push(file);
@@ -2113,7 +2118,17 @@ class RentalApplication {
         const authorize = document.getElementById('authorizeVerify');
         const terms = document.getElementById('termsAgree');
         if (!certify.checked || !authorize.checked || !terms.checked) {
-            alert(t.pleaseAgreeDeclarations);
+            // Show inline error instead of alert — scroll to first unchecked declaration
+              const _firstUnchecked = [certify, authorize, terms].find(cb => !cb.checked);
+              const _declErr = document.getElementById('declarationError');
+              const _declMsg = t.pleaseAgreeDeclarations || 'Please check all required declarations before submitting.';
+              if (_declErr) { _declErr.textContent = _declMsg; _declErr.style.display = 'block'; }
+              if (_firstUnchecked) {
+                  const _scrollTarget = _firstUnchecked.closest('.custom-checkbox') || _firstUnchecked;
+                  _scrollTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  _firstUnchecked.classList.add('shake');
+                  setTimeout(() => _firstUnchecked.classList.remove('shake'), 600);
+              }
             const submitBtn = document.getElementById('mainSubmitBtn');
             if (submitBtn) {
                 submitBtn.classList.remove('loading');
@@ -2122,6 +2137,9 @@ class RentalApplication {
             this.setState({ isSubmitting: false });
             return;
         }
+        // Clear any prior declaration error when all boxes are checked
+          const _declErrEl = document.getElementById('declarationError');
+          if (_declErrEl) _declErrEl.style.display = 'none';
 
         for (let i = 1; i <= 5; i++) {
             if (!this.validateStep(i)) {
