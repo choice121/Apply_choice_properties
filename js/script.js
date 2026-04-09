@@ -339,7 +339,7 @@ class RentalApplication {
         if (!name && !addr && !city) return;
 
         const displayName = name || 'Selected Property';
-        const locationParts = [city, state].filter(Boolean);
+        const locationParts = [city, state].filter(Boolean).map(s => this._escHtml(s));
         const locationLine = locationParts.length ? locationParts.join(', ') : '';
         const rentLine = rent
             ? '$' + parseFloat(rent).toLocaleString('en-US') + '/mo'
@@ -2176,9 +2176,13 @@ class RentalApplication {
         const certify = document.getElementById('certifyCorrect');
         const authorize = document.getElementById('authorizeVerify');
         const terms = document.getElementById('termsAgree');
-        if (!certify.checked || !authorize.checked || !terms.checked) {
+        const feeAck = document.getElementById('feeAcknowledge');
+        const infoAcc = document.getElementById('infoAccuracy');
+        const dataConsent = document.getElementById('dataConsent');
+        const allDeclarations = [feeAck, infoAcc, dataConsent, certify, authorize, terms].filter(Boolean);
+        if (allDeclarations.some(cb => !cb.checked)) {
             // Show inline error instead of alert — scroll to first unchecked declaration
-              const _firstUnchecked = [certify, authorize, terms].find(cb => !cb.checked);
+              const _firstUnchecked = allDeclarations.find(cb => !cb.checked);
               const _declErr = document.getElementById('declarationError');
               const _declMsg = t.pleaseAgreeDeclarations || 'Please check all required declarations before submitting.';
               if (_declErr) { _declErr.textContent = _declMsg; _declErr.style.display = 'block'; }
