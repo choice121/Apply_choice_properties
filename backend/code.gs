@@ -996,6 +996,11 @@ function doPost(e) {
       formData = e.parameter;
     }
 
+    // [10B-5] Honeypot — real users leave _trap blank; bots fill it
+      if (formData['_trap']) {
+        return ContentService.createTextOutput(JSON.stringify({ success: false, error: 'Submission rejected.' })).setMimeType(ContentService.MimeType.JSON);
+      }
+
     // Ã¢ÂÂÃ¢ÂÂ Route: lease e-signature submission Ã¢ÂÂÃ¢ÂÂ
     if (formData['_action'] === 'signLease') {
       const result = signLease(formData['appId'], formData['tenantSignature'], formData['ipAddress'] || '', formData['rentersInsuranceAgreed'] || false, formData['email'] || '');
@@ -1174,7 +1179,12 @@ function processApplication(formData, fileBlob) {
     }
 
     // Ã¢ÂÂÃ¢ÂÂ Task 3.5: Normalize all phone fields before storing Ã¢ÂÂÃ¢ÂÂ
-    const phoneFields = ['Phone', 'Co-Applicant Phone', 'Supervisor Phone', 'Reference 1 Phone', 'Reference 2 Phone', 'Emergency Contact Phone', 'Landlord Phone'];
+    // [10B-9] Normalize income/currency fields — strip $, commas, /mo before storage
+      ['Monthly Income','Other Income','Co-Applicant Monthly Income','Current Rent Amount'].forEach(function(f) {
+        if (formData[f]) formData[f] = String(formData[f]).replace(/[$,\s]/g,'').replace(/\/mo.*$/i,'').trim();
+      });
+
+        const phoneFields = ['Phone', 'Co-Applicant Phone', 'Supervisor Phone', 'Reference 1 Phone', 'Reference 2 Phone', 'Emergency Contact Phone', 'Landlord Phone'];
     phoneFields.forEach(field => {
       if (formData[field]) formData[field] = normalizePhone(formData[field]);
     });
@@ -1251,6 +1261,21 @@ function processApplication(formData, fileBlob) {
     initializeSheets();
     const sheet = ss.getSheetByName(SHEET_NAME);
     const col   = getColumnMap(sheet);
+
+    // [10B-8] Extended server-side field validation
+      const _empSt = (formData['Employment Status']||'').toLowerCase();
+      if (!['unemployed','retired','student'].some(function(s){return _empSt.includes(s);}) && !(formData['Employer']||'').trim())
+        return { success: false, error: 'Employer is required for your employment status.' };
+      if (!(formData['SSN']||'').trim().match(/^\d{4}$/))
+        return { success: false, error: 'SSN must be exactly 4 numeric digits.' };
+      if (!(formData['Property Address']||'').trim())
+        return { success: false, error: 'Property address is required.' };
+      if (!(formData['Reference 1 Name']||'').trim())
+        return { success: false, error: 'At least one personal reference (Reference 1 Name) is required.' };
+      if (!(formData['Emergency Contact Name']||'').trim())
+        return { success: false, error: 'Emergency contact name is required.' };
+      if (formData['Has Co-Applicant']==='Yes' && !(formData['Co-Applicant Consent']||'').trim())
+        return { success: false, error: 'Co-applicant consent is required.' };
 
     // Ã¢ÂÂÃ¢ÂÂ Task 3.2: Duplicate application detection Ã¢ÂÂÃ¢ÂÂ
     // [FIXED-I5] Use Property ID as primary duplicate key; address string as fallback only
