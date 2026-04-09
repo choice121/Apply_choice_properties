@@ -283,7 +283,330 @@ Do NOT proceed without verifying the last completed phase.
   - `listings.html` in **choice121/Choice** (9B-4)
   - `js/cp-api.js` in **choice121/Choice** (9C-1, 9C-2)
 
-  ## Completed Tasks Log
+  
+
+  ---
+
+  ## Phase 10 — External Audit Fixes (Issues 1–21)
+
+  **Status:** IN PROGRESS — April 9, 2026
+  **Triggered by:** External AI deep-scan audit identifying 21 remaining issues across security, data integrity, UX, and validation.
+  **Full detail:** See `docs/IMPLEMENTATION_PLAN.md` and audit report in repo root.
+
+  ### Phase 10A — Already Fixed (found in code before this phase)
+  - [x] **Issue 1** — Employment field toggle now runs on init (10A-1) — employer fields not required by default in HTML
+  - [x] **Issue 6** — `getSpreadsheet()` fallback removed (10A-6) — throws clear error instead of creating a new sheet
+  - [x] **Issue 7** — Application fee uses URL param with fallback 0 (9C-1) — no hardcoded constant
+  - [x] **Issue 11** — Co-applicant consent validated in `validateStep()` — required attr + explicit check
+  - [x] **Issue 12** — Hardcoded GAS URL removed (10B-12) — blank `BACKEND_URL` shows user-facing error
+  - [x] **Issue 14** — SSN and DOB excluded from localStorage saves (Phase 9B)
+  - [x] **Issue 16** — Confirmation email includes name, property, move-in, lease term, email, phone
+
+  ### Phase 10B — Fixed April 9, 2026
+  - [x] **Issue 2** — False CSRF token removed from `js/script.js` — was client-generated with no server validation
+  - [x] **Issue 4/19** — DOB removed from Step 6 review summary; SSN now displays as `••••` in summary card
+  - [x] **Issue 5** — Honeypot field now validated in `doPost()` — submissions with `_trap` filled are rejected
+  - [x] **Issue 8** — Extended server-side validation: employer (for employed), SSN format, property address, Reference 1, emergency contact, co-applicant consent
+  - [x] **Issue 9** — Income fields normalized in `processApplication()` — strips `START HERE:
+Any AI working on this project MUST read this file before making changes.
+Do NOT proceed without verifying the last completed phase.
+
+---
+
+# Choice Properties — Project Status
+
+**System:** Choice Properties Rental Application System
+**Stack:** Pure static HTML/CSS/Vanilla JS + Google Apps Script (GAS) backend + Google Sheets database
+**Last Updated:** April 8, 2026
+**Active Phase:** Phase 9 — COMPLETE (all 9 phases done)
+
+---
+
+## Quick Reference — All Phases
+
+| Phase | Title | Status |
+|---|---|---|
+| 1 | Critical: Security & Legal | COMPLETE |
+| 2 | Core Form Logic Fixes | COMPLETE |
+| 3 | Data Integrity & Backend Validation | COMPLETE |
+| 4 | Email Templates & Communication System | COMPLETE |
+| 5 | Lease System Improvements | COMPLETE |
+| 6 | Payment Flow Improvements | COMPLETE |
+| 7 | Automation (GAS Triggers) | CANCELLED — all emails are manual |
+| 8 | UX & Flow Completion | COMPLETE |
+| 9 | Bug Fixes & Integration Improvements | COMPLETE |
+
+---
+
+## Phase 1 — Critical: Security & Legal
+
+**Status:** COMPLETE
+**Priority:** Highest — legal and security exposure
+
+### Objectives
+- Remove hardcoded admin credentials from source code
+- Add management countersignature to executed lease
+- Fix Lead Paint Disclosure legal language
+- Fix month-to-month lease end date calculation
+- Add lease generation validation (prevent $0 rent leases)
+
+### Tasks
+
+- [x] **1.1** Remove hardcoded credentials from `setupAdminPassword()` in `backend/code.gs`
+- [x] **1.2** Add management countersignature system to lease (new columns + GAS function + admin panel button + signature block in lease document + pending notice on confirmation page)
+- [x] **1.3** Fix Lead Paint Disclosure clause (remove false "acknowledges receipt" language)
+- [x] **1.4** Fix month-to-month lease end date: display "Month-to-Month — No Fixed Expiration" instead of calculated +1 month date
+- [x] **1.5** Add server-side validation to `generateAndSendLease()` — reject if `monthlyRent` ≤ 0 or `leaseStartDate` is empty
+
+### Files to Modify
+- `backend/code.gs`
+
+### Expected Outcome
+- No credentials in source code
+- Executed lease is legally complete (both parties represented)
+- Lead Paint clause does not make false statements
+- Month-to-month leases show accurate term
+- Lease cannot be sent with missing financial data
+
+### Verification Checklist
+- [x] `grep -n "Choice123" backend/code.gs` returns no results ✓
+- [x] `grep -n "choiceproperties404" backend/code.gs` returns no results ✓
+- [x] `AUDIT_REPORT.md` no longer contains plaintext credentials — redacted with fix note ✓
+- [x] Lease document contains a management signature block ✓
+- [x] Month-to-month lease end date shows "Month-to-Month — No Fixed Expiration" ✓
+- [x] `generateAndSendLease()` returns an error if rent = 0 ✓
+
+---
+
+## Phase 2 — Core Form Logic Fixes
+
+**Status:** COMPLETE
+**Blocked By:** Phase 1 must be completed first
+
+### Objectives
+- Fix employment field conditional display for non-employed applicants
+- Fix co-applicant required field enforcement
+- Add age validation (minimum 18 years)
+- Fix Reference 1 Relationship required status
+- Fix Step 6 fee display to reflect URL param fee
+- Fix dead links in footer (Privacy Policy, Terms)
+- Fix submission checkbox wording
+
+### Tasks
+
+- [x] **2.1** Conditional employment fields — when status is Unemployed/Retired/Student/Self-employed, show/hide and re-label appropriate fields
+- [x] **2.2** Make co-applicant Name/Email/Phone required when the co-applicant checkbox is checked
+- [x] **2.3** Add minimum age (18) validation on the Date of Birth field
+- [x] **2.4** Make Reference 1 Relationship field required
+- [x] **2.5** Update `_readApplicationFee()` to also update the Step 6 fee heading display
+- [x] **2.6** Fix footer Privacy Policy and Terms of Service dead links; update consent checkbox wording
+- [x] **2.7** Fix the denial email partial-sentence bug (when no reason is provided)
+
+### Files to Modify
+- `js/script.js`
+- `index.html`
+- `backend/code.gs` (denial email fix)
+
+### Expected Outcome
+- All applicant types (employed, unemployed, retired, student, self-employed) can complete Step 3
+- Co-applicant section enforces required fields when activated
+- Under-18 applicants are rejected with a clear message
+- All links are valid or clearly marked as "Coming Soon"
+- Fee display in Step 6 is always accurate
+- Denial email reads correctly with or without a reason
+
+---
+
+## Phase 3 — Data Integrity & Backend Validation
+
+**Status:** COMPLETE
+**Blocked By:** Phase 2
+
+### Objectives
+- Add server-side validation for all critical fields
+- Add duplicate application detection
+- Add minimum age server-side check
+- Add application ID uniqueness check
+- Normalize phone numbers in the backend
+- Fix application fee column to always use the backend constant
+
+### Tasks
+
+- [x] **3.1** Add server-side validation in `processApplication()` for: DOB (age ≥ 18), monthly income (numeric), phone (valid format)
+- [x] **3.2** Add duplicate application detection: check for existing row with same email + same property before creating a new row
+- [x] **3.3** Add App ID uniqueness check in `generateAppId()`
+- [x] **3.4** Override `Application Fee` column to always store `APPLICATION_FEE` constant, not the URL-param value
+- [x] **3.5** Add phone number normalization function — store all phones in a consistent format
+
+### Files to Modify
+- `backend/code.gs`
+
+---
+
+## Phase 4 — Email Templates & Communication System
+
+**Status:** COMPLETE
+**Blocked By:** Phase 3
+
+### Objectives
+- Create 5 missing email templates
+- Fix visual inconsistency in Save & Resume template
+- Remove emoji from admin/operational email subjects
+- Fix denial email reapplication language
+- Add payment method tracking to payment confirmation
+
+### Tasks
+
+- [x] **4.1** Create `holdingFeeReceived` email template + call it from `markHoldingFeePaid()`
+- [x] **4.2** Create `leaseSigningReminder` email template (for 24h automated trigger)
+- [x] **4.3** Create `leaseExpiryAdminAlert` email template (for 48h automated trigger)
+- [x] **4.4** Create `moveInPreparationGuide` email template
+- [x] **4.5** Create `adminReviewSummary` email template (sent to admin when fee is marked paid)
+- [x] **4.6** Refactor Save & Resume template to use `EMAIL_BASE_CSS`, `buildEmailHeader()`, `EMAIL_FOOTER`
+- [x] **4.7** Remove emoji from admin notification and OTP email subjects
+- [x] **4.8** Improve denial email: fix partial-sentence bug, add 30-day reapplication protection language
+- [x] **4.9** Call `sendAdminReviewSummary()` from within `markAsPaid()`
+
+### Files to Modify
+- `backend/code.gs`
+
+---
+
+## Phase 5 — Lease System Improvements
+
+**Status:** COMPLETE
+**Blocked By:** Phase 4
+
+### Objectives
+- Improve lease document completeness
+- Add PDF/print enhancement to lease confirmation page
+- Add editable property address to Send Lease modal
+- Fix Pet Addendum reference
+- Make renter's insurance required
+- Add 5th confirmation checkbox for renter's insurance
+- Fix early termination notice period for month-to-month leases
+
+### Tasks
+
+- [x] **5.1** Add `@media print` CSS to lease confirmation page for clean printing
+- [x] **5.2** Add editable "Property Address (verify before sending)" field to the admin Send Lease modal
+- [x] **5.3** Remove Pet Addendum cross-reference from Clause 4 — incorporate pet terms into the main lease body
+- [x] **5.4** Change renter's insurance (Clause 13) from "strongly encouraged" to "required" + add 5th confirmation checkbox
+- [x] **5.5** Fix early termination notice period: for month-to-month leases, reference `mtmNoticeDays` not `earlyTermNoticeDays` (verified already correctly implemented)
+- [x] **5.6** Add a link to the read-only lease page in the "Lease Signed" tenant email
+
+### Files to Modify
+- `backend/code.gs`
+
+---
+
+## Phase 6 — Payment Flow Improvements
+
+**Status:** COMPLETE
+**Blocked By:** Phase 5
+
+### Objectives
+- Add payment method/transaction tracking to Mark as Paid flow
+- Add "refunded" payment status
+- Add holding fee deadline field
+- Improve payment receipt in confirmation email
+
+### Tasks
+
+- [x] **6.1** Add `Actual Payment Method`, `Transaction Reference`, `Amount Collected` fields to the Mark as Paid modal — write to sheet
+- [x] **6.2** Add "Mark as Refunded" admin action and "refunded" payment status
+- [x] **6.3** Add deadline field to the Request Holding Fee modal — include deadline in holding fee request email
+- [x] **6.4** Enhance payment confirmation email with a formatted receipt block (amount, date, method, reference)
+
+### Files Modified
+- `backend/code.gs` (admin panel HTML + GAS functions)
+
+---
+
+## Phase 7 — GAS Automation (Triggers)
+
+**Status:** CANCELLED
+**Decision:** All emails and status updates are handled manually by admin through the dashboard. No automated triggers will be implemented. Email templates created in Phase 4 (`leaseSigningReminder`, `leaseExpiryAdminAlert`) remain in the codebase as dispatch functions the admin can call manually if needed, but no time-based GAS triggers will be installed.
+
+---
+
+## Phase 8 — UX & Flow Completion
+
+**Status:** COMPLETE — April 7, 2026
+
+### Objectives
+- Improve applicant dashboard denied state ✓
+- Add document upload UI to the form ✓
+- Add "Mark as Contacted" admin action ✓
+- Add application age indicator to admin panel ✓
+- Add "Withdraw Application" flow on dashboard ✓
+
+### Tasks
+
+- [x] **8.1** Denied dashboard: added "Reapplication Protection" card — shows 30-day no-fee window, 60-day results validity, and contact CTAs (phone + email buttons)
+- [x] **8.2** Document upload: added dropzone UI in Step 6 (PDF/JPG/PNG, 4 MB/file, up to 4 files); JS encodes files to base64 on submit; GAS saves to `CP_Applicant_Docs` Drive folder and writes URLs to new `Document URLs` sheet column
+- [x] **8.3** Mark as Contacted: added `markAsContacted()` GAS function; new `Last Contacted` sheet column; "Mark Contacted" button added to both admin card renderers (server-rendered and client-side); "Contacted" green badge shown on card when set
+- [x] **8.4** Application age: both admin card renderers now show "Xd old" chip on every card — turns amber after 14 days
+- [x] **8.5** Withdraw Application: added `withdrawApplication()` GAS function; "Withdraw my application" link on dashboard (hidden for approved/denied/signed); dashboard handles 'withdrawn' status state; property reverts to 'active' on withdrawal
+
+### Files Modified
+- `backend/code.gs` — 8 function additions/changes + both card renderers + dashboard template
+- `index.html` — document upload section in Step 6
+- `css/style.css` — upload zone styles
+- `js/script.js` — `setupFileUploads()`, base64 submit encoding
+
+---
+
+
+  ---
+
+  ## Phase 9 — Bug Fixes & Integration Improvements
+
+  **Status:** COMPLETE — April 8, 2026
+  **Triggered by:** Deep scan of both repos (choice121/Choice + choice121/Apply_choice_properties)
+  **Full detail:** See `PHASE9_BUG_FIXES.md` for exact fixes, root causes, and commit references.
+
+  ### Phase 9A — Critical
+
+  - [x] **9A-1** Admin can now deny unpaid applicants — payment guard in `updateStatus()` restricted to approval only
+  - [x] **9A-2** Denying an applicant no longer reverts a rented property back to "available" — Supabase sync only fires on approval
+  - [x] **9A-3** Property detail page null-rent crash fixed — `monthly_rent` null-guarded throughout `renderProperty()` in Choice repo
+
+  ### Phase 9B — Important
+
+  - [x] **9B-1** Emergency Contact Phone field name fixed in phone normalization loop (`'Emergency Phone'` → `'Emergency Contact Phone'`)
+  - [x] **9B-2** Date of Birth and Co-Applicant DOB excluded from localStorage saves (privacy fix)
+  - [x] **9B-3** Pets/smoking URL param truthy issue — verified safe, no truthy conditional found in Apply form
+  - [x] **9B-4** Rent range filter swaps min/max automatically when user sets them backwards — no more silent empty results
+
+  ### Phase 9C — Improvements
+
+  - [x] **9C-1** Application fee fallback changed from hardcoded constant to `0`; `buildApplyURL()` always sends fee param (even if zero)
+  - [x] **9C-2** "Back to listing" link added to application success screen — source URL passed as URL param from Choice listing
+  - [x] **9C-3** Email-based App ID recovery added to applicant dashboard login — "Forgot your App ID?" flow via `lookupAppIdByEmail()`
+
+  ### Files Modified
+  - `backend/code.gs` (9A-1, 9A-2, 9B-1, 9C-1, 9C-3)
+  - `js/script.js` (9B-2, 9C-2)
+  - `property.html` in **choice121/Choice** (9A-3)
+  - `listings.html` in **choice121/Choice** (9B-4)
+  - `js/cp-api.js` in **choice121/Choice** (9C-1, 9C-2)
+
+  , commas, `/mo` before `parseFloat`
+  - [x] **Issue 20** — `$50` default replaced with neutral `—` placeholder; JS fills correct value on load
+
+  ### Remaining Open Issues (Phase 10C and beyond)
+  - [ ] **Issue 3** — File uploads still base64 in main POST payload (1MB limit applied, pre-upload not implemented)
+  - [ ] **Issue 10** — Residency duration still free-text (structured dropdowns not yet added)
+  - [ ] **Issue 13** — Duplicate submission guard still session-based (cookie or server-side lock not yet added)
+  - [ ] **Issue 15** — "Track My Application" links to GAS domain without transition notice
+  - [ ] **Issue 17** — DOB age check uses browser timezone (date-only normalization not yet applied)
+  - [ ] **Issue 18** — Geoapify silent fail (low priority — by design, no user-facing message needed)
+  - [ ] **Issue 21** — `code.gs` monolith (429K chars) — deferred, no modularization yet
+  
+---
+
+## Completed Tasks Log
 
 ### Phase 8 — April 7, 2026
 - **8.1** Added "Reapplication Protection" card to denied applicant dashboard: 30-day no-fee reapplication window, 60-day results validity, phone + email CTAs.
