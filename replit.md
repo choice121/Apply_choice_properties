@@ -40,6 +40,18 @@ A full product flow audit was completed. 41 issues identified across security, l
 
 ---
 
+## Active Work (April 9, 2026)
+
+A systematic frontend audit identified critical bugs in `js/script.js` and `index.html`.
+A phased fix plan is tracked in `docs/FRONTEND_FIX_PLAN.md`.
+
+**Phase 1 (In Progress):** Critical crashes — getTranslations crash, language persistence lost,
+co-applicant validation blocking optional fields.
+
+See `docs/FRONTEND_FIX_PLAN.md` for full details, exact fix instructions, and status.
+
+---
+
 ## Changes Applied (UX/Bug Fix Pass)
 
 ### Global Removals

@@ -1,3 +1,20 @@
+# ACTIVE WORK — FRONTEND FIX PLAN (April 9, 2026)
+
+A new frontend audit was completed on April 9, 2026, identifying critical bugs
+in index.html and js/script.js. A full phased fix plan is in:
+
+  docs/FRONTEND_FIX_PLAN.md  (READ THIS FIRST IF DOING FRONTEND WORK)
+
+Active fix phase: Phase 1 — Critical Crashes and Blockers
+Issues remaining in Phase 1: C1, C2, C3 (all PENDING)
+Workflow: Fix one phase at a time. Mark each issue [x] DONE in FRONTEND_FIX_PLAN.md
+as you complete it. STOP after each phase and wait for user to say 'continue'.
+
+This fix plan is SEPARATE from the original 9-phase implementation plan below.
+The original 9 phases are complete. This is a new targeted frontend fix cycle.
+
+---
+
 START HERE:
 Any AI working on this project MUST read this file before making changes.
 Do NOT proceed without verifying the last completed phase.

@@ -146,11 +146,14 @@ A comprehensive product flow audit was completed in April 2026.
 
 1. `PROJECT_RULES.md` (this file) — architecture constraints
 2. `PROJECT_STATUS.md` — current phase, completed tasks, what to do next
-3. `docs/IMPLEMENTATION_PLAN.md` — full task breakdown with root causes and acceptance criteria
-4. `docs/ARCHITECTURE.md` — system architecture, function map, database schema
-5. `AUDIT_REPORT.md` — original audit findings (reference only)
+3. `docs/FRONTEND_FIX_PLAN.md` — ACTIVE fix plan (frontend audit fixes, April 2026)
+4. `docs/IMPLEMENTATION_PLAN.md` — prior full task breakdown (reference)
+5. `docs/ARCHITECTURE.md` — system architecture, function map, database schema
+6. `AUDIT_REPORT.md` — original audit findings (reference only)
 
-**All 9 phases are complete (Phase 7 permanently cancelled). The system is feature-complete as of April 8, 2026. Read `PROJECT_STATUS.md` for full details.**
+**CURRENT STATUS (April 9, 2026):** A new frontend audit identified critical bugs in
+`index.html` and `js/script.js`. A phased fix plan is active in `docs/FRONTEND_FIX_PLAN.md`.
+Read that file and `PROJECT_STATUS.md` before touching any code.
 
 Do not ask the user what to fix. The plan is self-sufficient.
 
