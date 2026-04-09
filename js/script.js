@@ -290,6 +290,11 @@ class RentalApplication {
                             opt.textContent = term;
                             leaseSelect.appendChild(opt);
                         });
+                        // Auto-select when only one term is available (no manual choice needed)
+                        if (termsList.length === 1) {
+                            leaseSelect.value = termsList[0];
+                            leaseSelect.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
                     }
                 }
               // 9C-2: store source URL so success screen can link back to the original listing
@@ -864,6 +869,8 @@ class RentalApplication {
         let isStepValid = true;
         let firstInvalidField = null;
         inputs.forEach(input => {
+            // Skip inputs inside hidden containers (e.g. co-applicant section when not checked)
+            if (input.type !== 'hidden' && !input.offsetParent) return;
             if (input.hasAttribute('required')) {
                 if (!this.validateField(input)) {
                     isStepValid = false;
@@ -2018,10 +2025,12 @@ class RentalApplication {
                     this.generateApplicationSummary();
                 }
 
-                const empEl = document.getElementById('employmentStatus');
-                if (empEl && this._toggleEmployerSection) {
-                    this._toggleEmployerSection(empEl.value);
-                }
+                try {
+                    const empEl = document.getElementById('employmentStatus');
+                    if (empEl && this._toggleEmployerSection) {
+                        this._toggleEmployerSection(empEl.value);
+                    }
+                } catch (_e) { /* Non-fatal: employer label refresh after language toggle */ }
 
                 this.saveProgress();
             });
