@@ -376,7 +376,7 @@ class RentalApplication {
 
         // Back-to-listing link â only shown when a property ID was passed
         const backLinkHtml = id
-            ? '<a href="https://choice-properties-site.pages.dev/property.html?id=' + encodeURIComponent(id) + '" class="pcb-back-link" target="_blank" rel="noopener">' +
+            ? '<a href="' + (window.CP_CONFIG && window.CP_CONFIG.LISTING_SITE_URL ? window.CP_CONFIG.LISTING_SITE_URL : 'https://choice-properties-site.pages.dev') + '/property.html?id=' + encodeURIComponent(id) + '" class="pcb-back-link" target="_blank" rel="noopener">' +
                   '<i class="fas fa-arrow-left"></i> View listing' +
               '</a>'
             : '';
@@ -433,7 +433,7 @@ class RentalApplication {
                 '<div class="ncb-text">' +
                     '<div class="ncb-title" data-i18n="noContextTitle">' + tNc.noContextTitle + '</div>' +
                     '<div class="ncb-sub" data-i18n="noContextSub">' + tNc.noContextSub + '</div>' +
-                    '<a href="https://choice-properties-site.pages.dev/listings.html" style="display:inline-block;margin-top:10px;font-size:13px;font-weight:600;color:#1a56db;text-decoration:none;">' +
+                    '<a href="' + (window.CP_CONFIG && window.CP_CONFIG.LISTING_SITE_URL ? window.CP_CONFIG.LISTING_SITE_URL : 'https://choice-properties-site.pages.dev') + '/listings.html" style="display:inline-block;margin-top:10px;font-size:13px;font-weight:600;color:#1a56db;text-decoration:none;">' +
                         '<i class="fas fa-search" style="margin-right:5px;"></i>Browse Available Listings' +
                     '</a>' +
                 '</div>' +
@@ -1276,7 +1276,7 @@ class RentalApplication {
               const result = await resp.json();
               if (result.success && result.data) {
                   // Store in localStorage so restoreSavedProgress() can read it
-                  localStorage.setItem(this.config.LOCAL_STORAGE_KEY, result.data);
+                  try { localStorage.setItem(this.config.LOCAL_STORAGE_KEY, result.data); } catch (e) {}
                   this.restoreSavedProgress();
                   return;
               }
@@ -1288,7 +1288,7 @@ class RentalApplication {
       }
 
       restoreSavedProgress() {
-          const saved = localStorage.getItem(this.config.LOCAL_STORAGE_KEY);
+          const saved = (() => { try { return localStorage.getItem(this.config.LOCAL_STORAGE_KEY); } catch(e) { return null; } })();
         if (saved) {
             try {
                 const data = JSON.parse(saved);
@@ -1328,7 +1328,7 @@ class RentalApplication {
         sensitiveKeys.forEach(key => delete data[key]);
         data._last_updated = new Date().toISOString();
         data._language = this.state.language || 'en';
-        localStorage.setItem(this.config.LOCAL_STORAGE_KEY, JSON.stringify(data));
+        try { localStorage.setItem(this.config.LOCAL_STORAGE_KEY, JSON.stringify(data)); } catch (e) {}
         this._flashAutoSave();
     }
 
@@ -2515,7 +2515,7 @@ class RentalApplication {
     }
 
     clearSavedProgress() {
-        localStorage.removeItem(this.config.LOCAL_STORAGE_KEY);
+        try { localStorage.removeItem(this.config.LOCAL_STORAGE_KEY); } catch (e) {}
         if (this._autoSaveTimer) {
             clearInterval(this._autoSaveTimer);
             this._autoSaveTimer = null;
