@@ -527,6 +527,16 @@ function generateAdminToken() {
   return Utilities.base64EncodeWebSafe(sig + '.' + ts);
 }
 
+
+// Constant-time string comparison — prevents timing attacks on HMAC comparisons.
+function safeEqual(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
 function validateAdminToken(token) {
   if (!token) return false;
   try {
@@ -544,7 +554,7 @@ function validateAdminToken(token) {
     const expectedSig = Utilities.base64Encode(
       Utilities.computeHmacSha256Signature('admin:' + ts, secret)
     );
-    return sig === expectedSig;
+    return safeEqual(sig, expectedSig);
   } catch (e) { return false; }
 }
 
@@ -622,7 +632,7 @@ function validateAdminPassword(username, password) {
     const inputHash = Utilities.base64Encode(
       Utilities.computeHmacSha256Signature(password, storedUser)
     );
-    if (username.trim() !== storedUser || inputHash !== storedHash) {
+    if (!safeEqual(username.trim(), storedUser) || !safeEqual(inputHash, storedHash)) {
       return { success: false, error: 'Invalid username or password.' };
     }
     return { success: true, token: generateAdminToken() };
@@ -986,7 +996,7 @@ function doPost(e) {
 
     // Ã¢ÂÂÃ¢ÂÂ Route: lease e-signature submission Ã¢ÂÂÃ¢ÂÂ
     if (formData['_action'] === 'signLease') {
-      const result = signLease(formData['appId'], formData['tenantSignature'], formData['ipAddress'] || '');
+      const result = signLease(formData['appId'], formData['tenantSignature'], formData['ipAddress'] || '', formData['rentersInsuranceAgreed'] || false, formData['email'] || '');
       return ContentService
         .createTextOutput(JSON.stringify(result))
         .setMimeType(ContentService.MimeType.JSON);
@@ -1012,13 +1022,33 @@ function doPost(e) {
       }
 
       if (formData['_action'] === 'sendResumeEmail') {
-          const result = sendResumeEmail(formData['email'] || '', formData['resumeUrl'] || '', formData['step'] || '1');
-          return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
-        }
+            // Verify the relay secret to prevent open email relay abuse.
+            // This action is called from Supabase Edge Functions, not directly from the browser.
+            const relaySecret = formData['_relay_secret'] || '';
+            const expectedRelay = PropertiesService.getScriptProperties().getProperty('GAS_RELAY_SECRET') || '';
+            if (expectedRelay && !safeEqual(relaySecret, expectedRelay)) {
+              return ContentService.createTextOutput(JSON.stringify({ success: false, error: 'Unauthorized.' })).setMimeType(ContentService.MimeType.JSON);
+            }
+            const result = sendResumeEmail(formData['email'] || '', formData['resumeUrl'] || '', formData['step'] || '1');
+            return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+          }
 
       // Ã¢ÂÂÃ¢ÂÂ Route: 9C-3 Ã¢ÂÂ email-based App ID lookup Ã¢ÂÂÃ¢ÂÂ
       if (formData['_action'] === 'lookupAppId') {
-        const result = lookupAppIdByEmail(formData['email'] || '');
+        // Rate limit: max 3 lookups per email per hour to prevent enumeration attacks
+        const lookupEmail = (formData['email'] || '').toLowerCase().trim();
+        if (lookupEmail) {
+          try {
+            const cache = CacheService.getScriptCache();
+            const lookupKey = 'rl_lookup_' + lookupEmail.replace(/[^a-z0-9]/g, '_');
+            const lookupCount = parseInt(cache.get(lookupKey) || '0', 10);
+            if (lookupCount >= 3) {
+              return ContentService.createTextOutput(JSON.stringify({ success: false, error: 'Too many lookup requests. Please wait an hour before trying again.' })).setMimeType(ContentService.MimeType.JSON);
+            }
+            cache.put(lookupKey, String(lookupCount + 1), 3600); // 1-hour window
+          } catch (_) { /* CacheService unavailable — allow through */ }
+        }
+        const result = lookupAppIdByEmail(lookupEmail);
         return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
       }
 
@@ -1032,11 +1062,12 @@ function doPost(e) {
 
         // M4: CSRF token format check (adds friction against scripted abuse)
         const _csrfVal = formData['_cp_csrf'] || '';
-        if (!_csrfVal || _csrfVal.length < 10) {
-          return ContentService
-            .createTextOutput(JSON.stringify({ success: false, error: 'Invalid request.' }))
-            .setMimeType(ContentService.MimeType.JSON);
-        }
+          // Require a properly formatted nonce: 32-128 alphanumeric/hyphen/underscore chars
+          if (!_csrfVal || _csrfVal.length < 32 || _csrfVal.length > 128 || !/^[a-zA-Z0-9\-_]+$/.test(_csrfVal)) {
+            return ContentService
+              .createTextOutput(JSON.stringify({ success: false, error: 'Invalid request.' }))
+              .setMimeType(ContentService.MimeType.JSON);
+          }
 
       // Ã¢ÂÂÃ¢ÂÂ Rate limiting via CacheService (max 5 submissions per email per day) Ã¢ÂÂ
       try {
@@ -1128,6 +1159,34 @@ function processApplication(formData, fileBlob) {
     phoneFields.forEach(field => {
       if (formData[field]) formData[field] = normalizePhone(formData[field]);
     });
+      // ── File upload content validation (magic bytes) ──────────────────────────
+      // Validate that uploaded files are actually the declared types, not malicious
+      // content with a benign extension (e.g., executable renamed to .pdf).
+      // Base64 magic bytes: PDF=JVBERi0, JPEG=/9j/, PNG=iVBORw0KGgo
+      if (formData['documents']) {
+        const docs = Array.isArray(formData['documents']) ? formData['documents'] : [formData['documents']];
+        const ALLOWED_MAGIC = {
+          pdf:  'JVBERi0',
+          jpeg: '/9j/',
+          jpg:  '/9j/',
+          png:  'iVBORw0KGgo'
+        };
+        for (const doc of docs) {
+          if (!doc || typeof doc !== 'string') continue;
+          // doc format: "filename.ext|base64data"
+          const parts = doc.split('|');
+          if (parts.length < 2) continue;
+          const filename = parts[0].toLowerCase();
+          const b64 = parts[1].substring(0, 20);
+          const ext = filename.split('.').pop();
+          const expectedMagic = ALLOWED_MAGIC[ext];
+          if (expectedMagic && !b64.startsWith(expectedMagic)) {
+            return { success: false, error: 'One or more uploaded files appear to be invalid or corrupted. Please re-upload your documents.' };
+          }
+        }
+      }
+      // ── End file content validation ─────────────────────────────────────────
+
 
     // ── LockService: serialize concurrent submissions ──────────────────────────────
     // Prevents race conditions where two simultaneous submissions both pass the
@@ -1585,10 +1644,13 @@ function calculateLeaseEndDate(startDate, termString) {
 // Ã¢ÂÂÃ¢ÂÂ signLease() Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 // Called via google.script.run from the lease signing page.
 // Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
-function signLease(appId, tenantSignature, ipAddress, rentersInsuranceAgreed) {
+function signLease(appId, tenantSignature, ipAddress, rentersInsuranceAgreed, applicantEmail) {
   try {
     if (!tenantSignature || tenantSignature.trim().length < 2) {
       throw new Error('A valid signature is required.');
+    }
+    if (!applicantEmail || !applicantEmail.trim()) {
+      throw new Error('Your email address is required to verify your identity before signing.');
     }
 
     const ss    = getSpreadsheet();
@@ -1603,6 +1665,14 @@ function signLease(appId, tenantSignature, ipAddress, rentersInsuranceAgreed) {
       if (data[i][col['App ID'] - 1] === appId) { rowIndex = i + 1; break; }
     }
     if (rowIndex === -1) throw new Error('Application not found.');
+
+    // ── Identity verification: confirm caller is the actual applicant ──────
+    const storedEmail = (sheet.getRange(rowIndex, col['Email']).getValue() || '').toString().toLowerCase().trim();
+    const callerEmail = applicantEmail.toLowerCase().trim();
+    if (!storedEmail || storedEmail !== callerEmail) {
+      throw new Error('The email address you entered does not match the application on record. Please verify your email and try again.');
+    }
+    // ── End identity verification ──────────────────────────────────────────
 
     const leaseStatus = sheet.getRange(rowIndex, col['Lease Status']).getValue();
     if (leaseStatus === 'signed') throw new Error('Lease has already been signed.');
@@ -3832,7 +3902,8 @@ function sendAdminNotification(data, appId) {
       const parsed = JSON.parse(stored);
       if (Date.now() > parsed.expires) {
         scriptProps.deleteProperty('resume_' + token);
-        return { success: false, error: 'expired' };
+        // Return 'not_found' instead of 'expired' to prevent timing-based token enumeration
+        return { success: false, error: 'not_found' };
       }
       return { success: true, data: parsed.data };
     } catch (e) {
