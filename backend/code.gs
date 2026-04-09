@@ -1211,7 +1211,7 @@ function processApplication(formData, fileBlob) {
           moveInDate.setUTCHours(0, 0, 0, 0);
           availDate.setUTCHours(0, 0, 0, 0);
           if (moveInDate < availDate) {
-            return { success: false, error: 'Your requested move-in date is before the property's available date. Please select a move-in date on or after ' + availableDate + '.' };
+            return { success: false, error: 'Your requested move-in date is before the property\'s available date. Please select a move-in date on or after ' + availableDate + '.' };
           }
         }
       }
