@@ -878,6 +878,41 @@ class RentalApplication {
                 });
             }
         }
+        if (stepNumber === 5) {
+              // Validate "Preferred Contact Method" — at least one checkbox required
+              const _contactChecked = section.querySelectorAll('input[name="Preferred Contact Method"]:checked');
+              const _contactErrEl   = document.getElementById('contactMethodError');
+              if (_contactChecked.length === 0) {
+                  const _firstContact = section.querySelector('input[name="Preferred Contact Method"]');
+                  const _contactMsg   = this.state.language === 'en'
+                      ? 'Please select at least one contact method'
+                      : 'Por favor seleccione al menos un método de contacto';
+                  if (_contactErrEl) { _contactErrEl.textContent = _contactMsg; _contactErrEl.style.display = 'block'; }
+                  if (_firstContact) { _firstContact.classList.add('is-invalid'); }
+                  isStepValid = false;
+                  if (!firstInvalidField) firstInvalidField = _firstContact || _contactErrEl;
+              } else {
+                  if (_contactErrEl) _contactErrEl.style.display = 'none';
+                  section.querySelectorAll('input[name="Preferred Contact Method"]').forEach(cb => cb.classList.remove('is-invalid'));
+              }
+
+              // Validate "Preferred Time" — at least one checkbox required
+              const _timeChecked = section.querySelectorAll('input[name="Preferred Time"]:checked');
+              const _timeErrEl   = document.getElementById('preferredTimeError');
+              if (_timeChecked.length === 0) {
+                  const _firstTime = section.querySelector('input[name="Preferred Time"]');
+                  const _timeMsg   = this.state.language === 'en'
+                      ? 'Please select at least one availability window'
+                      : 'Por favor seleccione al menos una ventana de disponibilidad';
+                  if (_timeErrEl) { _timeErrEl.textContent = _timeMsg; _timeErrEl.style.display = 'block'; }
+                  if (_firstTime) { _firstTime.classList.add('is-invalid'); }
+                  isStepValid = false;
+                  if (!firstInvalidField) firstInvalidField = _firstTime || _timeErrEl;
+              } else {
+                  if (_timeErrEl) _timeErrEl.style.display = 'none';
+                  section.querySelectorAll('input[name="Preferred Time"]').forEach(cb => cb.classList.remove('is-invalid'));
+              }
+          }
         if (!isStepValid && firstInvalidField) this.scrollToInvalidField(firstInvalidField);
         return isStepValid;
     }
