@@ -1028,10 +1028,11 @@
 
                   <div class="fee-display">
                     <div class="fee-info">
-                        <h4 data-i18n="feeTitle">Application Fee: $50.00</h4>
+                        <h4 data-i18n="feeTitle">Application Fee: —</h4>
                         <p data-i18n="feeDesc">This fee is required before review can begin. Our team will contact you immediately after submission to arrange payment.</p>
                     </div>
-                    <div class="fee-amount">$50</div>
+                    <!-- [10B-20] Default hidden; JS (_readApplicationFee) fills correct value from URL param -->
+            <div class="fee-amount" style="visibility:hidden">—</div>
                 </div>
 
                 <div id="summaryContainer" class="summary-section">
