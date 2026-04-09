@@ -1,0 +1,13 @@
+{
+    "name": "apply-choice-properties",
+    "version": "1.0.0",
+    "private": true,
+    "description": "Choice Properties — Rental Application Form. Static site deployed to Cloudflare Pages. Backend is Google Apps Script.",
+    "scripts": {
+      "build": "node generate-config.js"
+    },
+    "engines": {
+      "node": ">=18"
+    }
+  }
+  

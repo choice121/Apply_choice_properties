@@ -376,7 +376,7 @@ class RentalApplication {
 
         // Back-to-listing link â only shown when a property ID was passed
         const backLinkHtml = id
-            ? '<a href="https://choice-properties.pages.dev/property.html?id=' + encodeURIComponent(id) + '" class="pcb-back-link" target="_blank" rel="noopener">' +
+            ? '<a href="https://choice-properties-site.pages.dev/property.html?id=' + encodeURIComponent(id) + '" class="pcb-back-link" target="_blank" rel="noopener">' +
                   '<i class="fas fa-arrow-left"></i> View listing' +
               '</a>'
             : '';
@@ -500,7 +500,11 @@ class RentalApplication {
 
     // ---------- Geoapify ----------
     setupGeoapify() {
-        const apiKey = "bea2afb13c904abea5cb2c2693541dcf";
+        const apiKey = (window.CP_CONFIG && window.CP_CONFIG.GEOAPIFY_API_KEY) || '';
+          if (!apiKey) {
+              console.warn('[CP] GEOAPIFY_API_KEY not configured — address autocomplete disabled');
+              return;
+          }
         const fields = ['propertyAddress', 'currentAddress'];
         fields.forEach(id => {
             const input = document.getElementById(id);
