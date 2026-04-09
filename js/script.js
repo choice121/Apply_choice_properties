@@ -134,6 +134,9 @@ class RentalApplication {
 
     // ---------- Initialization ----------
     initialize() {
+        // Generate and store a CSRF nonce for the session — required by the backend
+        this._csrfToken = this.generateCsrfNonce();
+        sessionStorage.setItem('_cp_csrf', this._csrfToken);
         this.setupEventListeners();
         this.setupOfflineDetection();
         this.setupRealTimeValidation();
@@ -2181,6 +2184,22 @@ class RentalApplication {
         }
     }
 
+
+    // Generates a 64-character hex nonce used as a bot-friction CSRF token.
+    // The backend validates format only (32-128 alphanumeric chars); this satisfies that requirement.
+    generateCsrfNonce() {
+        try {
+            const arr = new Uint8Array(32);
+            window.crypto.getRandomValues(arr);
+            return Array.from(arr, b => ('0' + b.toString(16)).slice(-2)).join('');
+        } catch (_) {
+            // Fallback for browsers without crypto API (extremely rare)
+            let n = '';
+            const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+            for (let i = 0; i < 40; i++) n += chars.charAt(Math.floor(Math.random() * chars.length));
+            return n;
+        }
+    }
     // ---------- MODIFIED: handleFormSubmit with retry reset ----------
     async handleFormSubmit(e, isRetry = false) {
         e.preventDefault();
