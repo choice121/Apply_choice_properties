@@ -1255,12 +1255,14 @@ function processApplication(formData, fileBlob) {
     } catch(lockErr) {
       return { success: false, error: 'The server is briefly busy processing another submission. Please wait a few seconds and try again.' };
     }
-    try {
-
+    // Declared outside the lock's try/finally so they remain in scope after
+    // lock.releaseLock() — document upload, row styling, and emails all need them.
     const ss = getSpreadsheet();
     initializeSheets();
     const sheet = ss.getSheetByName(SHEET_NAME);
     const col   = getColumnMap(sheet);
+    let appId, headers;
+    try {
 
     // [10B-8] Extended server-side field validation
       const _empSt = (formData['Employment Status']||'').toLowerCase();
@@ -1348,7 +1350,7 @@ function processApplication(formData, fileBlob) {
       }
 
       // Ã¢ÂÂÃ¢ÂÂ Task 3.3: Generate a unique App ID Ã¢ÂÂÃ¢ÂÂ
-      const appId = formData.appId || generateUniqueAppId(sheet, col);
+      appId = formData.appId || generateUniqueAppId(sheet, col);
 
     // Ã¢ÂÂÃ¢ÂÂ Resolve "Other" payment text into the main payment columns Ã¢ÂÂÃ¢ÂÂ
     // If the user selected "Other" and typed a value, store that text directly
@@ -1363,7 +1365,7 @@ function processApplication(formData, fileBlob) {
     // [L5 fix] Dead fileBlob binary path removed — the form always sends files as base64 (_docFile_N_data fields)
       // Active document storage is handled below in the Phase 8 base64 loop (writes to 'Document URLs' plural column)
 
-    const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
+    headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
     const rowData = [];
     headers.forEach(header => {
       switch (header) {
