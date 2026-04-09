@@ -1120,13 +1120,30 @@ function processApplication(formData, fileBlob) {
         return { success: false, error: 'You must consent to data review before submitting.' };
       }
 
-      const requiredFields = ['First Name', 'Last Name', 'Email', 'Phone'];
-    for (let field of requiredFields) {
-      if (!formData[field] || formData[field].trim() === '') {
-        throw new Error(`Missing required field: ${field}`);
+    // [10B-11] Server-side co-applicant consent validation.
+      // If a co-applicant was listed (Has Co-Applicant = 'Yes'), the Co-Applicant Consent
+      // field must be present ('on') — it means they authorized background/credit checks.
+      if (formData['Has Co-Applicant'] && formData['Has Co-Applicant'].toString().toLowerCase() === 'yes') {
+        if (!formData['Co-Applicant Consent'] || formData['Co-Applicant Consent'].toString().toLowerCase() !== 'on') {
+          return { success: false, error: 'Co-applicant verification consent is required. Please check the co-applicant authorization box before submitting.' };
+        }
       }
-    }
 
+        // [10B-8] Expanded required fields — property address, reference 1, and emergency contact
+      // are now validated server-side in addition to the core identity fields.
+      const requiredFields = [
+        'First Name', 'Last Name', 'Email', 'Phone',
+        'Property Address',
+        'Reference 1 Name', 'Reference 1 Phone',
+        'Emergency Contact Name', 'Emergency Contact Phone'
+      ];
+      for (let field of requiredFields) {
+        if (!formData[field] || formData[field].toString().trim() === '') {
+          return { success: false, error: 'Missing required information: ' + field + '. Please complete all required fields and resubmit.' };
+        }
+      }
+
+  
     // Ã¢ÂÂÃ¢ÂÂ Task 2.3: Server-side minimum age validation (18+) Ã¢ÂÂÃ¢ÂÂ
     if (formData['DOB'] && formData['DOB'].trim()) {
       const dob = new Date(formData['DOB']);
