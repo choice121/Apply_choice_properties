@@ -266,6 +266,21 @@ class RentalApplication {
               }
               setHidden('hiddenLeaseTerms',      terms);
               setHidden('hiddenMinLeaseMonths',  minMonths);
+              // Fix: Populate "Desired Lease Term" dropdown with allowed options from URL params
+                if (terms) {
+                    const termsList = terms.split('|').map(t => t.trim()).filter(Boolean);
+                    const leaseSelect = document.getElementById('desiredLeaseTerm');
+                    if (leaseSelect && termsList.length) {
+                        // Remove all options except the placeholder
+                        while (leaseSelect.options.length > 1) leaseSelect.remove(1);
+                        termsList.forEach(term => {
+                            const opt = document.createElement('option');
+                            opt.value = term;
+                            opt.textContent = term;
+                            leaseSelect.appendChild(opt);
+                        });
+                    }
+                }
               // 9C-2: store source URL so success screen can link back to the original listing
               const source = p.get('source') || '';
               if (source) this.state.sourceUrl = source;
