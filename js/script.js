@@ -77,10 +77,8 @@ class RentalApplication {
                 ? window.CP_CONFIG.BACKEND_URL
                 : '';
 
-                  // M4: Generate a session-scoped CSRF token for GAS doPost validation
-        const _csrfToken = Math.random().toString(36).substring(2) + Date.now().toString(36);
-        sessionStorage.setItem('_cp_csrf', _csrfToken);
-        this._csrfToken = _csrfToken;
+                  // [10B-2] CSRF token removed: client-generated tokens provide no real protection.
+        // Bot protection is handled server-side via honeypot validation in doPost().
 
         this.initialize();
     }
@@ -2603,13 +2601,13 @@ class RentalApplication {
         const groups = [
             { id: 1, name: t.summaryPropertyApplicant, fields: [
                 'Property Address', 'Requested Move-in Date', 'Desired Lease Term',
-                'First Name', 'Last Name', 'Email', 'Phone', 'DOB', 'SSN'
+                'First Name', 'Last Name', 'Email', 'Phone', 'SSN'
             ]},
             { id: 1, name: t.summaryCoApplicant, fields: [
                 'Has Co-Applicant', 'Additional Person Role',
                 'Co-Applicant First Name', 'Co-Applicant Last Name',
                 'Co-Applicant Email', 'Co-Applicant Phone',
-                'Co-Applicant DOB', 'Co-Applicant SSN',
+                'Co-Applicant SSN',
                 'Co-Applicant Employer', 'Co-Applicant Job Title',
                 'Co-Applicant Monthly Income', 'Co-Applicant Employment Duration',
                 'Co-Applicant Consent'
@@ -2650,11 +2648,13 @@ class RentalApplication {
             group.fields.forEach(field => {
                 const value = data[field];
                 const displayLabel = displayLabels[field] || field;
-                if (value && value !== '') {
-                    groupFieldsHtml += `
-                        <div class="summary-item">
-                            <div class="summary-label">${displayLabel}</div>
-                            <div class="summary-value">${value}</div>
+                  if (value && value !== '') {
+                      const isSensitive = field === 'SSN' || field === 'Co-Applicant SSN'; // [10B-4/19]
+                      const displayValue = isSensitive ? '••••' : value;
+                      groupFieldsHtml += `
+                          <div class="summary-item">
+                              <div class="summary-label">${displayLabel}</div>
+                              <div class="summary-value">${displayValue}</div>
                         </div>`;
                 }
             });
