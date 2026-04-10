@@ -1,77 +1,48 @@
-# Choice Properties - Rental Application System
+# Choice Properties — Rental Application System
 
 ## Overview
-A static web application for managing rental applications for Choice Properties. It is a multi-step application form that communicates with a Google Apps Script (GAS) backend.
+A self-contained rental application and management platform for Choice Properties. Handles the full lifecycle of a rental application: submission, fee payment, background checks, status updates, lease generation, and e-signatures.
 
-## Architecture
-- **Frontend:** Pure static HTML/CSS/Vanilla JavaScript (no build system, no package manager)
-- **Backend:** Google Apps Script (code.gs) — hosted externally on Google Apps Script
+## Tech Stack
+- **Frontend:** Pure HTML5, CSS3, Vanilla JavaScript (ES6+) — no frameworks
+- **Backend:** Google Apps Script (GAS) — deployed separately at script.google.com
 - **Database:** Google Sheets (via GAS)
-- **Email:** Google MailApp (via GAS)
+- **Dev Server:** Node.js `server.js` (serves static files)
+- **CDN Libraries:** Font Awesome, Inter (Google Font), QRCode.js, Geoapify
 
 ## Project Structure
-- `index.html` — Main 6-step rental application form
-- `js/script.js` — Frontend logic (validation, state management, form submission)
-- `css/style.css` — Mobile-first stylesheet
-- `backend/code.gs` — Google Apps Script source (backend logic)
-- `server.js` — Simple Node.js static file server for Replit
+```
+.
+├── index.html          # Main 6-step rental application form
+├── css/style.css       # Mobile-first stylesheet
+├── js/script.js        # Core frontend logic (RentalApplication class)
+├── config.js           # Auto-generated config (secrets injected at build time)
+├── server.js           # Node.js dev server (port 5000, 0.0.0.0)
+├── generate-config.js  # Build script that generates config.js from env vars
+├── backend/code.gs     # Google Apps Script source (deploy manually to GAS)
+└── docs/               # Architecture, project status, implementation plan
+```
 
-## Running the App
-- Workflow: "Start application" runs `node server.js` on port 5000
-- No build step needed — pure static files
+## Running Locally (Replit)
+- The workflow `Start application` runs `node server.js` on port 5000
+- `config.js` contains placeholder values for local development
+- The GEOAPIFY_API_KEY is optional (address autocomplete disabled without it)
+- BACKEND_URL points to the Google Apps Script deployment URL
+
+## Environment Variables (for production)
+- `BACKEND_URL` — Google Apps Script web app URL (required)
+- `GEOAPIFY_API_KEY` — Geoapify address autocomplete API key (optional)
+- `LISTING_SITE_URL` — Base URL of the listing platform (default: https://choice-properties-site.pages.dev)
 
 ## Deployment
-- Configured as a static deployment (publicDir: ".")
-- Originally designed for Cloudflare Pages hosting
+- **Replit deployment:** Autoscale via `node server.js`
+- **Original deployment:** Cloudflare Pages (static hosting) + GAS backend
+- In production (Cloudflare), `npm run build` runs `generate-config.js` to inject secrets into `config.js`
 
-## Documentation System (April 2026)
-
-A full product flow audit was completed. 41 issues identified across security, legal, UX, backend, emails, lease, and payment systems.
-
-**Key docs:**
-- `PROJECT_STATUS.md` — Current phase status and task checklist (start here)
-- `docs/IMPLEMENTATION_PLAN.md` — Full fix plan (9 phases) with root causes and acceptance criteria
-- `docs/ARCHITECTURE.md` — System architecture, function map, database schema
-- `docs/IMPROVEMENTS.md` — Recommendations log updated after each phase
-- `AUDIT_REPORT.md` — Full original audit findings
-- `PROJECT_RULES.md` — Architecture constraints (non-negotiable)
-
-**Active phase:** ALL 9 PHASES COMPLETE (Phase 7 permanently cancelled; system is feature-complete as of April 8, 2026)
-
----
-
-## Active Work (April 9, 2026)
-
-A systematic frontend audit identified critical bugs in `js/script.js` and `index.html`.
-A phased fix plan is tracked in `docs/FRONTEND_FIX_PLAN.md`.
-
-**Phase 1 (In Progress):** Critical crashes — getTranslations crash, language persistence lost,
-co-applicant validation blocking optional fields.
-
-See `docs/FRONTEND_FIX_PLAN.md` for full details, exact fix instructions, and status.
-
----
-
-## Changes Applied (UX/Bug Fix Pass)
-
-### Global Removals
-- **Income ratio feature fully removed**: deleted `_setupIncomeRatio()` method, all calls to it (including `_prefillFromURL` and `restoreSavedProgress`), the `#incomeRatioResult` div in HTML, and `.income-ratio`, `.income-ratio-label`, `.income-ratio-value` CSS
-- **Pay Now button removed**: removed `payNowBtn` event listener from `setupEventListeners()`
-- **Test data fill button removed**: removed `#testButtonContainer` HTML block, disabled the test fill IIFE, removed all `.test-button-container` and `.test-fill-btn` CSS
-
-### Trust & Credibility
-- Replaced Stripe brand icon (`fab fa-stripe`) with generic security icon (`fas fa-shield-alt`)
-- Fixed footer Contact Support link from `href="#"` to `mailto:choicepropertygroup@hotmail.com`
-- Added trust statement near submit button: "Your information is securely processed and will only be used for rental application review."
-
-### Wording / Translations (EN + ES)
-- "Additional Person Information" → "Co-Applicant / Guarantor Information"
-- Step 4 nav label: "Financial & References" → "References & Emergency Contact"
-- "Contact Preferences (For Follow-up After Payment)" → "Contact Preferences"
-- "Availability for Follow-up (After Payment)" → "Availability"
-- "Your Preferences (For Follow-up After Payment)" → "Your Preferences"
-- "authorise" → "authorize" everywhere (error messages, consent label)
-
-### Data / Backend
-- Added `'Property Address URL'` column to GAS sheet headers, migration columns list, and row data switch/case mapping
-- The `name="Property Address URL"` hidden input was already present in HTML — GAS now stores it
+## Key Features
+- 6-step bilingual (EN/ES) application form
+- Mobile-first responsive design
+- Auto-save progress via localStorage
+- Admin dashboard for property managers
+- Applicant dashboard for status tracking and lease signing
+- Automatic email notifications
