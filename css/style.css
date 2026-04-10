@@ -2634,6 +2634,25 @@ textarea.is-valid {
     line-height: 1.4;
 }
 
+.ncb-browse-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #c9a04a;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(201, 160, 74, 0.4);
+    padding-bottom: 1px;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.ncb-browse-link:hover {
+    color: #e0b96a;
+    border-bottom-color: rgba(224, 185, 106, 0.8);
+}
+
 @media (max-width: 540px) {
     .no-context-banner {
         padding: 10px 16px;

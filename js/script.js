@@ -471,8 +471,8 @@ class RentalApplication {
                 '<div class="ncb-text">' +
                     '<div class="ncb-title" data-i18n="noContextTitle">' + tNc.noContextTitle + '</div>' +
                     '<div class="ncb-sub" data-i18n="noContextSub">' + tNc.noContextSub + '</div>' +
-                    '<a href="' + (window.CP_CONFIG && window.CP_CONFIG.LISTING_SITE_URL ? window.CP_CONFIG.LISTING_SITE_URL : 'https://choice-properties-site.pages.dev') + '/listings.html" style="display:inline-block;margin-top:10px;font-size:13px;font-weight:600;color:#1a56db;text-decoration:none;">' +
-                        '<i class="fas fa-search" style="margin-right:5px;"></i>Browse Available Listings' +
+                    '<a href="' + (window.CP_CONFIG && window.CP_CONFIG.LISTING_SITE_URL ? window.CP_CONFIG.LISTING_SITE_URL : 'https://choice-properties-site.pages.dev') + '/listings.html" class="ncb-browse-link" data-i18n="browseListings">' +
+                        '<i class="fas fa-search"></i>Browse Available Listings' +
                     '</a>' +
                 '</div>' +
             '</div>';
@@ -1708,6 +1708,7 @@ class RentalApplication {
                 managedBy: 'Managed by',
                 applyingFor: 'Applying for',
                 viewListing: 'View listing',
+                browseListings: 'Browse Available Listings',
                 charCount: 'characters',
                 summaryPropertyApplicant: 'Property & Applicant',
                 summaryCoApplicant: 'Co-Applicant',
@@ -1988,6 +1989,7 @@ class RentalApplication {
                 managedBy: 'Administrado por',
                 applyingFor: 'Solicitando para',
                 viewListing: 'Ver anuncio',
+                browseListings: 'Ver listados disponibles',
                 charCount: 'caracteres',
                 summaryPropertyApplicant: 'Propiedad y Solicitante',
                 summaryCoApplicant: 'Co-Solicitante',
