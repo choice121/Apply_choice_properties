@@ -2172,7 +2172,12 @@ class RentalApplication {
         }
 
         // Permanent error or max retries reached
-        msgEl.innerHTML = errorMessage;
+        // If we exhausted auto-retries on a transient (network) error, escalate to the
+        // contact-info message so the user knows how to reach us, not just to "try again".
+        const finalMessage = (isTransient && this.retryCount >= this.maxRetries)
+            ? t.serverError
+            : errorMessage;
+        msgEl.innerHTML = finalMessage;
         statusArea.classList.add('error');
         if (spinner) {
             spinner.className = 'fas fa-exclamation-circle';
