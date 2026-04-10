@@ -1177,7 +1177,111 @@
             -webkit-tap-highlight-color: transparent;
             touch-action: manipulation;
         }
+
+        /* ── Start Over button ── */
+        #startOverBtn {
+            position: fixed;
+            bottom: 24px;
+            left: 20px;
+            z-index: 9999;
+            background: #fff;
+            color: #c0392b;
+            border: 2px solid #c0392b;
+            border-radius: 50px;
+            padding: 14px 22px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+            display: none;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: 0.02em;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        /* ── Clear form overlay ── */
+        #clearFormOverlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 10000;
+            backdrop-filter: blur(2px);
+        }
+        #clearFormOverlay.open { display: block; }
+
+        /* ── Clear form bottom sheet ── */
+        #clearFormSheet {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border-radius: 20px 20px 0 0;
+            padding: 12px 24px 44px;
+            z-index: 10001;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+            text-align: center;
+        }
+        #clearFormSheet.open { transform: translateY(0); }
+
+        .sheet-handle {
+            width: 40px;
+            height: 4px;
+            background: #ddd;
+            border-radius: 2px;
+            margin: 0 auto 24px;
+        }
+        .sheet-warning-icon {
+            font-size: 36px;
+            margin-bottom: 12px;
+        }
+        #clearFormSheet h3 {
+            font-size: 20px;
+            font-weight: 700;
+            margin: 0 0 10px;
+            color: #1a1a2e;
+        }
+        #clearFormSheet p {
+            color: #666;
+            font-size: 15px;
+            margin: 0 0 28px;
+            line-height: 1.5;
+        }
+        #clearFormCancel {
+            display: block;
+            width: 100%;
+            padding: 17px;
+            background: #1d3557;
+            color: #fff;
+            border: none;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-bottom: 12px;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        #clearFormConfirm {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background: transparent;
+            color: #c0392b;
+            border: 2px solid #c0392b;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
     </style>
+
     <button
         id="devTestFillBtn"
         onclick="window.app && window.app._devFillTestData()"
@@ -1185,6 +1289,30 @@
     >
         &#x1F9EA; Test Fill
     </button>
+
+    <!-- Start Over button (user-facing, shown from Step 2 onwards) -->
+    <button
+        id="startOverBtn"
+        onclick="window.app && window.app._openClearSheet()"
+        title="Clear form and start over"
+    >
+        &#x21BA; Start Over
+    </button>
+
+    <!-- Clear Form confirmation bottom sheet -->
+    <div id="clearFormOverlay" onclick="window.app && window.app._closeClearSheet()"></div>
+    <div id="clearFormSheet" role="dialog" aria-modal="true" aria-labelledby="clearSheetTitle">
+        <div class="sheet-handle"></div>
+        <div class="sheet-warning-icon">&#x26A0;&#xFE0F;</div>
+        <h3 id="clearSheetTitle">Start Over?</h3>
+        <p>All your entered information will be cleared and you'll return to Step 1.</p>
+        <button id="clearFormCancel" onclick="window.app && window.app._closeClearSheet()">
+            Keep My Information
+        </button>
+        <button id="clearFormConfirm" onclick="window.app && window.app._clearForm()">
+            Yes, Clear Everything
+        </button>
+    </div>
 
 </body>
 </html>

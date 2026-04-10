@@ -799,7 +799,30 @@ class RentalApplication {
             section.classList.add('active');
             window.scrollTo({ top: 0, behavior: 'smooth' });
             this.updateFieldsRemainingHint(sectionNumber);
+            this._updateStartOverBtn(sectionNumber);
         }
+    }
+
+    // ---------- Start Over ----------
+    _updateStartOverBtn(sectionNumber) {
+        const btn = document.getElementById('startOverBtn');
+        if (!btn) return;
+        btn.style.display = sectionNumber > 1 ? 'flex' : 'none';
+    }
+
+    _openClearSheet() {
+        document.getElementById('clearFormOverlay').classList.add('open');
+        document.getElementById('clearFormSheet').classList.add('open');
+    }
+
+    _closeClearSheet() {
+        document.getElementById('clearFormOverlay').classList.remove('open');
+        document.getElementById('clearFormSheet').classList.remove('open');
+    }
+
+    _clearForm() {
+        try { localStorage.removeItem(this.config.LOCAL_STORAGE_KEY); } catch(e) {}
+        location.reload();
     }
 
     // ---------- Fields-remaining hint on Next button ----------
