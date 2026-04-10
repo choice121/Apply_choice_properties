@@ -1745,6 +1745,7 @@ class RentalApplication {
                 retryAttempt: 'attempt',
                 pleaseAgreeDeclarations: 'Please agree to all legal declarations before submitting.',
                 networkError: 'Unable to reach our servers. Please check your connection and try again.',
+                networkExhausted: 'We could not confirm your submission due to a connection issue. Your application may have been received — please check your email for a confirmation. If you did not receive one, contact us at 707-706-3137 or try submitting again.',
                 serverError: 'Our system is temporarily unavailable. Please try again in a few minutes, or contact us at 707-706-3137.',
                 copied: 'Copied!',
                 pageTitle: 'Rental Application — Choice Properties'
@@ -2026,6 +2027,7 @@ class RentalApplication {
                 retryAttempt: 'intento',
                 pleaseAgreeDeclarations: 'Por favor acepte todas las declaraciones legales antes de enviar.',
                 networkError: 'No es posible conectarse con nuestros servidores. Por favor verifique su conexión e intente de nuevo.',
+                networkExhausted: 'No pudimos confirmar su envío por un problema de conexión. Su solicitud puede haber sido recibida — por favor revise su correo electrónico. Si no recibió confirmación, contáctenos al 707-706-3137 o intente enviar de nuevo.',
                 serverError: 'Nuestro sistema está temporalmente no disponible. Por favor intente de nuevo en unos minutos, o contáctenos al 707-706-3137.',
                 copied: '¡Copiado!',
                 pageTitle: 'Solicitud de Arrendamiento — Choice Properties'
@@ -2172,10 +2174,10 @@ class RentalApplication {
         }
 
         // Permanent error or max retries reached
-        // If we exhausted auto-retries on a transient (network) error, escalate to the
-        // contact-info message so the user knows how to reach us, not just to "try again".
+        // If we exhausted auto-retries on a transient (network) error, show the
+        // network-exhausted message so users know their submission may have gone through.
         const finalMessage = (isTransient && this.retryCount >= this.maxRetries)
-            ? t.serverError
+            ? (t.networkExhausted || t.serverError)
             : errorMessage;
         msgEl.innerHTML = finalMessage;
         statusArea.classList.add('error');

@@ -3924,22 +3924,26 @@ const EmailTemplates = {
 
 function sendApplicantConfirmation(data, appId) {
   try {
+    const recipientEmail = (data['Email'] || '').toString().trim();
+    if (!recipientEmail || !recipientEmail.includes('@')) {
+      console.error('sendApplicantConfirmation: missing or invalid email for appId ' + appId);
+      return false;
+    }
     const paymentMethods = buildPaymentMethodList(data, false);
     const baseUrl        = ScriptApp.getService().getUrl();
     const dashboardLink  = baseUrl + '?path=dashboard&id=' + appId;
     const htmlBody = EmailTemplates.applicantConfirmation(data, appId, dashboardLink, paymentMethods);
-    const propertySnippet = data['Property Address'] ? ` Ã¢ÂÂ ${data['Property Address'].split(',')[0]}` : '';
+    const propertySnippet = data['Property Address'] ? ' — ' + data['Property Address'].split(',')[0] : '';
     MailApp.sendEmail({
-      to: data['Email'],
-      subject: `Ã¢ÂÂ Application Received${propertySnippet} | Choice Properties (Ref: ${appId})`,
+      to: recipientEmail,
+      subject: '✓ Application Received' + propertySnippet + ' | Choice Properties (Ref: ' + appId + ')',
       htmlBody: htmlBody,
       name: 'Choice Properties Leasing',
-      replyTo: 'choicepropertygroup@hotmail.com',
-      noReply: false
+      replyTo: 'choicepropertygroup@hotmail.com'
     });
     return true;
   } catch (error) {
-    console.error('sendApplicantConfirmation error Ã¢ÂÂ appId: ' + appId + ' | to: ' + data['Email'] + ' | ' + error.toString());
+    console.error('sendApplicantConfirmation error -- appId: ' + appId + ' | to: ' + (data['Email'] || 'MISSING') + ' | error: ' + error.toString());
     return false;
   }
 }
@@ -7404,7 +7408,7 @@ function renderAdminPanel(authToken) {
     const canDeny        = canApprove;
     const canSendLease   = app['Status'] === 'approved' && leaseStatus !== 'signed' && leaseStatus !== 'active';
     const dateStr        = app['Timestamp'] ? new Date(app['Timestamp']).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
-    const phoneClean     = (app['Phone'] || '').replace(/\\D/g, '');
+    const phoneClean     = String(app['Phone'] || '').replace(/\\D/g, '');
     const hfStatus       = app['Holding Fee Status'] || 'none';
     const hfAmt          = parseFloat(app['Holding Fee Amount']) || 0;
     const canRequestHF   = app['Status'] === 'approved' && hfStatus === 'none';
@@ -7709,7 +7713,7 @@ function buildAdminCard(app, baseUrl) {
         </div>
         <div class="card-info-row">
           <a href="mailto:${app['Email']}" class="info-chip" aria-label="Email ${app['Email']}"><i class="fas fa-envelope" style="opacity:.6;"></i> ${app['Email']}</a>
-          <a href="tel:${(app['Phone']||'').replace(/\D/g,'')}" class="info-chip" aria-label="Call ${app['Phone']}"><i class="fas fa-phone" style="opacity:.6;"></i> ${app['Phone']}</a>
+          <a href="tel:${String(app['Phone']||'').replace(/\D/g,'')}" class="info-chip" aria-label="Call ${app['Phone']}"><i class="fas fa-phone" style="opacity:.6;"></i> ${String(app['Phone']||'')}</a>
           <span class="info-chip"><i class="fas fa-house" style="opacity:.6;"></i> ${app['Property Address']||'No property'}</span>
           <span class="info-chip"><i class="fas fa-mobile-screen-button" style="opacity:.6;"></i> ${contactMethod}</span>
           <span class="info-chip"><i class="fas fa-clock" style="opacity:.6;"></i> ${contactTimes}</span>
