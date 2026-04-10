@@ -648,13 +648,13 @@ have `data-i18n="coConsentLabel"`.
 
 ## PHASE 4 — LOGIC & FLOW FIXES
 **Priority:** Medium — affects data quality and form usability
-**Status:** [ ] PENDING
+**Status:** [x] DONE
 **Prerequisite:** Phase 1 complete and approved.
 
 ---
 
 ### ISSUE L1 — Step 6 summary shows only last selected contact method (multi-checkbox bug)
-**Status:** [ ] PENDING
+**Status:** [x] DONE
 **Severity:** MEDIUM — review summary is inaccurate for users with multiple contact methods
 **Files:** `js/script.js`
 
@@ -713,7 +713,7 @@ Object.keys(data).forEach(key => {
 ---
 
 ### ISSUE L2 — Editing from Step 6 summary bypasses validation on return
-**Status:** [ ] PENDING
+**Status:** [x] DONE
 **Severity:** LOW-MEDIUM — a user can break a valid step and still submit
 **Files:** `js/script.js`
 
@@ -756,7 +756,7 @@ goToSection(sectionNumber) {
 ---
 
 ### ISSUE L4 — Current step position not saved/restored (always resets to Step 1 on reload)
-**Status:** [ ] PENDING
+**Status:** [x] DONE
 **Severity:** LOW-MEDIUM — interrupting long sessions forces restart from Step 1
 **Files:** `js/script.js`
 

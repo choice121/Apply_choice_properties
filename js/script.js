@@ -1339,7 +1339,7 @@ class RentalApplication {
         if (saved) {
             try {
                 const data = JSON.parse(saved);
-                const SKIP = new Set(['SSN', 'Co-Applicant SSN', 'Application ID', '_last_updated', '_language', 'DOB', 'Co-Applicant DOB']);
+                const SKIP = new Set(['SSN', 'Co-Applicant SSN', 'Application ID', '_last_updated', '_language', 'DOB', 'Co-Applicant DOB', '_currentStep']);
                 const form = document.getElementById('rentalApplication');
                 if (!form) return;
 
@@ -1365,6 +1365,19 @@ class RentalApplication {
                     }
                 });
                 if (data._language) this.state.language = data._language;
+                if (data._currentStep && data._currentStep > 1) {
+                    const stepNum = parseInt(data._currentStep, 10);
+                    if (stepNum >= 1 && stepNum <= 6) {
+                        setTimeout(() => {
+                            document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+                            const targetSection = document.getElementById('section' + stepNum);
+                            if (targetSection) {
+                                targetSection.classList.add('active');
+                                this.updateProgressBar();
+                            }
+                        }, 10);
+                    }
+                }
             } catch (e) { console.warn('[CP App] Non-critical error in restoreSavedProgress:', e); }
         }
     }
@@ -1375,6 +1388,7 @@ class RentalApplication {
         sensitiveKeys.forEach(key => delete data[key]);
         data._last_updated = new Date().toISOString();
         data._language = this.state.language || 'en';
+        data._currentStep = this.getCurrentSection();
         try { localStorage.setItem(this.config.LOCAL_STORAGE_KEY, JSON.stringify(data)); } catch (e) {}
         this._flashAutoSave();
     }
@@ -2648,12 +2662,10 @@ class RentalApplication {
         const summaryContainer = document.getElementById('applicationSummary');
         if (!summaryContainer) return;
 
-        const form = document.getElementById('rentalApplication');
-        const formData = new FormData(form);
-        const data = {};
-        formData.forEach((value, key) => {
-            if (value && key !== 'Application ID') {
-                data[key] = value;
+        const data = this.getAllFormData();
+        Object.keys(data).forEach(key => {
+            if (Array.isArray(data[key])) {
+                data[key] = data[key].join(', ');
             }
         });
 
@@ -2740,6 +2752,10 @@ class RentalApplication {
     }
 
     goToSection(sectionNumber) {
+        // NOTE: This method bypasses step validation intentionally.
+        // Used only from the Step 6 "Edit Section" summary links.
+        // Submission validation in handleFormSubmit() re-validates all steps 1-5
+        // before allowing final submit, so data integrity is still enforced.
         this.hideSection(this.getCurrentSection());
         this.showSection(sectionNumber);
         this.updateProgressBar();
