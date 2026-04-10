@@ -1059,6 +1059,42 @@ function doPost(e) {
         return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
       }
 
+      // ── checkRecentSubmission ─────────────────────────────────────────────
+      // Lightweight read: checks if a submission was received for this email
+      // within the last 30 minutes. Used by the frontend after a network error
+      // to auto-detect whether GAS actually processed the form, and show success.
+      if (formData['_action'] === 'checkRecentSubmission') {
+        try {
+          const checkEmail = (formData['email'] || '').toLowerCase().trim();
+          if (!checkEmail || !checkEmail.includes('@')) {
+            return ContentService.createTextOutput(JSON.stringify({ found: false })).setMimeType(ContentService.MimeType.JSON);
+          }
+          const ss2    = getSpreadsheet();
+          const sheet2 = ss2.getSheetByName(SHEET_NAME);
+          if (!sheet2) return ContentService.createTextOutput(JSON.stringify({ found: false })).setMimeType(ContentService.MimeType.JSON);
+          const col2   = getColumnMap(sheet2);
+          const data2  = sheet2.getDataRange().getValues();
+          const now2   = Date.now();
+          const WINDOW_MS = 30 * 60 * 1000; // 30 minutes
+          const emailIdx = (col2['Email']     || 1) - 1;
+          const appIdIdx = (col2['App ID']    || 1) - 1;
+          const tsIdx    = (col2['Timestamp'] || 1) - 1;
+          for (let i = data2.length - 1; i >= 1; i--) {
+            const rowEmail = String(data2[i][emailIdx] || '').toLowerCase().trim();
+            const rowAppId = data2[i][appIdIdx] || '';
+            const rowTs    = data2[i][tsIdx];
+            if (rowEmail !== checkEmail || !rowAppId) continue;
+            const tsMs = (rowTs instanceof Date) ? rowTs.getTime() : new Date(rowTs).getTime();
+            if (!isNaN(tsMs) && (now2 - tsMs) <= WINDOW_MS) {
+              return ContentService.createTextOutput(JSON.stringify({ found: true, appId: String(rowAppId) })).setMimeType(ContentService.MimeType.JSON);
+            }
+          }
+          return ContentService.createTextOutput(JSON.stringify({ found: false })).setMimeType(ContentService.MimeType.JSON);
+        } catch (chkErr) {
+          return ContentService.createTextOutput(JSON.stringify({ found: false })).setMimeType(ContentService.MimeType.JSON);
+        }
+      }
+
     // Ã¢ÂÂÃ¢ÂÂ Honeypot check Ã¢ÂÂ bots fill this field, real users don't Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
       if (formData['website'] && formData['website'].trim() !== '') {
         // Return fake success to avoid revealing the honeypot mechanism

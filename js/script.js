@@ -2465,9 +2465,47 @@ class RentalApplication {
                 submitBtn.disabled = false;
             }
             this.setState({ isSubmitting: false });
-            
+
             const isTransient = this.isTransientError(error);
             this.showSubmissionError(error, isTransient);
+
+            // After all retries are exhausted on a network/transient error,
+            // auto-check whether GAS actually processed the form (it often does
+            // on slow connections even when the response never makes it back).
+            if (isTransient && this.retryCount >= this.maxRetries && this.BACKEND_URL) {
+                this._autoVerifySubmission();
+            }
+        }
+    }
+
+    // ---------- _autoVerifySubmission ----------
+    // Called after network retries are exhausted. Makes a lightweight POST to the
+    // backend to check if a submission for this email was received in the last 30 min.
+    // If found, transitions to the success screen automatically.
+    async _autoVerifySubmission() {
+        try {
+            const emailEl = document.getElementById('email');
+            const email = emailEl ? emailEl.value.trim() : '';
+            if (!email || !email.includes('@') || !this.BACKEND_URL) return;
+
+            // Wait a few seconds to let GAS finish processing if it is still running
+            await this.delay(4000);
+
+            const fd = new FormData();
+            fd.append('_action', 'checkRecentSubmission');
+            fd.append('email', email);
+
+            const resp = await fetch(this.BACKEND_URL, { method: 'POST', body: fd });
+            const ct = resp.headers.get('content-type') || '';
+            if (!resp.ok || !ct.includes('application/json')) return;
+
+            const result = await resp.json();
+            if (result && result.found && result.appId) {
+                console.log('[CP] Auto-verify: submission confirmed for', email, '— App ID:', result.appId);
+                this.handleSubmissionSuccess(result.appId);
+            }
+        } catch (e) {
+            // Verification failed silently — user already sees the helpful error message
         }
     }
 
