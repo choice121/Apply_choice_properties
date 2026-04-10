@@ -2757,6 +2757,98 @@ class RentalApplication {
         summaryContainer.innerHTML = summaryHtml;
     }
 
+    // ================================================================
+    // DEV ONLY — Remove before final launch
+    // Fills every form field with realistic test data and jumps to
+    // Step 6 so you can inspect the review screen and test submit.
+    // ================================================================
+    _devFillTestData() {
+        const d   = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+        const chk = (id, c) => { const el = document.getElementById(id); if (el) el.checked = c; };
+        const sel = (id, v) => { const el = document.getElementById(id); if (el) { el.value = v; el.dispatchEvent(new Event('change')); } };
+        const fire = id => { const el = document.getElementById(id); if (el) el.dispatchEvent(new Event('input')); };
+
+        // Move-in date 33 days from today (always valid)
+        const moveIn = new Date();
+        moveIn.setDate(moveIn.getDate() + 33);
+        const pad = n => String(n).padStart(2, '0');
+        const moveInStr = `${moveIn.getFullYear()}-${pad(moveIn.getMonth()+1)}-${pad(moveIn.getDate())}`;
+
+        // ── STEP 1 — Property & Applicant ─────────────────────────
+        d('propertyAddress', '742 Vineyard Court, Napa, CA 94558');
+        d('requestedMoveIn', moveInStr);
+        sel('desiredLeaseTerm', '12 months');
+        d('firstName', 'Maria');
+        d('lastName', 'Rodriguez');
+        d('email', 'maria.test@example.com');
+        d('phone', '(707) 555-1234');
+        d('dob', '1990-06-15');
+        d('ssn', '7890');
+
+        // ── STEP 2 — Residency & Occupancy ────────────────────────
+        d('currentAddress', '456 Oak Street, Apt 3B, Napa, CA 94559');
+        d('residencyStart', '2 years 4 months');
+        d('rentAmount', '1800');
+        d('landlordName', 'John Peterson');
+        d('landlordPhone', '(707) 555-9876');
+        const rl = document.getElementById('reasonLeaving');
+        if (rl) rl.value = 'Looking for a larger space closer to work. Great experience with current landlord.';
+        d('totalOccupants', '2');
+        chk('petsNo', true);
+        chk('vehicleYes', true);
+        sel('vehicleYes', 'Yes');   // trigger show
+        const vToggle = document.querySelector('input[name="Has Vehicle"][value="Yes"]');
+        if (vToggle) { vToggle.checked = true; vToggle.dispatchEvent(new Event('change')); }
+        d('vehicleMake', 'Toyota');
+        d('vehicleModel', 'Camry');
+        d('vehicleYear', '2021');
+        d('vehiclePlate', '7ABC123');
+        chk('evictedNo', true);
+        chk('smokeNo', true);
+
+        // ── STEP 3 — Employment & Income ──────────────────────────
+        sel('employmentStatus', 'Full-time');
+        d('employer', 'Napa Valley Winery LLC');
+        d('jobTitle', 'Marketing Manager');
+        d('employmentDuration', '4 years');
+        d('supervisorName', 'David Chen');
+        d('supervisorPhone', '(707) 555-5432');
+        d('monthlyIncome', '5500');
+        fire('monthlyIncome');
+
+        // ── STEP 4 — References & Emergency Contact ───────────────
+        d('ref1Name', 'Sarah Johnson');
+        d('ref1Phone', '(707) 555-2222');
+        d('ref1Relationship', 'Former Landlord');
+        d('ref2Name', 'Michael Torres');
+        d('ref2Phone', '(707) 555-3333');
+        d('ref2Relationship', 'Employer');
+        d('emergencyName', 'Carlos Rodriguez');
+        d('emergencyPhone', '(707) 555-4444');
+        d('emergencyRelationship', 'Brother');
+
+        // ── STEP 5 — Payment Preferences ──────────────────────────
+        sel('primaryPayment', 'Venmo');
+        chk('contactMethodEmail', true);
+        chk('timeMorning', true);
+        chk('timeAfternoon', true);
+
+        // ── STEP 6 — Consents ─────────────────────────────────────
+        chk('certifyCorrect', true);
+        chk('authorizeVerify', true);
+        chk('termsAgree', true);
+        chk('feeAcknowledge', true);
+        chk('infoAccuracy', true);
+        chk('dataConsent', true);
+
+        // Jump to Step 6 review and regenerate summary
+        this.goToSection(6);
+        this.generateApplicationSummary();
+        window.scrollTo(0, 0);
+        console.log('[DEV] Test data filled — reviewing Step 6');
+    }
+    // ================================================================
+
     goToSection(sectionNumber) {
         // NOTE: This method bypasses step validation intentionally.
         // Used only from the Step 6 "Edit Section" summary links.
