@@ -807,7 +807,7 @@ class RentalApplication {
     _updateStartOverBtn(sectionNumber) {
         const btn = document.getElementById('startOverBtn');
         if (!btn) return;
-        btn.style.display = sectionNumber > 1 ? 'flex' : 'none';
+        btn.classList.toggle('visible', sectionNumber > 1);
     }
 
     _openClearSheet() {
