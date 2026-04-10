@@ -1201,6 +1201,14 @@
             touch-action: manipulation;
         }
 
+        /* ── Button icon size control ── */
+        .btn-icon {
+            font-size: 12px;
+            line-height: 1;
+            vertical-align: middle;
+            display: inline-block;
+        }
+
         /* ── Clear form overlay ── */
         #clearFormOverlay {
             display: none;
@@ -1283,12 +1291,12 @@
     </style>
 
     <button id="devTestFillBtn" title="Fill form with test data">
-        &#x1F9EA; Test Fill
+        <span class="btn-icon">&#x1F9EA;</span> Test Fill
     </button>
 
     <!-- Start Over button (user-facing, shown from Step 2 onwards) -->
     <button id="startOverBtn" title="Clear form and start over">
-        &#x21BA; Start Over
+        <span class="btn-icon">&#x21BA;</span> Start Over
     </button>
 
     <!-- Clear Form confirmation bottom sheet -->
