@@ -493,13 +493,13 @@ and nowhere else (no call sites), delete safely.
 
 ## PHASE 3 — VALIDATION FIXES
 **Priority:** Medium-High — affects data quality and user experience
-**Status:** [ ] PENDING
+**Status:** [x] DONE
 **Prerequisite:** Phase 1 complete and approved.
 
 ---
 
 ### ISSUE V1 — `ref1Relationship` is required in HTML but has no visual required indicator
-**Status:** [ ] PENDING
+**Status:** [x] DONE
 **Severity:** MEDIUM — confusing UX; users don't know it's required until they hit the error
 **Files:** `index.html`
 
@@ -524,7 +524,7 @@ Step 4 of the form: "Relationship to Reference 1" label should show a red asteri
 ---
 
 ### ISSUE V4+V5 — Timezone bug in date validation (move-in date and date of birth)
-**Status:** [ ] PENDING
+**Status:** [x] DONE
 **Severity:** MEDIUM — causes false "date in the past" or "must be 18+" errors for some users
 **Files:** `js/script.js`
 
@@ -602,7 +602,7 @@ For DOB (replace the `new Date(field.value)` call around line 664):
 ---
 
 ### ISSUE V6 — Co-applicant consent checkbox is never validated (references non-existent ID)
-**Status:** [ ] PENDING
+**Status:** [x] DONE
 **Severity:** MEDIUM — users can skip authorization of co-applicant verification
 **Files:** `js/script.js`, `index.html`
 

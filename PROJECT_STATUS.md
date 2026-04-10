@@ -5,9 +5,9 @@ in index.html and js/script.js. A full phased fix plan is in:
 
   docs/FRONTEND_FIX_PLAN.md  (READ THIS FIRST IF DOING FRONTEND WORK)
 
-Active fix phase: Phase 3 — Validation Fixes (Phases 1 + 2 COMPLETE)
-Phase 1 (C1, C2, C3) — DONE | Phase 2 (T1-T5) — DONE (April 9, 2026)
-Phase 3 (V1, V4, V5, V6) — PENDING, waiting for user to say 'continue'
+Active fix phase: Phase 4 — Logic & Flow (Phases 1-3 COMPLETE)
+Phase 1 (C1-C3) DONE | Phase 2 (T1-T5) DONE | Phase 3 (V1,V4,V5,V6) DONE
+Phase 4 (L1, L2, L4) — PENDING, waiting for user to say 'continue'
 Workflow: Fix one phase at a time. Mark each issue [x] DONE in FRONTEND_FIX_PLAN.md
 as you complete it. STOP after each phase and wait for user to say 'continue'.
 

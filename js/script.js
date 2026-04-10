@@ -661,12 +661,12 @@ class RentalApplication {
                 errorMessage = this.state.language === 'en' ? 'SSN must contain numbers only.' : 'El SSN debe contener solo números.';
             }
         } else if (field.id === 'dob' || field.id === 'coDob') {
-            const birthDate = new Date(field.value);
+            const birthDate = this._parseLocalDate(field.value);
             const today = new Date();
             if (!field.value) {
                 isValid = false;
                 errorMessage = this.state.language === 'en' ? 'Please enter your date of birth.' : 'Por favor ingrese su fecha de nacimiento.';
-            } else if (isNaN(birthDate.getTime())) {
+            } else if (!birthDate) {
                 isValid = false;
                 errorMessage = this.state.language === 'en' ? 'Please enter a valid date of birth (18+ required).' : 'Por favor ingrese una fecha válida (18+ requerido).';
             } else {
@@ -679,13 +679,13 @@ class RentalApplication {
                 }
             }
         } else if (field.id === 'requestedMoveIn') {
-            const moveInDate = new Date(field.value);
+            const moveInDate = this._parseLocalDate(field.value);
             const today = new Date();
             today.setHours(0, 0, 0, 0);
             if (!field.value) {
                 isValid = false;
                 errorMessage = this.state.language === 'en' ? 'Please select a move-in date.' : 'Por favor seleccione una fecha de mudanza.';
-            } else if (moveInDate < today) {
+            } else if (!moveInDate || moveInDate < today) {
                 isValid = false;
                 errorMessage = this.state.language === 'en' ? 'Move-in date cannot be in the past.' : 'La fecha de mudanza no puede ser en el pasado.';
             }
@@ -1411,6 +1411,14 @@ class RentalApplication {
             clearTimeout(timeout);
             timeout = setTimeout(() => func.apply(this, arguments), wait);
         };
+    }
+
+    _parseLocalDate(dateStr) {
+        if (!dateStr) return null;
+        const parts = dateStr.split('-');
+        if (parts.length !== 3) return null;
+        const d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+        return isNaN(d.getTime()) ? null : d;
     }
 
     // ---------- Language toggle ----------
