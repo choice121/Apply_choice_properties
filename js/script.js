@@ -1092,8 +1092,8 @@ class RentalApplication {
                 this.clearError(el);
                 const lbl = getLabel(id);
                 if (lbl && labelEn) lbl.textContent = lang === 'es' ? labelEs : labelEn;
-                const row = el.closest('.form-row') || el.closest('.form-group');
-                if (row && !rowsSeen.has(row)) { row.style.display = ''; rowsSeen.add(row); }
+                const col = el.closest('.form-col') || el.closest('.form-group');
+                if (col && !rowsSeen.has(col)) { col.style.display = ''; rowsSeen.add(col); }
             };
 
             const hideField = (id) => {
@@ -1103,8 +1103,8 @@ class RentalApplication {
                 el.value = '';
                 el.classList.remove('is-invalid');
                 this.clearError(el);
-                const row = el.closest('.form-row') || el.closest('.form-group');
-                if (row && !rowsSeen.has(row)) { row.style.display = 'none'; rowsSeen.add(row); }
+                const col = el.closest('.form-col') || el.closest('.form-group');
+                if (col && !rowsSeen.has(col)) { col.style.display = 'none'; rowsSeen.add(col); }
             };
 
             if (status === 'Unemployed') {
