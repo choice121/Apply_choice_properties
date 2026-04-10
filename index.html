@@ -1181,8 +1181,8 @@
         /* ── Start Over button ── */
         #startOverBtn {
             position: fixed;
-            bottom: 24px;
-            left: 20px;
+            bottom: 76px;
+            right: 20px;
             z-index: 9999;
             background: #fff;
             color: #c0392b;
@@ -1282,36 +1282,24 @@
         }
     </style>
 
-    <button
-        id="devTestFillBtn"
-        onclick="window.app && window.app._devFillTestData()"
-        title="Fill form with test data"
-    >
+    <button id="devTestFillBtn" title="Fill form with test data">
         &#x1F9EA; Test Fill
     </button>
 
     <!-- Start Over button (user-facing, shown from Step 2 onwards) -->
-    <button
-        id="startOverBtn"
-        onclick="window.app && window.app._openClearSheet()"
-        title="Clear form and start over"
-    >
+    <button id="startOverBtn" title="Clear form and start over">
         &#x21BA; Start Over
     </button>
 
     <!-- Clear Form confirmation bottom sheet -->
-    <div id="clearFormOverlay" onclick="window.app && window.app._closeClearSheet()"></div>
+    <div id="clearFormOverlay"></div>
     <div id="clearFormSheet" role="dialog" aria-modal="true" aria-labelledby="clearSheetTitle">
         <div class="sheet-handle"></div>
         <div class="sheet-warning-icon">&#x26A0;&#xFE0F;</div>
         <h3 id="clearSheetTitle">Start Over?</h3>
         <p>All your entered information will be cleared and you'll return to Step 1.</p>
-        <button id="clearFormCancel" onclick="window.app && window.app._closeClearSheet()">
-            Keep My Information
-        </button>
-        <button id="clearFormConfirm" onclick="window.app && window.app._clearForm()">
-            Yes, Clear Everything
-        </button>
+        <button id="clearFormCancel">Keep My Information</button>
+        <button id="clearFormConfirm">Yes, Clear Everything</button>
     </div>
 
 </body>

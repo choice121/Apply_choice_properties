@@ -1401,6 +1401,7 @@ class RentalApplication {
                             if (targetSection) {
                                 targetSection.classList.add('active');
                                 this.updateProgressBar();
+                                this._updateStartOverBtn(stepNum);
                             }
                         }, 10);
                     }
@@ -2924,4 +2925,17 @@ document.addEventListener('DOMContentLoaded', () => {
     window.app = new RentalApplication();
     const s1 = document.getElementById('section1');
     if (s1) s1.classList.add('active');
+
+    // ── Dev / utility button listeners (replaces inline onclick — CSP safe) ──
+    const devFillBtn     = document.getElementById('devTestFillBtn');
+    const startOverBtn   = document.getElementById('startOverBtn');
+    const clearOverlay   = document.getElementById('clearFormOverlay');
+    const clearCancel    = document.getElementById('clearFormCancel');
+    const clearConfirm   = document.getElementById('clearFormConfirm');
+
+    if (devFillBtn)   devFillBtn.addEventListener('click',   () => window.app._devFillTestData());
+    if (startOverBtn) startOverBtn.addEventListener('click', () => window.app._openClearSheet());
+    if (clearOverlay) clearOverlay.addEventListener('click', () => window.app._closeClearSheet());
+    if (clearCancel)  clearCancel.addEventListener('click',  () => window.app._closeClearSheet());
+    if (clearConfirm) clearConfirm.addEventListener('click', () => window.app._clearForm());
 });
