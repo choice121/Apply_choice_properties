@@ -77,35 +77,39 @@ class RentalApplication {
                 ? window.CP_CONFIG.BACKEND_URL
                 : '';
 
-                  // [10B-2] CSRF token removed: client-generated tokens provide no real protection.
-        // Bot protection is handled server-side via honeypot validation in doPost().
+        // [10B-2] CSRF nonce: a random token generated each session and sent with submission.
+        // The backend validates it is present and well-formed (32-128 alphanumeric chars).
+        // This provides basic bot friction. Deeper bot protection is server-side via
+        // honeypot validation in doPost().
 
         this.initialize();
     }
 
     // ---------- SSN toggle ----------
     setupSSNToggle() {
-        const ssnInput = document.getElementById('ssn');
-        if (!ssnInput) return;
-        const container = ssnInput.parentElement;
-        let toggle = container.querySelector('.ssn-toggle');
-        if (!toggle) {
-            toggle = document.createElement('button');
-            toggle.type = 'button';
-            toggle.className = 'ssn-toggle';
-            toggle.id = 'ssnToggle';
-            toggle.innerHTML = '<i class="fas fa-eye"></i>';
-            container.appendChild(toggle);
-        }
-        ssnInput.type = 'password';
-        toggle.addEventListener('click', () => {
-            if (ssnInput.type === 'password') {
-                ssnInput.type = 'text';
-                toggle.innerHTML = '<i class="fas fa-eye-slash"></i>';
-            } else {
-                ssnInput.type = 'password';
+        ['ssn', 'coSsn'].forEach(fieldId => {
+            const ssnInput = document.getElementById(fieldId);
+            if (!ssnInput) return;
+            const container = ssnInput.parentElement;
+            let toggle = container.querySelector('.ssn-toggle');
+            if (!toggle) {
+                toggle = document.createElement('button');
+                toggle.type = 'button';
+                toggle.className = 'ssn-toggle';
+                if (fieldId === 'ssn') toggle.id = 'ssnToggle';
                 toggle.innerHTML = '<i class="fas fa-eye"></i>';
+                container.appendChild(toggle);
             }
+            ssnInput.type = 'password';
+            toggle.addEventListener('click', () => {
+                if (ssnInput.type === 'password') {
+                    ssnInput.type = 'text';
+                    toggle.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                } else {
+                    ssnInput.type = 'password';
+                    toggle.innerHTML = '<i class="fas fa-eye"></i>';
+                }
+            });
         });
     }
 

@@ -815,13 +815,13 @@ const SKIP = new Set(['SSN', 'Co-Applicant SSN', 'Application ID', '_last_update
 
 ## PHASE 5 — CODE QUALITY & CONSISTENCY
 **Priority:** Low — no user-facing functional impact, but important for maintainability
-**Status:** [ ] PENDING
+**Status:** [x] DONE
 **Prerequisite:** Phases 1-3 complete and approved.
 
 ---
 
 ### ISSUE Q4 — Co-applicant SSN field has no show/hide eye toggle
-**Status:** [ ] PENDING
+**Status:** [x] DONE
 **Severity:** LOW — inconsistent UX between primary and co-applicant SSN fields
 **Files:** `js/script.js`
 
@@ -869,7 +869,7 @@ Clicking it toggles between masked and visible input.
 ---
 
 ### ISSUE Q5 — CSRF comment is incorrect (says "removed" but it's still sent)
-**Status:** [ ] PENDING
+**Status:** [x] DONE
 **Severity:** LOW — misleading for future developers/AI
 **Files:** `js/script.js`
 
@@ -896,30 +896,30 @@ Update the comment to be accurate:
 ## COMPLETION CHECKLIST
 
 ### Phase 1 — Critical (Must do first)
-- [ ] C1: Fix `getTranslations()` null guard / initialization order
-- [ ] C2: Fix saved language preference being overwritten on reload
-- [ ] C3: Fix co-applicant validation blocking on optional fields
+- [x] C1: Fix `getTranslations()` null guard / initialization order
+- [x] C2: Fix saved language preference being overwritten on reload
+- [x] C3: Fix co-applicant validation blocking on optional fields
 
 ### Phase 2 — Translation System
-- [ ] T1: Verify C2 fix covers load-time translation (no separate fix likely needed)
-- [ ] T2: Verify C2 fix covers fee title translation (may need additional fix)
-- [ ] T3: Fix language toggle button rebuild (remove redundant HTML rebuild)
-- [ ] T4: Add translation keys for "Applying for" and "View listing" in banner
-- [ ] T5: Remove `updateBilingualLabels()` dead stub
+- [x] T1: Verify C2 fix covers load-time translation (no separate fix likely needed)
+- [x] T2: Verify C2 fix covers fee title translation (may need additional fix)
+- [x] T3: Fix language toggle button rebuild (remove redundant HTML rebuild)
+- [x] T4: Add translation keys for "Applying for" and "View listing" in banner
+- [x] T5: Remove `updateBilingualLabels()` dead stub
 
 ### Phase 3 — Validation
-- [ ] V1: Add `class="required"` to ref1Relationship label in index.html
-- [ ] V4+V5: Add `_parseLocalDate()` helper and update date validation
-- [ ] V6: Add `id="coConsent"` to co-applicant consent checkbox in index.html
+- [x] V1: Add `class="required"` to ref1Relationship label in index.html
+- [x] V4+V5: Add `_parseLocalDate()` helper and update date validation
+- [x] V6: Add `id="coConsent"` to co-applicant consent checkbox in index.html
 
 ### Phase 4 — Logic & Flow
-- [ ] L1: Fix `generateApplicationSummary()` to use `getAllFormData()`
-- [ ] L2: WONTFIX — add explanatory comment to `goToSection()`
-- [ ] L4: Save and restore current step in localStorage
+- [x] L1: Fix `generateApplicationSummary()` to use `getAllFormData()`
+- [x] L2: WONTFIX — add explanatory comment to `goToSection()`
+- [x] L4: Save and restore current step in localStorage
 
 ### Phase 5 — Code Quality
-- [ ] Q4: Add SSN eye toggle to co-applicant field
-- [ ] Q5: Fix outdated CSRF comment
+- [x] Q4: Add SSN eye toggle to co-applicant field
+- [x] Q5: Fix outdated CSRF comment
 
 ---
 
