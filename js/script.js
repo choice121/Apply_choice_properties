@@ -2795,8 +2795,6 @@ class RentalApplication {
         if (rl) rl.value = 'Looking for a larger space closer to work. Great experience with current landlord.';
         d('totalOccupants', '2');
         chk('petsNo', true);
-        chk('vehicleYes', true);
-        sel('vehicleYes', 'Yes');   // trigger show
         const vToggle = document.querySelector('input[name="Has Vehicle"][value="Yes"]');
         if (vToggle) { vToggle.checked = true; vToggle.dispatchEvent(new Event('change')); }
         d('vehicleMake', 'Toyota');
@@ -2846,6 +2844,14 @@ class RentalApplication {
         this.generateApplicationSummary();
         window.scrollTo(0, 0);
         console.log('[DEV] Test data filled — reviewing Step 6');
+
+        // Visual toast confirmation
+        const toast = document.createElement('div');
+        toast.id = 'devToast';
+        toast.textContent = '🧪 Test data loaded';
+        toast.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#2ecc71;color:#fff;padding:10px 20px;border-radius:50px;font-size:14px;font-weight:700;z-index:99999;box-shadow:0 4px 14px rgba(0,0,0,0.25);pointer-events:none;';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 2500);
     }
     // ================================================================
 
@@ -2890,7 +2896,6 @@ window.copyAppId = function() {
 // ============================================================
 // Initialize app
 // ============================================================
-// NOTE: test-fill functionality was removed — see git history if needed.
 
 document.addEventListener('DOMContentLoaded', () => {
     window.app = new RentalApplication();
