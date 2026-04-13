@@ -2476,15 +2476,18 @@ class RentalApplication {
             }
 
             // GAS can return HTML error pages (quota exceeded, script error, etc.)
-            // Always check content type before parsing as JSON
+            // Try to parse JSON regardless of content-type — GAS sometimes returns
+            // valid JSON with text/plain content-type through its redirect chain.
             let result;
             const contentType = response.headers.get('content-type') || '';
-            if (!response.ok || !contentType.includes('application/json')) {
+            if (!response.ok) {
                 throw new Error(t.serverError);
             }
             try {
-                result = await response.json();
+                const rawText = await response.text();
+                result = JSON.parse(rawText);
             } catch (parseErr) {
+                // If we can't parse JSON at all, it's a real server error (HTML page etc.)
                 throw new Error(t.serverError);
             }
 
@@ -2550,22 +2553,24 @@ class RentalApplication {
             const email = emailEl ? emailEl.value.trim() : '';
             if (!email || !email.includes('@') || !this.BACKEND_URL) return;
 
-            // Wait 3 seconds — enough for GAS to finish processing the form
-            await this.delay(3000);
+            // Wait 6 seconds — give GAS enough time to finish processing and write to Sheets
+            await this.delay(6000);
 
-            // Try up to 4 times with increasing delays (3s, 6s, 12s, 20s between attempts)
-            const delays = [0, 3000, 6000, 12000];
+            // Try up to 4 times with increasing delays (6s, 8s, 12s, 20s between attempts)
+            const delays = [0, 6000, 8000, 12000];
             let result = null;
             for (let attempt = 0; attempt < delays.length; attempt++) {
                 if (attempt > 0) await this.delay(delays[attempt]);
                 try {
                     // GET endpoint — GAS handles this directly with no redirect, making it
                     // reliable even when the main POST submission response was lost.
+                    // Parse as JSON regardless of content-type (GAS sometimes returns
+                    // valid JSON with text/plain content-type).
                     const verifyUrl = this.BACKEND_URL + '?path=checkRecentSubmission&email=' + encodeURIComponent(email);
                     const resp = await fetch(verifyUrl);
-                    const ct = resp.headers.get('content-type') || '';
-                    if (!resp.ok || !ct.includes('application/json')) continue;
-                    const data = await resp.json();
+                    if (!resp.ok) continue;
+                    let data;
+                    try { data = JSON.parse(await resp.text()); } catch (_) { continue; }
                     if (data && data.found && data.appId) { result = data; break; }
                 } catch (_verifyNetErr) {
                     // Network error on this attempt — try again
