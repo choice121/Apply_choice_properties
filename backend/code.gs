@@ -325,6 +325,40 @@ function doGet(e) {
         return ContentService.createTextOutput(JSON.stringify(loadResumeProgress(token))).setMimeType(ContentService.MimeType.JSON);
 
       // [FIXED-B3] Health check endpoint Ã¢ÂÂ allows listing platform to verify backend is alive
+    } else if (path === 'checkRecentSubmission') {
+      // Lightweight GET used by the frontend after a network error to confirm
+      // whether GAS actually processed the form. GET avoids the POST redirect
+      // chain, making it far more reliable on slow/mobile connections.
+      try {
+        var chkEmail = (params.parameter.email || '').toLowerCase().trim();
+        if (!chkEmail || !chkEmail.includes('@')) {
+          return ContentService.createTextOutput(JSON.stringify({ found: false })).setMimeType(ContentService.MimeType.JSON);
+        }
+        var ss4    = getSpreadsheet();
+        var sheet4 = ss4.getSheetByName(SHEET_NAME);
+        if (!sheet4) return ContentService.createTextOutput(JSON.stringify({ found: false })).setMimeType(ContentService.MimeType.JSON);
+        var col4  = getColumnMap(sheet4);
+        var data4 = sheet4.getDataRange().getValues();
+        var now4  = Date.now();
+        var WIN_MS = 30 * 60 * 1000;
+        var eIdx4 = (col4['Email']     || 1) - 1;
+        var aIdx4 = (col4['App ID']    || 1) - 1;
+        var tIdx4 = (col4['Timestamp'] || 1) - 1;
+        for (var ri = data4.length - 1; ri >= 1; ri--) {
+          var rowEmail4 = String(data4[ri][eIdx4] || '').toLowerCase().trim();
+          var rowAppId4 = data4[ri][aIdx4] || '';
+          var rowTs4    = data4[ri][tIdx4];
+          if (rowEmail4 !== chkEmail || !rowAppId4) continue;
+          var tsMs4 = (rowTs4 instanceof Date) ? rowTs4.getTime() : new Date(rowTs4).getTime();
+          if (!isNaN(tsMs4) && (now4 - tsMs4) <= WIN_MS) {
+            return ContentService.createTextOutput(JSON.stringify({ found: true, appId: String(rowAppId4) })).setMimeType(ContentService.MimeType.JSON);
+          }
+        }
+        return ContentService.createTextOutput(JSON.stringify({ found: false })).setMimeType(ContentService.MimeType.JSON);
+      } catch (chkGetErr) {
+        return ContentService.createTextOutput(JSON.stringify({ found: false })).setMimeType(ContentService.MimeType.JSON);
+      }
+
     } else if (path === 'health') {
       return ContentService
         .createTextOutput(JSON.stringify({ status: 'ok', timestamp: new Date().toISOString(), version: '10.0' }))

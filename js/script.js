@@ -2507,31 +2507,38 @@ class RentalApplication {
 
     // ---------- _autoVerifySubmission ----------
     // Called in the background immediately after the FIRST network/transient error.
-    // Makes a lightweight POST to the backend to check if a submission for this email
-    // was received in the last 30 min. If found, cancels any pending retry and
-    // transitions to the success screen automatically (usually within ~2-3 seconds).
+    // Uses a GET request (no GAS redirect chain) to check if a submission for this
+    // email was received in the last 30 min. GET is significantly more reliable on
+    // poor/mobile connections because GAS returns the response directly.
+    // Retries up to 4 times with increasing delays before giving up.
     async _autoVerifySubmission() {
         try {
             const emailEl = document.getElementById('email');
             const email = emailEl ? emailEl.value.trim() : '';
             if (!email || !email.includes('@') || !this.BACKEND_URL) return;
 
-            // Wait 2 seconds — enough for GAS to finish, short enough to catch the result
-            // before the first auto-retry's 2-second countdown expires.
-            await this.delay(2000);
+            // Wait 3 seconds — enough for GAS to finish processing the form
+            await this.delay(3000);
 
-            const fd = new FormData();
-            fd.append('_action', 'checkRecentSubmission');
-            fd.append('email', email);
-
-            const resp = await fetch(this.BACKEND_URL, { method: 'POST', body: fd });
-            const ct = resp.headers.get('content-type') || '';
-            if (!resp.ok || !ct.includes('application/json')) {
-                this._verifyStarted = false;
-                return;
+            // Try up to 4 times with increasing delays (3s, 6s, 12s, 20s between attempts)
+            const delays = [0, 3000, 6000, 12000];
+            let result = null;
+            for (let attempt = 0; attempt < delays.length; attempt++) {
+                if (attempt > 0) await this.delay(delays[attempt]);
+                try {
+                    // GET endpoint — GAS handles this directly with no redirect, making it
+                    // reliable even when the main POST submission response was lost.
+                    const verifyUrl = this.BACKEND_URL + '?path=checkRecentSubmission&email=' + encodeURIComponent(email);
+                    const resp = await fetch(verifyUrl);
+                    const ct = resp.headers.get('content-type') || '';
+                    if (!resp.ok || !ct.includes('application/json')) continue;
+                    const data = await resp.json();
+                    if (data && data.found && data.appId) { result = data; break; }
+                } catch (_verifyNetErr) {
+                    // Network error on this attempt — try again
+                }
             }
 
-            const result = await resp.json();
             if (result && result.found && result.appId) {
                 console.log('[CP] Auto-verify: submission confirmed for', email, '— App ID:', result.appId);
                 // Cancel any pending auto-retry before showing success
