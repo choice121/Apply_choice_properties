@@ -1,6 +1,6 @@
 /*
 =======================================================================
-  â ARCHITECTURE ENFORCEMENT HEADER — READ BEFORE MODIFYING â
+  ⛔ ARCHITECTURE ENFORCEMENT HEADER — READ BEFORE MODIFYING ⛔
 =======================================================================
   PROJECT:  Choice Properties - Rental Application
   RUNTIME:  NONE — This file runs in the browser only (no Node.js).
@@ -22,7 +22,7 @@
   See PROJECT_RULES.md at the project root for the full contract.
 =======================================================================
   INTEGRATION NOTE (Session 028):
-  âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  ─────────────────────────────────────────────────────────────────────
   This form is the SOLE application system for Choice Properties.
   The main listing platform (choice-properties-site.pages.dev) redirects
   users here when they click "Apply" on any property listing.
@@ -41,7 +41,7 @@
   IMPORTANT: URL params are NEVER used for backend validation.
   The GAS backend does not read or trust these values for any decision.
   The applicant can edit the pre-filled address field at any time.
-  âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+  ─────────────────────────────────────────────────────────────────────
 */
 
 class RentalApplication {
@@ -173,7 +173,7 @@ class RentalApplication {
         // Initialise fields-remaining hint for the first section
         setTimeout(() => this.updateFieldsRemainingHint(1), 50);
 
-        // ââ Read URL params from listing site and pre-fill form ââ
+        // ── Read URL params from listing site and pre-fill form ──
         this._prefillFromURL();
         
         const savedAppId = sessionStorage.getItem('lastSuccessAppId');
@@ -186,13 +186,13 @@ class RentalApplication {
     }
 
 
-    // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+    // ─────────────────────────────────────────────────────────────────────
     // APPLICATION FEE — read from URL param before translations are built.
     // Falls back to 50 if the param is absent from the URL.
     // Zero-fee fix: fee=0 is a valid value (free application). The old
     // check `if (fee && fee > 0)` treated 0 as falsy and fell back to $50,
     // so applicants for free-application properties saw the wrong fee.
-    // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+    // ─────────────────────────────────────────────────────────────────────
     _readApplicationFee() {
         try {
             const p      = new URLSearchParams(window.location.search);
@@ -214,11 +214,11 @@ class RentalApplication {
         } catch (e) { console.warn('[CP App] Non-critical error in _readApplicationFee:', e); }
     }
 
-    // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+    // ─────────────────────────────────────────────────────────────────────
     // URL PRE-FILL — reads context passed by the main listing platform.
     // Params: id, pn (name), addr, city, state, rent
     // All values are display-only. Backend never uses or validates these.
-    // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+    // ─────────────────────────────────────────────────────────────────────
     _prefillFromURL() {
         try {
             const p     = new URLSearchParams(window.location.search);
@@ -369,10 +369,10 @@ class RentalApplication {
         }
     }
 
-    // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+    // ─────────────────────────────────────────────────────────────────────
     // PROPERTY CONTEXT BANNER — shown between header and progress bar.
     // Lets applicants confirm they're applying for the right property.
-    // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+    // ─────────────────────────────────────────────────────────────────────
     _showPropertyBanner({ id, name, addr, city, state, rent, beds, baths, deposit, avail, terms, lastMonthsRent, adminFee, moveInSpecial, laundryType, heatingType, coolingType, garageSpaces, evCharging, parkingFee }) {
         if (!name && !addr && !city) return;
 
@@ -454,10 +454,10 @@ class RentalApplication {
         }
     }
 
-    // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+    // ─────────────────────────────────────────────────────────────────────
     // NO-CONTEXT PROMPT — shown when the form is opened without URL params.
     // Guides the applicant to manually enter the property address on Step 1.
-    // âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+    // ─────────────────────────────────────────────────────────────────────
     _showNoContextPrompt() {
         const banner = document.createElement('div');
         banner.id = 'noContextBanner';
@@ -1076,7 +1076,7 @@ class RentalApplication {
             vehicleNo.addEventListener('change', toggleVehicle);
         }
 
-        // ââ Employment status: conditionally show/label/require employer fields ââ
+        // ── Employment status: conditionally show/label/require employer fields ──
         // Each status type shows different fields with different labels.
         const toggleEmployerSection = (status) => {
             const lang = this.state.language || 'en';
@@ -1534,7 +1534,7 @@ class RentalApplication {
                 preferenceNote: 'We\'ll use these for non-urgent follow-up after your payment is complete.',
                 questions: 'Questions? Call or text',
                 helpText: 'we\'re here to help.',
-                spamWarning: 'ð§ A confirmation email has been sent to you. If you don\'t see it within a few minutes, please check your <strong>spam or junk folder</strong>.',
+                spamWarning: '📧 A confirmation email has been sent to you. If you don\'t see it within a few minutes, please check your <strong>spam or junk folder</strong>.',
                 trackStatus: 'Track My Application',
                 newApplication: 'New Application',
                 reapplicationPolicyTitle: 'Reapplication Protection',
@@ -1816,7 +1816,7 @@ class RentalApplication {
                 preferenceNote: 'Usaremos estas para seguimiento no urgente después de que se complete su pago.',
                 questions: '¿Preguntas? Llame o envíe un mensaje de texto al',
                 helpText: 'estamos aquí para ayudar.',
-                spamWarning: 'ð§ Se le ha enviado un correo de confirmación. Si no lo ve en unos minutos, revise su carpeta de <strong>spam o correo no deseado</strong>.',
+                spamWarning: '📧 Se le ha enviado un correo de confirmación. Si no lo ve en unos minutos, revise su carpeta de <strong>spam o correo no deseado</strong>.',
                 trackStatus: 'Seguir Mi Solicitud',
                 newApplication: 'Nueva Solicitud',
                 reapplicationPolicyTitle: 'Protección de Reaplicación',
@@ -1853,7 +1853,7 @@ class RentalApplication {
                 phoneHint: 'Nuestro equipo lo contactará aquí.',
                 errPhone: 'Teléfono inválido',
                 dobLabel: 'Fecha de Nacimiento',
-                ssnLabel: 'Número de Seguro Social (Ãltimos 4 dígitos)',
+                ssnLabel: 'Número de Seguro Social (últimos 4 dígitos)',
                 ssnHint: 'Solo últimos 4 dígitos requeridos',
                 ssnPlaceholder: '1234',
                 coApplicantCheckbox: 'Tengo un co-solicitante o fiador',
@@ -1866,7 +1866,7 @@ class RentalApplication {
                 coEmailLabel: 'Correo Electrónico',
                 coPhoneLabel: 'Teléfono',
                 coDobLabel: 'Fecha de Nacimiento',
-                coSsnLabel: 'SSN (Ãltimos 4)',
+                coSsnLabel: 'SSN (últimos 4)',
                 employmentIncome: 'Empleo e Ingresos',
                 coEmployerLabel: 'Empleador',
                 coJobTitleLabel: 'Puesto',
@@ -2305,7 +2305,7 @@ class RentalApplication {
         e.preventDefault();
         const t = this.getTranslations();
 
-        // ââ Duplicate submission guard ââââââââââââââââââââââââââââââ
+        // ── Duplicate submission guard ──────────────────────────────
         // Block if already mid-submission
         if (this.state.isSubmitting) return;
           // [10B-12] Guard: if BACKEND_URL was not injected by the build pipeline,
@@ -2322,7 +2322,7 @@ class RentalApplication {
             if (form) form.style.display = 'none';
             return;
         }
-        // ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
+        // ────────────────────────────────────────────────────────────
 
         if (!isRetry) {
             this.retryCount = 0;
@@ -2650,7 +2650,7 @@ class RentalApplication {
 
         // 9C-2: 'Back to listing' link if user arrived from a specific property page
         const backLink = this.state.sourceUrl
-            ? '<a href="' + this._escHtml(this.state.sourceUrl) + '" style="display:inline-block;margin-top:8px;font-size:0.9rem;color:#1a5276;text-decoration:none;">â Back to this listing</a>'
+            ? '<a href="' + this._escHtml(this.state.sourceUrl) + '" style="display:inline-block;margin-top:8px;font-size:0.9rem;color:#1a5276;text-decoration:none;">← Back to this listing</a>'
             : '';
 
         const dashboardLink = `${this.BACKEND_URL}?path=dashboard&id=${appId}`;

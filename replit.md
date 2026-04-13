@@ -55,3 +55,8 @@ Fixed a critical bug where users saw "Unable to reach our servers" even though t
 3. **Fetch timeout** (`js/script.js`): Added 30-second `AbortController` timeout to the main POST fetch — ensures predictable failure rather than hanging indefinitely.
 4. **Auto-verify cancels retries** (`js/script.js`): When the verify check confirms success, it cancels any pending retry timeout before transitioning to success screen.
 5. **Supabase validation deadline** (`backend/code.gs`): Added `deadline: 8` to the property validation `UrlFetchApp.fetch` call — caps the external HTTP call to 8 seconds instead of GAS's default ~30s.
+
+## Encoding Cleanup (April 2026)
+- Repaired UTF-8 mojibake across `backend/code.gs`, removing corrupted sequences like `Ã¢ÂÂ`, `ÃÂ§`, and `Ã°Â...` from admin dashboard pages, applicant dashboard content, lease pages, legal text, email subjects, and email templates.
+- Repaired remaining frontend encoding artifacts in `index.html` and `js/script.js`, including Spanish SSN labels, email warning icon text, and "Back to this listing" link text.
+- Verified `backend/code.gs`, `js/script.js`, `index.html`, and `css/style.css` have no remaining suspicious mojibake sequences.
