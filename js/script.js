@@ -182,7 +182,30 @@ class RentalApplication {
             this.showSuccessState(savedAppId);
         }
         
+        this.setupDevTools();
         console.log('Rental Application Manager Initialized');
+    }
+
+    setupDevTools() {
+        const enabled = Boolean(window.CP_CONFIG && window.CP_CONFIG.ENABLE_DEV_TOOLS);
+        const isDevHost = [
+            'localhost',
+            '127.0.0.1',
+            '0.0.0.0'
+        ].includes(window.location.hostname) ||
+            window.location.hostname.includes('replit.dev') ||
+            window.location.hostname.includes('replit.app') ||
+            window.location.hostname.includes('repl.co');
+
+        if (!enabled || !isDevHost || document.getElementById('devTestFillBtn')) return;
+
+        const button = document.createElement('button');
+        button.id = 'devTestFillBtn';
+        button.type = 'button';
+        button.title = 'Fill form with test data';
+        button.innerHTML = '<span class="btn-icon">&#x1F9EA;</span> Test Fill';
+        button.addEventListener('click', () => this._devFillTestData());
+        document.body.appendChild(button);
     }
 
 
@@ -3043,13 +3066,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (s1) s1.classList.add('active');
 
     // ── Dev / utility button listeners (replaces inline onclick — CSP safe) ──
-    const devFillBtn     = document.getElementById('devTestFillBtn');
     const startOverBtn   = document.getElementById('startOverBtn');
     const clearOverlay   = document.getElementById('clearFormOverlay');
     const clearCancel    = document.getElementById('clearFormCancel');
     const clearConfirm   = document.getElementById('clearFormConfirm');
 
-    if (devFillBtn)   devFillBtn.addEventListener('click',   () => window.app._devFillTestData());
     if (startOverBtn) startOverBtn.addEventListener('click', () => window.app._openClearSheet());
     if (clearOverlay) clearOverlay.addEventListener('click', () => window.app._closeClearSheet());
     if (clearCancel)  clearCancel.addEventListener('click',  () => window.app._closeClearSheet());

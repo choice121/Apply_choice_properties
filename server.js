@@ -10,7 +10,15 @@ function getRuntimeConfig() {
     BACKEND_URL: (process.env.BACKEND_URL || '').replace(/\/$/, ''),
     GEOAPIFY_API_KEY: process.env.GEOAPIFY_API_KEY || '',
     LISTING_SITE_URL: (process.env.LISTING_SITE_URL || 'https://choice-properties-site.pages.dev').replace(/\/$/, ''),
+    ENABLE_DEV_TOOLS: process.env.ENABLE_DEV_TOOLS === 'true',
   };
+}
+
+function isPublicAsset(urlPath) {
+  if (urlPath.includes('..') || urlPath.includes('\\')) return false;
+  if (urlPath === '/' || urlPath === '/index.html' || urlPath === '/config.js') return true;
+  if (urlPath === '/_headers' || urlPath === '/_redirects') return true;
+  return /^\/(?:css|js)\/[A-Za-z0-9._/-]+$/.test(urlPath);
 }
 
 const mimeTypes = {
@@ -32,6 +40,18 @@ const mimeTypes = {
 const server = http.createServer((req, res) => {
   let urlPath = req.url.split('?')[0];
   if (urlPath === '/') urlPath = '/index.html';
+
+  if (urlPath === '/favicon.ico') {
+    res.writeHead(204, { 'Cache-Control': 'public, max-age=86400' });
+    res.end();
+    return;
+  }
+
+  if (!isPublicAsset(urlPath)) {
+    res.writeHead(404, { 'Content-Type': 'text/plain' });
+    res.end('Not found');
+    return;
+  }
 
   if (urlPath === '/config.js') {
     res.writeHead(200, { 'Content-Type': 'application/javascript' });
