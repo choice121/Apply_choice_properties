@@ -2479,7 +2479,24 @@ class RentalApplication {
                 await this.delay(500);
                 this.handleSubmissionSuccess(result.appId);
             } else {
-                throw new Error(result.error || 'Submission failed');
+                // GAS returns this error when the form was already submitted successfully
+                // but the original response was lost and the frontend retried. The App ID
+                // embedded in the message proves the first submission went through — treat
+                // it as success so the user sees the confirmation screen, not an error.
+                const errMsg = result.error || '';
+                if (errMsg.includes('already have an active application')) {
+                    // GAS also returns existingAppId directly in the JSON — prefer that,
+                    // fall back to parsing the Ref: from the message text
+                    const refMatch = errMsg.match(/Ref:\s*([A-Z0-9\-]+)/i);
+                    const extractedId = result.existingAppId || result.appId || (refMatch && refMatch[1]) || '';
+                    this.updateSubmissionProgress(3, t.submitting);
+                    await this.delay(300);
+                    this.updateSubmissionProgress(4, t.complete);
+                    await this.delay(300);
+                    this.handleSubmissionSuccess(extractedId);
+                    return;
+                }
+                throw new Error(errMsg || 'Submission failed');
             }
 
         } catch (error) {
