@@ -5,6 +5,14 @@ const path = require('path');
 const PORT = 5000;
 const HOST = '0.0.0.0';
 
+function getRuntimeConfig() {
+  return {
+    BACKEND_URL: (process.env.BACKEND_URL || '').replace(/\/$/, ''),
+    GEOAPIFY_API_KEY: process.env.GEOAPIFY_API_KEY || '',
+    LISTING_SITE_URL: (process.env.LISTING_SITE_URL || 'https://choice-properties-site.pages.dev').replace(/\/$/, ''),
+  };
+}
+
 const mimeTypes = {
   '.html': 'text/html',
   '.css': 'text/css',
@@ -24,6 +32,12 @@ const mimeTypes = {
 const server = http.createServer((req, res) => {
   let urlPath = req.url.split('?')[0];
   if (urlPath === '/') urlPath = '/index.html';
+
+  if (urlPath === '/config.js') {
+    res.writeHead(200, { 'Content-Type': 'application/javascript' });
+    res.end(`window.CP_CONFIG = ${JSON.stringify(getRuntimeConfig(), null, 2)};\n`);
+    return;
+  }
 
   const filePath = path.join(__dirname, urlPath);
   const ext = path.extname(filePath).toLowerCase();

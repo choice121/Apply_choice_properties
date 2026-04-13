@@ -8,6 +8,7 @@ A self-contained rental application and management platform for Choice Propertie
 - **Backend:** Google Apps Script (GAS) — deployed separately at script.google.com
 - **Database:** Google Sheets (via GAS)
 - **Dev Server:** Node.js `server.js` (serves static files)
+- **Replit Runtime Config:** `server.js` serves `/config.js` from environment variables at request time
 - **CDN Libraries:** Font Awesome, Inter (Google Font), QRCode.js, Geoapify
 
 ## Project Structure
@@ -25,7 +26,8 @@ A self-contained rental application and management platform for Choice Propertie
 
 ## Running Locally (Replit)
 - The workflow `Start application` runs `node server.js` on port 5000
-- `config.js` contains placeholder values for local development
+- `npm start` runs `node server.js` on port 5000
+- `config.js` contains placeholder values for static/local development; Replit serves runtime values from environment variables
 - The GEOAPIFY_API_KEY is optional (address autocomplete disabled without it)
 - BACKEND_URL points to the Google Apps Script deployment URL
 
@@ -35,7 +37,7 @@ A self-contained rental application and management platform for Choice Propertie
 - `LISTING_SITE_URL` — Base URL of the listing platform (default: https://choice-properties-site.pages.dev)
 
 ## Deployment
-- **Replit deployment:** Autoscale via `node server.js`
+- **Replit deployment:** Autoscale via `npm start`
 - **Original deployment:** Cloudflare Pages (static hosting) + GAS backend
 - In production (Cloudflare), `npm run build` runs `generate-config.js` to inject secrets into `config.js`
 
