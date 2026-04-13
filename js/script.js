@@ -1366,7 +1366,20 @@ class RentalApplication {
         if (saved) {
             try {
                 const data = JSON.parse(saved);
-                const SKIP = new Set(['SSN', 'Co-Applicant SSN', 'Application ID', '_last_updated', '_language', 'DOB', 'Co-Applicant DOB', '_currentStep']);
+
+                // Property-context guard: if the current URL is for a different property
+                // than what was saved, wipe the stale data and start fresh.
+                // This prevents a half-filled application for Property A from loading
+                // when the user clicks "Apply" on Property B.
+                const _curP = new URLSearchParams(window.location.search);
+                const _curFingerprint = _curP.get('id') || _curP.get('addr') || '';
+                const _savedFingerprint = data._propertyFingerprint || '';
+                if (_curFingerprint && _savedFingerprint && _curFingerprint !== _savedFingerprint) {
+                    try { localStorage.removeItem(this.config.LOCAL_STORAGE_KEY); } catch(e) {}
+                    return; // Different property — start completely fresh
+                }
+
+                const SKIP = new Set(['SSN', 'Co-Applicant SSN', 'Application ID', '_last_updated', '_language', 'DOB', 'Co-Applicant DOB', '_currentStep', '_propertyFingerprint']);
                 const form = document.getElementById('rentalApplication');
                 if (!form) return;
 
@@ -1417,6 +1430,10 @@ class RentalApplication {
         data._last_updated = new Date().toISOString();
         data._language = this.state.language || 'en';
         data._currentStep = this.getCurrentSection();
+        // Save property fingerprint so restore can detect a different-property session.
+        // Uses the property ID URL param (most specific), falling back to the address param.
+        const _urlP = new URLSearchParams(window.location.search);
+        data._propertyFingerprint = _urlP.get('id') || _urlP.get('addr') || '';
         try { localStorage.setItem(this.config.LOCAL_STORAGE_KEY, JSON.stringify(data)); } catch (e) {}
         this._flashAutoSave();
     }
@@ -2427,7 +2444,7 @@ class RentalApplication {
 
             let response;
             const _fetchController = new AbortController();
-            const _fetchTimer = setTimeout(() => _fetchController.abort(), 30000);
+            const _fetchTimer = setTimeout(() => _fetchController.abort(), 55000);
             try {
                 response = await fetch(this.BACKEND_URL, {
                     method: 'POST',
