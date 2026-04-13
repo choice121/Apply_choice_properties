@@ -1779,6 +1779,7 @@ class RentalApplication {
                 pleaseAgreeDeclarations: 'Please agree to all legal declarations before submitting.',
                 networkError: 'Unable to reach our servers. Please check your connection and try again.',
                 networkExhausted: 'We could not confirm your submission due to a connection issue. Your application may have been received — please check your email for a confirmation. If you did not receive one, contact us at 707-706-3137 or try submitting again.',
+                verifyingSubmission: 'Checking your submission status\u2026 Please wait a moment.',
                 serverError: 'Our system is temporarily unavailable. Please try again in a few minutes, or contact us at 707-706-3137.',
                 copied: 'Copied!',
                 pageTitle: 'Rental Application — Choice Properties'
@@ -2061,6 +2062,7 @@ class RentalApplication {
                 pleaseAgreeDeclarations: 'Por favor acepte todas las declaraciones legales antes de enviar.',
                 networkError: 'No es posible conectarse con nuestros servidores. Por favor verifique su conexión e intente de nuevo.',
                 networkExhausted: 'No pudimos confirmar su envío por un problema de conexión. Su solicitud puede haber sido recibida — por favor revise su correo electrónico. Si no recibió confirmación, contáctenos al 707-706-3137 o intente enviar de nuevo.',
+                verifyingSubmission: 'Verificando el estado de su solicitud\u2026 Por favor espere un momento.',
                 serverError: 'Nuestro sistema está temporalmente no disponible. Por favor intente de nuevo en unos minutos, o contáctenos al 707-706-3137.',
                 copied: '¡Copiado!',
                 pageTitle: 'Solicitud de Arrendamiento — Choice Properties'
@@ -2207,8 +2209,21 @@ class RentalApplication {
         }
 
         // Permanent error or max retries reached
-        // If we exhausted auto-retries on a transient (network) error, show the
-        // network-exhausted message so users know their submission may have gone through.
+        // If we exhausted auto-retries on a transient (network) error AND the
+        // background verify is still running, show a neutral "checking" state
+        // instead of the scary error screen. The verify will call
+        // handleSubmissionSuccess() if it finds the record, or will call
+        // _showFinalNetworkError() after all attempts are exhausted.
+        if (isTransient && this.retryCount >= this.maxRetries && this._verifyStarted) {
+            msgEl.innerHTML = t.verifyingSubmission || 'Checking your submission status\u2026 Please wait.';
+            statusArea.classList.remove('error');
+            if (spinner) {
+                spinner.className = 'fas fa-spinner fa-pulse';
+                spinner.style.color = '#3498db';
+            }
+            return; // Don't show retry button yet — verify is still running
+        }
+
         const finalMessage = (isTransient && this.retryCount >= this.maxRetries)
             ? (t.networkExhausted || t.serverError)
             : errorMessage;
@@ -2249,6 +2264,7 @@ class RentalApplication {
                 if (stepItem) stepItem.classList.remove('error');
             }
             this.retryCount = 0;
+            this._verifyStarted = false;
             this.updateSubmissionProgress(1, t.processing);
             this.handleFormSubmit(new Event('submit'));
         });
@@ -2542,57 +2558,102 @@ class RentalApplication {
     }
 
     // ---------- _autoVerifySubmission ----------
-    // Called in the background immediately after the FIRST network/transient error.
-    // Uses a GET request (no GAS redirect chain) to check if a submission for this
-    // email was received in the last 30 min. GET is significantly more reliable on
-    // poor/mobile connections because GAS returns the response directly.
-    // Retries up to 4 times with increasing delays before giving up.
+    // Called in the background after the first network/transient error.
+    // Polls GAS every 5 s for up to 90 s to confirm whether the submission was
+    // received. Uses GET (no large FormData body) which is faster and more
+    // reliable than the original POST on slow/mobile connections.
+    // Parses JSON regardless of Content-Type to work around a GAS quirk where
+    // valid JSON is returned with text/plain instead of application/json.
     async _autoVerifySubmission() {
         try {
             const emailEl = document.getElementById('email');
             const email = emailEl ? emailEl.value.trim() : '';
-            if (!email || !email.includes('@') || !this.BACKEND_URL) return;
+            if (!email || !email.includes('@') || !this.BACKEND_URL) {
+                this._verifyStarted = false;
+                this._showFinalNetworkError();
+                return;
+            }
 
-            // Wait 6 seconds — give GAS enough time to finish processing and write to Sheets
-            await this.delay(6000);
+            // Give GAS 5 s to finish writing to Sheets before first check
+            await this.delay(5000);
 
-            // Try up to 4 times with increasing delays (6s, 8s, 12s, 20s between attempts)
-            const delays = [0, 6000, 8000, 12000];
-            let result = null;
-            for (let attempt = 0; attempt < delays.length; attempt++) {
-                if (attempt > 0) await this.delay(delays[attempt]);
+            const MAX_ATTEMPTS = 18;   // 18 × 5 s = 90 s total window
+            const POLL_INTERVAL = 5000;
+            const verifyUrl = this.BACKEND_URL + '?path=checkRecentSubmission&email=' + encodeURIComponent(email);
+
+            for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+                if (attempt > 0) await this.delay(POLL_INTERVAL);
+
+                // Abort individual requests after 12 s so a hung request
+                // doesn't eat the whole poll slot
+                const ctrl = new AbortController();
+                const timer = setTimeout(() => ctrl.abort(), 12000);
                 try {
-                    // GET endpoint — GAS handles this directly with no redirect, making it
-                    // reliable even when the main POST submission response was lost.
-                    // Parse as JSON regardless of content-type (GAS sometimes returns
-                    // valid JSON with text/plain content-type).
-                    const verifyUrl = this.BACKEND_URL + '?path=checkRecentSubmission&email=' + encodeURIComponent(email);
-                    const resp = await fetch(verifyUrl);
+                    const resp = await fetch(verifyUrl, { signal: ctrl.signal });
+                    clearTimeout(timer);
                     if (!resp.ok) continue;
                     let data;
                     try { data = JSON.parse(await resp.text()); } catch (_) { continue; }
-                    if (data && data.found && data.appId) { result = data; break; }
-                } catch (_verifyNetErr) {
-                    // Network error on this attempt — try again
+                    if (data && data.found && data.appId) {
+                        console.log('[CP] Auto-verify: confirmed — App ID:', data.appId);
+                        if (this.retryTimeout) { clearTimeout(this.retryTimeout); this.retryTimeout = null; }
+                        this._verifyStarted = false;
+                        this.handleSubmissionSuccess(data.appId);
+                        return;
+                    }
+                } catch (_netErr) {
+                    clearTimeout(timer);
+                    // Network error on this attempt — keep trying
                 }
             }
 
-            if (result && result.found && result.appId) {
-                console.log('[CP] Auto-verify: submission confirmed for', email, '— App ID:', result.appId);
-                // Cancel any pending auto-retry before showing success
-                if (this.retryTimeout) {
-                    clearTimeout(this.retryTimeout);
-                    this.retryTimeout = null;
-                }
-                this._verifyStarted = false;
-                this.handleSubmissionSuccess(result.appId);
-            } else {
-                this._verifyStarted = false;
-            }
+            // All attempts exhausted without finding the submission
+            this._verifyStarted = false;
+            this._showFinalNetworkError();
         } catch (e) {
             this._verifyStarted = false;
-            // Verification failed silently — user already sees the helpful error message
+            this._showFinalNetworkError();
         }
+    }
+
+    // ---------- _showFinalNetworkError ----------
+    // Called by _autoVerifySubmission after all verify attempts are exhausted.
+    // At this point the user has been waiting a while — show the friendly
+    // "may have been received" message with the manual Retry button.
+    _showFinalNetworkError() {
+        const t = this.getTranslations();
+        const msgEl = document.getElementById('submissionMessage');
+        const statusArea = document.getElementById('statusArea');
+        const spinner = document.getElementById('submissionSpinner');
+        const progressDiv = document.getElementById('submissionProgress');
+        if (!msgEl || !progressDiv) return;
+
+        msgEl.innerHTML = t.networkExhausted || t.serverError;
+        if (statusArea) statusArea.classList.add('error');
+        if (spinner) { spinner.className = 'fas fa-exclamation-circle'; spinner.style.color = '#e74c3c'; }
+
+        let retryBtn = document.getElementById('submissionRetryBtn');
+        if (!retryBtn) {
+            retryBtn = document.createElement('button');
+            retryBtn.id = 'submissionRetryBtn';
+            retryBtn.className = 'btn-retry';
+            progressDiv.appendChild(retryBtn);
+        }
+        retryBtn.innerHTML = `<i class="fas fa-redo-alt"></i> ${t.retry}`;
+        retryBtn.style.display = 'inline-flex';
+
+        const newBtn = retryBtn.cloneNode(true);
+        retryBtn.parentNode.replaceChild(newBtn, retryBtn);
+        newBtn.addEventListener('click', () => {
+            newBtn.style.display = 'none';
+            if (statusArea) statusArea.classList.remove('error');
+            if (spinner) { spinner.className = 'fas fa-spinner fa-pulse'; spinner.style.color = ''; }
+            this.retryCount = 0;
+            this._verifyStarted = false;
+            const translations = this.getTranslations();
+            this.updateSubmissionProgress(1, translations.processing);
+            this.handleFormSubmit(new Event('submit'));
+        });
     }
 
     // ---------- MODIFIED: show/hide progress with backdrop ----------
