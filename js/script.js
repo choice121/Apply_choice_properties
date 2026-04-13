@@ -2307,7 +2307,10 @@ class RentalApplication {
         }
         // ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 
-        if (!isRetry) this.retryCount = 0;
+        if (!isRetry) {
+            this.retryCount = 0;
+            this._verifyStarted = false;
+        }
         if (this.retryTimeout) {
             clearTimeout(this.retryTimeout);
             this.retryTimeout = null;
@@ -2423,15 +2426,20 @@ class RentalApplication {
             formData.append('_cp_csrf', this._csrfToken || sessionStorage.getItem('_cp_csrf') || '');
 
             let response;
+            const _fetchController = new AbortController();
+            const _fetchTimer = setTimeout(() => _fetchController.abort(), 30000);
             try {
                 response = await fetch(this.BACKEND_URL, {
                     method: 'POST',
-                    body: formData
+                    body: formData,
+                    signal: _fetchController.signal
                 });
             } catch (networkErr) {
                 const netErr = new Error(t.networkError);
                 netErr.isTransient = true;
                 throw netErr;
+            } finally {
+                clearTimeout(_fetchTimer);
             }
 
             // GAS can return HTML error pages (quota exceeded, script error, etc.)
@@ -2469,27 +2477,31 @@ class RentalApplication {
             const isTransient = this.isTransientError(error);
             this.showSubmissionError(error, isTransient);
 
-            // After all retries are exhausted on a network/transient error,
-            // auto-check whether GAS actually processed the form (it often does
-            // on slow connections even when the response never makes it back).
-            if (isTransient && this.retryCount >= this.maxRetries && this.BACKEND_URL) {
+            // After the FIRST network/transient error, immediately check in the background
+            // whether GAS already processed the form. GAS often completes successfully
+            // on slow connections even when the response never makes it back to the browser.
+            // _verifyStarted ensures we only launch one background check per submission attempt.
+            if (isTransient && this.retryCount >= 1 && this.BACKEND_URL && !this._verifyStarted) {
+                this._verifyStarted = true;
                 this._autoVerifySubmission();
             }
         }
     }
 
     // ---------- _autoVerifySubmission ----------
-    // Called after network retries are exhausted. Makes a lightweight POST to the
-    // backend to check if a submission for this email was received in the last 30 min.
-    // If found, transitions to the success screen automatically.
+    // Called in the background immediately after the FIRST network/transient error.
+    // Makes a lightweight POST to the backend to check if a submission for this email
+    // was received in the last 30 min. If found, cancels any pending retry and
+    // transitions to the success screen automatically (usually within ~2-3 seconds).
     async _autoVerifySubmission() {
         try {
             const emailEl = document.getElementById('email');
             const email = emailEl ? emailEl.value.trim() : '';
             if (!email || !email.includes('@') || !this.BACKEND_URL) return;
 
-            // Wait a few seconds to let GAS finish processing if it is still running
-            await this.delay(4000);
+            // Wait 2 seconds — enough for GAS to finish, short enough to catch the result
+            // before the first auto-retry's 2-second countdown expires.
+            await this.delay(2000);
 
             const fd = new FormData();
             fd.append('_action', 'checkRecentSubmission');
@@ -2497,14 +2509,26 @@ class RentalApplication {
 
             const resp = await fetch(this.BACKEND_URL, { method: 'POST', body: fd });
             const ct = resp.headers.get('content-type') || '';
-            if (!resp.ok || !ct.includes('application/json')) return;
+            if (!resp.ok || !ct.includes('application/json')) {
+                this._verifyStarted = false;
+                return;
+            }
 
             const result = await resp.json();
             if (result && result.found && result.appId) {
                 console.log('[CP] Auto-verify: submission confirmed for', email, '— App ID:', result.appId);
+                // Cancel any pending auto-retry before showing success
+                if (this.retryTimeout) {
+                    clearTimeout(this.retryTimeout);
+                    this.retryTimeout = null;
+                }
+                this._verifyStarted = false;
                 this.handleSubmissionSuccess(result.appId);
+            } else {
+                this._verifyStarted = false;
             }
         } catch (e) {
+            this._verifyStarted = false;
             // Verification failed silently — user already sees the helpful error message
         }
     }

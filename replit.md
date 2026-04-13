@@ -46,3 +46,12 @@ A self-contained rental application and management platform for Choice Propertie
 - Admin dashboard for property managers
 - Applicant dashboard for status tracking and lease signing
 - Automatic email notifications
+
+## Submission Flow Fixes (April 2026)
+Fixed a critical bug where users saw "Unable to reach our servers" even though their application was already submitted and emails received. Root causes and fixes:
+
+1. **Backend formatting loop** (`backend/code.gs` ~line 1539): Was iterating and formatting ALL rows in the sheet on every submission — now only formats the newly added row. Eliminates 10–20s of GAS execution time as the sheet grows.
+2. **Early auto-verify** (`js/script.js`): `_autoVerifySubmission` is now called immediately after the FIRST network error (not after 3 retries). Uses `_verifyStarted` flag to ensure only one check runs per attempt.
+3. **Fetch timeout** (`js/script.js`): Added 30-second `AbortController` timeout to the main POST fetch — ensures predictable failure rather than hanging indefinitely.
+4. **Auto-verify cancels retries** (`js/script.js`): When the verify check confirms success, it cancels any pending retry timeout before transitioning to success screen.
+5. **Supabase validation deadline** (`backend/code.gs`): Added `deadline: 8` to the property validation `UrlFetchApp.fetch` call — caps the external HTTP call to 8 seconds instead of GAS's default ~30s.

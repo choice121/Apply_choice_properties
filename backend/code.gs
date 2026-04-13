@@ -1365,7 +1365,8 @@ function processApplication(formData, fileBlob) {
             const validationResp = UrlFetchApp.fetch(validationUrl, {
               method: 'GET',
               headers: { 'apikey': serviceKey, 'Authorization': 'Bearer ' + serviceKey },
-              muteHttpExceptions: true
+              muteHttpExceptions: true,
+              deadline: 8
             });
             if (validationResp.getResponseCode() === 200) {
               const propRows = JSON.parse(validationResp.getContentText());
@@ -1532,13 +1533,14 @@ function processApplication(formData, fileBlob) {
     }
     // Ã¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂÃ¢ÂÂ
 
+    // Format only the newly added row — NOT the entire sheet.
+    // The old loop iterated every existing row on every submission, growing slower
+    // with each new application (100 apps = 100 Sheets API calls per submission).
     const lastRow = sheet.getLastRow();
     if (lastRow > 1) {
-      const range = sheet.getRange(2, 1, lastRow - 1, headers.length);
-      range.setBorder(true, true, true, true, true, true);
-      for (let i = 2; i <= lastRow; i++) {
-        if (i % 2 === 0) sheet.getRange(i, 1, 1, headers.length).setBackground('#f8f9fa');
-      }
+      const newRowRange = sheet.getRange(lastRow, 1, 1, headers.length);
+      newRowRange.setBorder(true, true, true, true, true, true);
+      if (lastRow % 2 === 0) newRowRange.setBackground('#f8f9fa');
     }
 
     const applicantEmailSent = sendApplicantConfirmation(formData, appId);
