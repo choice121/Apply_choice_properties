@@ -66,9 +66,10 @@ class RentalApplication {
         };
         
         // Smart retry properties
-        this.maxRetries = 3;
+        this.maxRetries = 1;
         this.retryCount = 0;
         this.retryTimeout = null;
+        this._successHandled = false;
         
            // [10B-12] BACKEND_URL is set from config.js (injected at Cloudflare build time).
           // No hardcoded fallback — if blank, the submit handler will show a user-facing
@@ -2265,6 +2266,7 @@ class RentalApplication {
             }
             this.retryCount = 0;
             this._verifyStarted = false;
+            this._successHandled = false;
             this.updateSubmissionProgress(1, t.processing);
             this.handleFormSubmit(new Event('submit'));
         });
@@ -2359,6 +2361,7 @@ class RentalApplication {
         if (!isRetry) {
             this.retryCount = 0;
             this._verifyStarted = false;
+            this._successHandled = false;
         }
         if (this.retryTimeout) {
             clearTimeout(this.retryTimeout);
@@ -2474,6 +2477,17 @@ class RentalApplication {
             // M4: Attach CSRF token to submission
             formData.append('_cp_csrf', this._csrfToken || sessionStorage.getItem('_cp_csrf') || '');
 
+            // ── Parallel verify: fire-and-forget alongside the POST ──────────────
+            // GAS processes the form and writes to Sheets even if the POST response
+            // is dropped on the way back (common on mobile/3G). Starting the verify
+            // NOW means it will be polling by the time GAS finishes writing, so it
+            // catches the success without waiting for the POST response to arrive.
+            // _successHandled prevents showing success twice if both paths succeed.
+            if (!this._verifyStarted) {
+                this._verifyStarted = true;
+                this._autoVerifySubmission(); // fire-and-forget (no await)
+            }
+
             let response;
             const _fetchController = new AbortController();
             const _fetchTimer = setTimeout(() => _fetchController.abort(), 55000);
@@ -2574,15 +2588,20 @@ class RentalApplication {
                 return;
             }
 
-            // Give GAS 5 s to finish writing to Sheets before first check
-            await this.delay(5000);
+            // Give GAS 20 s to finish processing and write to Sheets.
+            // Since verify now starts at the same time as the POST, this delay
+            // ensures GAS has had a chance to complete before we start polling.
+            await this.delay(20000);
 
-            const MAX_ATTEMPTS = 18;   // 18 × 5 s = 90 s total window
+            const MAX_ATTEMPTS = 14;   // 14 × 5 s = 70 s polling window (total ~90 s)
             const POLL_INTERVAL = 5000;
             const verifyUrl = this.BACKEND_URL + '?path=checkRecentSubmission&email=' + encodeURIComponent(email);
 
             for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
                 if (attempt > 0) await this.delay(POLL_INTERVAL);
+
+                // If the POST response already showed success, stop polling
+                if (this._successHandled) { this._verifyStarted = false; return; }
 
                 // Abort individual requests after 12 s so a hung request
                 // doesn't eat the whole poll slot
@@ -2650,6 +2669,7 @@ class RentalApplication {
             if (spinner) { spinner.className = 'fas fa-spinner fa-pulse'; spinner.style.color = ''; }
             this.retryCount = 0;
             this._verifyStarted = false;
+            this._successHandled = false;
             const translations = this.getTranslations();
             this.updateSubmissionProgress(1, translations.processing);
             this.handleFormSubmit(new Event('submit'));
@@ -2677,6 +2697,9 @@ class RentalApplication {
 
     // ---------- handleSubmissionSuccess ----------
     handleSubmissionSuccess(appId) {
+        // Guard against being called twice (POST response + verify both succeed)
+        if (this._successHandled) return;
+        this._successHandled = true;
         this.hideSubmissionProgress();
         const form = document.getElementById('rentalApplication');
         if (form) form.style.display = 'none';
