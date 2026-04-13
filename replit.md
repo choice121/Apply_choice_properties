@@ -28,7 +28,7 @@ A self-contained rental application and management platform for Choice Propertie
 - The workflow `Start application` runs `node server.js` on port 5000
 - `npm start` runs `node server.js` on port 5000
 - `config.js` contains placeholder values for static/local development; Replit serves runtime values from environment variables
-- `ENABLE_DEV_TOOLS=true` enables the Test Fill utility only on development hosts; it is hidden by default for public/production visitors
+- The Test Fill utility is hidden by default and appears only when the URL includes `?test=true` or `?test=1`, which supports mobile testing without showing the button during normal use
 - The GEOAPIFY_API_KEY is optional (address autocomplete disabled without it)
 - BACKEND_URL points to the Google Apps Script deployment URL
 

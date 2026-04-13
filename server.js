@@ -10,7 +10,6 @@ function getRuntimeConfig() {
     BACKEND_URL: (process.env.BACKEND_URL || '').replace(/\/$/, ''),
     GEOAPIFY_API_KEY: process.env.GEOAPIFY_API_KEY || '',
     LISTING_SITE_URL: (process.env.LISTING_SITE_URL || 'https://choice-properties-site.pages.dev').replace(/\/$/, ''),
-    ENABLE_DEV_TOOLS: process.env.ENABLE_DEV_TOOLS === 'true',
   };
 }
 

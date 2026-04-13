@@ -20,8 +20,6 @@
     GEOAPIFY_API_KEY: process.env.GEOAPIFY_API_KEY || '',
     // Base URL of the listing platform — used for back-to-listing links
     LISTING_SITE_URL: (process.env.LISTING_SITE_URL || 'https://choice-properties-site.pages.dev').replace(/\/$/, ''),
-    // Development-only utilities. Must remain false in public production builds.
-    ENABLE_DEV_TOOLS: process.env.ENABLE_DEV_TOOLS === 'true',
   };
 
   const missing = [];

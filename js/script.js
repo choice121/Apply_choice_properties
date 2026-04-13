@@ -187,17 +187,10 @@ class RentalApplication {
     }
 
     setupDevTools() {
-        const enabled = Boolean(window.CP_CONFIG && window.CP_CONFIG.ENABLE_DEV_TOOLS);
-        const isDevHost = [
-            'localhost',
-            '127.0.0.1',
-            '0.0.0.0'
-        ].includes(window.location.hostname) ||
-            window.location.hostname.includes('replit.dev') ||
-            window.location.hostname.includes('replit.app') ||
-            window.location.hostname.includes('repl.co');
+        const testParam = new URLSearchParams(window.location.search).get('test');
+        const enabled = testParam === 'true' || testParam === '1';
 
-        if (!enabled || !isDevHost || document.getElementById('devTestFillBtn')) return;
+        if (!enabled || document.getElementById('devTestFillBtn')) return;
 
         const button = document.createElement('button');
         button.id = 'devTestFillBtn';
