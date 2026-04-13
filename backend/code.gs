@@ -17,6 +17,35 @@ const APPLICATION_FEE = 0; // Phase 2: default is now 0 (free/no-fee) when no fe
 // Phase 1 fix 1.1: null-safe fee helper — treats 0 as a valid fee (free applications)
 function safeFee(val) { const n = parseFloat(val); return (!isNaN(n) && val !== '' && val !== null && val !== undefined) ? n : APPLICATION_FEE; }
 
+function normalizeFeeAmount(val) {
+  if (val === '' || val === null || val === undefined) return null;
+  const n = parseFloat(String(val).replace(/[^0-9.-]/g, ''));
+  if (isNaN(n) || n < 0) return null;
+  return Math.round(n * 100) / 100;
+}
+
+function trustedFeeFromProperty(row) {
+  if (!row) return null;
+  const directKeys = [
+    'application_fee',
+    'applicationFee',
+    'application fee',
+    'Application Fee',
+    'fee',
+    'application_fee_amount'
+  ];
+  for (let i = 0; i < directKeys.length; i++) {
+    const fee = normalizeFeeAmount(row[directKeys[i]]);
+    if (fee !== null) return fee;
+  }
+  const centsKeys = ['application_fee_cents', 'applicationFeeCents', 'fee_cents'];
+  for (let j = 0; j < centsKeys.length; j++) {
+    const cents = normalizeFeeAmount(row[centsKeys[j]]);
+    if (cents !== null) return Math.round(cents) / 100;
+  }
+  return null;
+}
+
 // ============================================================
 // D-002/D-003/D-004: JURISDICTION MAP
 // Maps 2-letter state codes → lease legal language.
@@ -1387,6 +1416,7 @@ function processApplication(formData, fileBlob) {
     // [FIXED-I1] Validate property exists and is active in Supabase before accepting application
       // [L3 fix] Track validation outcome — written to Admin Notes so admins can spot unverified property links
       let propertyValidationNote = '';
+      let trustedApplicationFee = null;
         if (formData['Property ID']) {
         const scriptProps  = PropertiesService.getScriptProperties();
         const supabaseUrl  = scriptProps.getProperty('SUPABASE_URL');
@@ -1395,7 +1425,7 @@ function processApplication(formData, fileBlob) {
           try {
             const validationUrl = supabaseUrl.replace(/\/$/, '')
               + '/rest/v1/properties?id=eq.' + encodeURIComponent(formData['Property ID'])
-              + '&select=id,status&limit=1';
+              + '&select=*&limit=1';
             const validationResp = UrlFetchApp.fetch(validationUrl, {
               method: 'GET',
               headers: { 'apikey': serviceKey, 'Authorization': 'Bearer ' + serviceKey },
@@ -1410,6 +1440,7 @@ function processApplication(formData, fileBlob) {
               if (propRows[0].status !== 'active') {
                 return { success: false, error: 'This property is no longer accepting applications. Please check our listings for other available homes.' };
               }
+              trustedApplicationFee = trustedFeeFromProperty(propRows[0]);
             }
             // Non-200 from Supabase: log and fall through (graceful degradation)
           } catch (validErr) {
@@ -1418,6 +1449,17 @@ function processApplication(formData, fileBlob) {
               propertyValidationNote = '[WARN: Property ID validation failed - verify property link manually]';
             }
         }
+      }
+
+      const submittedApplicationFee = normalizeFeeAmount(formData['Application Fee']);
+      let resolvedApplicationFee = APPLICATION_FEE;
+      if (trustedApplicationFee !== null) {
+        resolvedApplicationFee = trustedApplicationFee;
+        if (submittedApplicationFee !== null && submittedApplicationFee !== trustedApplicationFee) {
+          return { success: false, error: 'The application fee on this link does not match the current property record. Please return to the listing and start the application again.' };
+        }
+      } else if (submittedApplicationFee !== null && submittedApplicationFee !== APPLICATION_FEE) {
+        propertyValidationNote = [propertyValidationNote, '[WARN: Client-submitted application fee ignored; verify fee manually.]'].filter(Boolean).join(' ');
       }
 
       // ── Task 3.3: Generate a unique App ID ──
@@ -1461,7 +1503,7 @@ function processApplication(formData, fileBlob) {
           case 'Property Zip':        rowData.push(formData['Property Zip']        || ''); break;
           case 'Property Address':    rowData.push(formData['Property Address']    || ''); break;
           case 'Security Deposit':    rowData.push(formData['Security Deposit']    || ''); break;
-          case 'Application Fee': { const submittedFee = parseFloat(formData['Application Fee'] || ''); rowData.push(!isNaN(submittedFee) ? submittedFee : 0); break; } // 9C-1: fee always comes from property data via URL param; fallback 0 (free) not hardcoded constant
+          case 'Application Fee': rowData.push(resolvedApplicationFee); break;
           case 'Bedrooms':            rowData.push(formData['Bedrooms']            || ''); break;
           case 'Bathrooms':           rowData.push(formData['Bathrooms']           || ''); break;
           case 'Available Date':      rowData.push(formData['Available Date']      || ''); break;

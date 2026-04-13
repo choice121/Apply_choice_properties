@@ -59,6 +59,12 @@ Fixed a critical bug where users saw "Unable to reach our servers" even though t
 4. **Auto-verify cancels retries** (`js/script.js`): When the verify check confirms success, it cancels any pending retry timeout before transitioning to success screen.
 5. **Supabase validation deadline** (`backend/code.gs`): Added `deadline: 8` to the property validation `UrlFetchApp.fetch` call — caps the external HTTP call to 8 seconds instead of GAS's default ~30s.
 
+## Security Fixes (April 2026)
+- Replit static server only serves public frontend assets and blocks backend source/docs from browser access.
+- Test Fill is hidden by default and appears only when the URL includes `?test=true` or `?test=1`.
+- Application fee submitted from the browser is no longer authoritative. The GAS backend uses a trusted property fee from Supabase when available, rejects mismatched fee links, and otherwise falls back to the backend default while flagging the row for manual fee verification.
+- Frontend inline click/key handlers were removed from success and review-summary UI so the Cloudflare Content Security Policy can block inline scripts without breaking those buttons.
+
 ## Encoding Cleanup (April 2026)
 - Repaired UTF-8 mojibake across `backend/code.gs`, removing corrupted sequences like `Ã¢ÂÂ`, `ÃÂ§`, and `Ã°Â...` from admin dashboard pages, applicant dashboard content, lease pages, legal text, email subjects, and email templates.
 - Repaired remaining frontend encoding artifacts in `index.html` and `js/script.js`, including Spanish SSN labels, email warning icon text, and "Back to this listing" link text.

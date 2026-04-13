@@ -2685,7 +2685,7 @@ class RentalApplication {
                 <div class="id-section">
                     <div class="id-label">${t.appId}</div>
                     <div class="id-number" id="successAppId">${appId}</div>
-                    <button class="copy-btn" onclick="copyAppId()">
+                    <button class="copy-btn" type="button">
                         <i class="fas fa-copy"></i> ${t.clickToCopy}
                     </button>
                 </div>
@@ -2756,7 +2756,7 @@ class RentalApplication {
                     <a href="${dashboardLink}" class="btn-track">
                         <i class="fas fa-chart-line"></i> ${t.trackStatus}
                     </a>
-                    <button onclick="sessionStorage.removeItem('lastSuccessAppId'); location.reload();" class="btn-new">
+                    <button type="button" class="btn-new">
                         <i class="fas fa-plus"></i> ${t.newApplication}
                     </button>
                 </div>
@@ -2778,6 +2778,16 @@ class RentalApplication {
                 </div>
             </div>
         `;
+
+        const copyButton = successState.querySelector('.copy-btn');
+        const newButton = successState.querySelector('.btn-new');
+        if (copyButton) copyButton.addEventListener('click', () => window.copyAppId());
+        if (newButton) {
+            newButton.addEventListener('click', () => {
+                sessionStorage.removeItem('lastSuccessAppId');
+                location.reload();
+            });
+        }
         
         window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -2890,7 +2900,7 @@ class RentalApplication {
 
             if (groupFieldsHtml) {
                 summaryHtml += `
-                    <div class="summary-group" onclick="window.app.goToSection(${group.id})" role="button" tabindex="0" aria-label="Edit ${group.name}" title="Tap to edit this section" onkeydown="if(event.key==='Enter'||event.key===' ')window.app.goToSection(${group.id})">
+                    <div class="summary-group" data-section-id="${group.id}" role="button" tabindex="0" aria-label="Edit ${group.name}" title="Tap to edit this section">
                         <div class="summary-header">
                             <span>${group.name}</span>
                             <span class="summary-edit-btn" aria-hidden="true">
@@ -2905,6 +2915,17 @@ class RentalApplication {
         });
 
         summaryContainer.innerHTML = summaryHtml;
+        summaryContainer.querySelectorAll('.summary-group[data-section-id]').forEach(groupEl => {
+            const sectionId = parseInt(groupEl.dataset.sectionId, 10);
+            if (!sectionId) return;
+            groupEl.addEventListener('click', () => this.goToSection(sectionId));
+            groupEl.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    this.goToSection(sectionId);
+                }
+            });
+        });
     }
 
     // ================================================================
@@ -3024,7 +3045,7 @@ class RentalApplication {
 }
 
 // ---------- Global copy function (single authoritative definition) ----------
-// Called via onclick="copyAppId()" from the JS-generated success card.
+// Used by success-card copy buttons.
 // The duplicate definition that existed in index.html has been removed.
 window.copyAppId = function() {
     const el = document.getElementById('successAppId');
