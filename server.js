@@ -1,3 +1,24 @@
+// =============================================================================
+// LOCAL PREVIEW SERVER — FOR DEVELOPMENT USE ONLY
+// =============================================================================
+// This file is NOT used in production. Cloudflare Pages serves static files
+// directly — no Node.js server runs at all in production.
+//
+// Usage (local preview only):
+//   node server.js          → serves the site at http://localhost:5000
+//   npm run dev             → same via package.json
+//   npm run preview         → same via package.json
+//
+// Environment variables it reads (optional for local preview):
+//   BACKEND_URL             → Google Apps Script web app URL
+//   GEOAPIFY_API_KEY        → Address autocomplete key
+//   LISTING_SITE_URL        → Base URL of the main listing platform
+//
+// In production, generate-config.js runs at Cloudflare Pages build time
+// and writes config.js from CF environment variables. That is the only
+// mechanism that injects keys into the browser. This server is irrelevant
+// to production and should never be set as the Cloudflare build command.
+// =============================================================================
 const http = require('http');
 const fs = require('fs');
 const path = require('path');

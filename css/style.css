@@ -2768,3 +2768,30 @@ textarea.is-valid {
     background: #fee2e2;
 }
 
+
+/* ── Geoapify address autocomplete dropdown ── */
+/* Overrides inline z-index to ensure dropdown renders above all form stacking contexts */
+.autocomplete-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border: 1px solid #d1d5db;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    z-index: 9999 !important;
+    max-height: 220px;
+    overflow-y: auto;
+    display: none;
+}
+.autocomplete-dropdown div {
+    padding: 11px 14px;
+    cursor: pointer;
+    font-size: 14px;
+    border-bottom: 1px solid #f1f5f9;
+    line-height: 1.4;
+}
+.autocomplete-dropdown div:last-child { border-bottom: none; }
+.autocomplete-dropdown div:hover { background: #f0f7ff; color: var(--primary); }

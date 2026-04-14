@@ -38,9 +38,10 @@ A self-contained rental application and management platform for Choice Propertie
 - `LISTING_SITE_URL` — Base URL of the listing platform (default: https://choice-properties-site.pages.dev)
 
 ## Deployment
-- **Replit deployment:** Autoscale via `npm start`
-- **Original deployment:** Cloudflare Pages (static hosting) + GAS backend
+- **Primary production target:** Cloudflare Pages static hosting + Google Apps Script backend
+- **Replit deployment/preview:** Autoscale via `npm start`, used for local preview and verification only
 - In production (Cloudflare), `npm run build` runs `generate-config.js` to inject secrets into `config.js`
+- Cloudflare `_headers` and `_redirects` are treated as production-critical source files; Replit configuration must not override Cloudflare/GAS behavior
 
 ## Key Features
 - 6-step bilingual (EN/ES) application form
@@ -69,3 +70,9 @@ Fixed a critical bug where users saw "Unable to reach our servers" even though t
 - Repaired UTF-8 mojibake across `backend/code.gs`, removing corrupted sequences like `Ã¢ÂÂ`, `ÃÂ§`, and `Ã°Â...` from admin dashboard pages, applicant dashboard content, lease pages, legal text, email subjects, and email templates.
 - Repaired remaining frontend encoding artifacts in `index.html` and `js/script.js`, including Spanish SSN labels, email warning icon text, and "Back to this listing" link text.
 - Verified `backend/code.gs`, `js/script.js`, `index.html`, and `css/style.css` have no remaining suspicious mojibake sequences.
+
+## Cloudflare-First ZIP Replacement (April 2026)
+- Replaced the main frontend/runtime files from the uploaded fixed v2 package: `index.html`, `js/script.js`, `css/style.css`, `server.js`, `_headers`, `_redirects`, `generate-config.js`, and `backend/code.gs`.
+- Preserved Replit preview compatibility by keeping `npm start` in `package.json` and continuing to serve the preview on `0.0.0.0:5000`.
+- Kept the safer backend fee/property validation from the previous Replit version: when `SUPABASE_URL` and `SUPABASE_SERVICE_KEY` are configured in GAS Script Properties, submissions validate the property and compare the browser-submitted fee against the trusted property record.
+- Patched backend consent validation to match the fixed v2 frontend's consolidated consent checkboxes: `certifyCorrect`, `authorizeVerify`, and `feeAcknowledge`.

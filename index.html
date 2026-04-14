@@ -34,8 +34,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css?v=20260409">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link rel="stylesheet" href="css/style.css?v=20260414">
 </head>
 <body>
 
@@ -202,9 +201,6 @@
                     </div>
                 </div>
                 <div class="action-buttons">
-                    <a href="?path=dashboard" class="btn-track">
-                        <i class="fas fa-chart-line"></i> <span data-i18n="trackStatus">Track My Application</span>
-                    </a>
                     <button type="button" class="btn-new">
                         <i class="fas fa-plus"></i> <span data-i18n="newApplication">New Application</span>
                     </button>
@@ -503,7 +499,7 @@
                     <!-- Consent -->
                     <div class="form-group">
                         <div class="custom-checkbox">
-                            <input type="checkbox" id="coConsent" name="Co-Applicant Consent" required>
+                            <input type="checkbox" id="coConsent" name="Co-Applicant Consent">
                             <label for="coConsent" data-i18n="coConsentLabel">I authorize verification of the information provided for this additional person, including credit and background check.</label>
                         </div>
                         <div class="error-message"></div>
@@ -596,7 +592,12 @@
 
                 <div class="form-group" id="petDetailsGroup" style="display: none;">
                     <label for="petDetails" data-i18n="petDetailsLabel">Pet details (type, breed, weight)</label>
+                    <!-- Pet policy hint — shown by JS when pet_types / pet_weight params are in URL -->
+                    <div id="petPolicyHint" style="display:none;background:#e8f4fd;border:1px solid #90caf9;border-radius:6px;padding:10px 12px;margin-bottom:8px;font-size:13px;color:#1565c0;line-height:1.5;">
+                        <i class="fas fa-paw"></i> <span id="petPolicyHintText"></span>
+                    </div>
                     <textarea id="petDetails" name="Pet Details" rows="2" placeholder="Describe your pets..." data-i18n="petDetailsPlaceholder"></textarea>
+                    <div class="error-message" id="petDetailsError"></div>
                 </div>
 
                 <!-- Vehicle Information -->
@@ -1032,7 +1033,7 @@
                         <p data-i18n="feeDesc">This fee is required before review can begin. Our team will contact you immediately after submission to arrange payment.</p>
                     </div>
                     <!-- [10B-20] Default hidden; JS (_readApplicationFee) fills correct value from URL param -->
-            <div class="fee-amount" style="visibility:hidden">—</div>
+            <div class="fee-amount" style="display:none">—</div>
                 </div>
 
                 <div id="summaryContainer" class="summary-section">
@@ -1068,32 +1069,17 @@
                     <div class="legal-checkbox-group">
                         <div class="custom-checkbox">
                             <input type="checkbox" id="certifyCorrect" name="certifyCorrect" required>
-                            <label for="certifyCorrect" data-i18n="legalCertify">I certify that the information provided in this application is true and correct to the best of my knowledge.</label>
+                            <label for="certifyCorrect" data-i18n="legalCertify">I certify that all information provided in this application is true, accurate, and complete to the best of my knowledge. I understand that providing false information is grounds for immediate rejection.</label>
                         </div>
 
                         <div class="custom-checkbox">
                             <input type="checkbox" id="authorizeVerify" name="authorizeVerify" required>
-                            <label for="authorizeVerify" data-i18n="legalAuthorize">I authorize verification of the information provided, including employment, income, and references.</label>
-                        </div>
-
-                        <div class="custom-checkbox">
-                            <input type="checkbox" id="termsAgree" name="termsAgree" required>
-                            <label for="termsAgree" data-i18n="termsAgreeLabel">I certify that all information provided in this application is accurate and complete, and I authorize Choice Properties to verify it.</label>
+                            <label for="authorizeVerify" data-i18n="legalAuthorize">I authorize Choice Properties to verify all information provided, including employment history, income, rental history, references, and to conduct a credit and background check.</label>
                         </div>
 
                         <div class="custom-checkbox">
                             <input type="checkbox" id="feeAcknowledge" name="feeAcknowledge" value="on" required>
-                            <label for="feeAcknowledge">I acknowledge that the application fee is <strong>non-refundable</strong> once submitted and payment is processed, except as described in the <a href="https://choice-properties.pages.dev/application-credit-policy.html" target="_blank" rel="noopener" style="color:var(--primary);">Application Credit Policy</a>.</label>
-                        </div>
-
-                        <div class="custom-checkbox">
-                            <input type="checkbox" id="infoAccuracy" name="infoAccuracy" value="on" required>
-                            <label for="infoAccuracy">I certify that all information in this application is accurate and complete to the best of my knowledge. Providing false information is grounds for rejection.</label>
-                        </div>
-
-                        <div class="custom-checkbox">
-                            <input type="checkbox" id="dataConsent" name="dataConsent" value="on" required>
-                            <label for="dataConsent">I consent to my personal information being reviewed by Choice Properties staff and the landlord associated with this property, solely for the purpose of evaluating my rental application.</label>
+                            <label for="feeAcknowledge">I acknowledge the application fee policy and consent to my personal information being reviewed by Choice Properties staff and the landlord associated with this property solely for rental application evaluation. The application fee is <strong>non-refundable</strong> once submitted and payment is processed, except as described in the <a href="https://choice-properties.pages.dev/application-credit-policy.html" target="_blank" rel="noopener" style="color:var(--primary);">Application Credit Policy</a>.</label>
                         </div>
                     </div>
                     <div id="declarationError" class="error-message" style="display:none;margin-top:8px;padding:8px 12px;"></div>
@@ -1114,8 +1100,8 @@
 
           <!-- HONEYPOT — do not remove. Hidden from real users, catches bots. -->
           <div style="position:absolute;left:-9999px;top:-9999px;opacity:0;pointer-events:none;" aria-hidden="true">
-              <label for="website">Leave this empty</label>
-              <input type="text" id="website" name="website" tabindex="-1" autocomplete="off" value="">
+              <label for="_trap">Leave this empty</label>
+              <input type="text" id="_trap" name="_trap" tabindex="-1" autocomplete="off" value="">
           </div>
           </form>
     </div>
@@ -1152,7 +1138,7 @@
     </div>
 
     <script src="/config.js"></script>
-      <script src="js/script.js?v=20260409"></script>
+      <script src="js/script.js?v=20260414"></script>
 
     <style>
         #devTestFillBtn {

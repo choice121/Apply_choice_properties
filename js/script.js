@@ -165,6 +165,7 @@ class RentalApplication {
           }
           this.setupGeoapify();
         this.setupInputFormatting();
+        this.setupIncomeRatioDisplay();
         this._readApplicationFee();
         this.setupLanguageToggle();
         this.setupSaveResume();
@@ -190,6 +191,14 @@ class RentalApplication {
     setupDevTools() {
         const testParam = new URLSearchParams(window.location.search).get('test');
         const enabled = testParam === 'true' || testParam === '1';
+
+        // Block dev tools on production hostnames even if ?test=1 is in the URL
+        const hostname = window.location.hostname;
+        const isProduction = hostname.endsWith('.pages.dev') ||
+                             hostname.endsWith('choice-properties.com') ||
+                             hostname.endsWith('choiceproperties.com') ||
+                             (hostname !== 'localhost' && hostname !== '127.0.0.1' && hostname !== '' && !hostname.startsWith('192.168.') && !hostname.startsWith('10.'));
+        if (isProduction) return;
 
         if (!enabled || document.getElementById('devTestFillBtn')) return;
 
@@ -222,11 +231,29 @@ class RentalApplication {
             const feeAmount = document.querySelector('.fee-amount');
             if (fee <= 0) {
                 if (feeTitle)  feeTitle.textContent  = 'Application Fee: Free';
-                if (feeAmount) feeAmount.textContent = 'Free';
+                if (feeAmount) { feeAmount.textContent = 'Free'; feeAmount.style.display = ''; }
             } else {
                 const formatted = '$' + fee.toFixed(2);
                 if (feeTitle)  feeTitle.textContent  = 'Application Fee: ' + formatted;
-                if (feeAmount) feeAmount.textContent = '$' + fee.toFixed(0);
+                if (feeAmount) { feeAmount.textContent = '$' + fee.toFixed(0); feeAmount.style.display = ''; }
+            }
+            // Patch any hardcoded "$50" references in static HTML that flash before JS-built
+            // success content replaces them. Walk all text nodes in the document and replace
+            // the literal "$50" with the correct fee so there is never a wrong-fee flash.
+            if (fee !== 50) {
+                const feeStr    = fee <= 0 ? 'free' : ('$' + fee.toFixed(0));
+                const walk = (node) => {
+                    if (node.nodeType === Node.TEXT_NODE) {
+                        if (node.nodeValue.includes('$50')) {
+                            node.nodeValue = node.nodeValue.replace(/\$50\b/g, feeStr);
+                        }
+                    } else {
+                        node.childNodes.forEach(walk);
+                    }
+                };
+                // Only patch static success-state HTML — avoid touching input placeholders
+                const successEl = document.getElementById('successState');
+                if (successEl) walk(successEl);
             }
         } catch (e) { console.warn('[CP App] Non-critical error in _readApplicationFee:', e); }
     }
@@ -266,7 +293,7 @@ class RentalApplication {
               const beds       = p.get('beds')        || '';
               const baths      = p.get('baths')       || '';
               const avail      = p.get('avail')       || '';
-              const terms      = p.get('terms')       || '';
+              const terms      = p.get('terms') || p.get('term') || ''; // support both param names
               const minMonths  = p.get('min_months')  || '';
               const pets       = p.get('pets')        || '';
               const petTypes   = p.get('pet_types')   || '';
@@ -301,24 +328,68 @@ class RentalApplication {
               }
               setHidden('hiddenLeaseTerms',      terms);
               setHidden('hiddenMinLeaseMonths',  minMonths);
-              // Fix: Populate "Desired Lease Term" dropdown with allowed options from URL params
+              // Populate "Desired Lease Term" dropdown with allowed options from URL params,
+              // and enforce min_months by filtering out terms shorter than the minimum.
                 if (terms) {
                     const termsList = terms.split('|').map(t => t.trim()).filter(Boolean);
                     const leaseSelect = document.getElementById('desiredLeaseTerm');
                     if (leaseSelect && termsList.length) {
+                        // Parse minimum months constraint
+                        const minMonthsNum = minMonths ? parseInt(minMonths, 10) : 0;
+                        // Helper: extract numeric month count from a term string like "6 months", "12 months"
+                        const termToMonths = (term) => {
+                            const mtm = /month.to.month/i.test(term);
+                            if (mtm) return 1; // month-to-month is shortest
+                            const m = term.match(/(\d+)/);
+                            return m ? parseInt(m[1], 10) : 999;
+                        };
+                        // Filter out terms below the minimum if min_months is specified
+                        const allowedTerms = minMonthsNum > 0
+                            ? termsList.filter(t => termToMonths(t) >= minMonthsNum)
+                            : termsList;
+                        // If min_months filters out ALL terms, show a warning and use the full list as fallback
+                        // rather than silently showing options that violate the property's requirements.
+                        let finalTerms = allowedTerms;
+                        if (allowedTerms.length === 0) {
+                            finalTerms = termsList; // show all — operator data inconsistency
+                            console.warn('[CP] All lease terms filtered by min_months=' + minMonthsNum + '. Showing full list as fallback. Check property data.');
+                            // Add a visible hint to the lease term field
+                            const _leaseHint = leaseSelect.closest('.form-group');
+                            if (_leaseHint && !_leaseHint.querySelector('.lease-min-hint')) {
+                                const _lh = document.createElement('div');
+                                _lh.className = 'lease-min-hint field-hint';
+                                _lh.style.color = '#e65100';
+                                _lh.innerHTML = '<i class="fas fa-info-circle"></i> Minimum lease term: ' + minMonthsNum + ' months. Please select a qualifying term.';
+                                _leaseHint.appendChild(_lh);
+                            }
+                        }
                         // Remove all options except the placeholder
                         while (leaseSelect.options.length > 1) leaseSelect.remove(1);
-                        termsList.forEach(term => {
+                        finalTerms.forEach(term => {
                             const opt = document.createElement('option');
                             opt.value = term;
                             opt.textContent = term;
                             leaseSelect.appendChild(opt);
                         });
                         // Auto-select when only one term is available (no manual choice needed)
-                        if (termsList.length === 1) {
-                            leaseSelect.value = termsList[0];
+                        if (finalTerms.length === 1) {
+                            leaseSelect.value = finalTerms[0];
                             leaseSelect.dispatchEvent(new Event('change', { bubbles: true }));
                         }
+                    }
+                } else if (minMonths) {
+                    // No explicit terms list but min_months is set — filter the default dropdown options
+                    const minMonthsNum = parseInt(minMonths, 10);
+                    const leaseSelect = document.getElementById('desiredLeaseTerm');
+                    if (leaseSelect && minMonthsNum > 0) {
+                        Array.from(leaseSelect.options).forEach(opt => {
+                            if (!opt.value) return; // keep placeholder
+                            const mtm = /month.to.month/i.test(opt.value);
+                            if (mtm) { opt.style.display = 'none'; opt.disabled = true; return; }
+                            const m = opt.value.match(/(\d+)/);
+                            const optMonths = m ? parseInt(m[1], 10) : 999;
+                            if (optMonths < minMonthsNum) { opt.style.display = 'none'; opt.disabled = true; }
+                        });
                     }
                 }
               // 9C-2: store source URL so success screen can link back to the original listing
@@ -333,22 +404,42 @@ class RentalApplication {
               setHidden('hiddenSmokingAllowed',  smoking);
               // ── Phase 1 fix 1.2: Enforce pet policy from URL param ──
               if (pets && pets.toLowerCase() !== 'true') {
-                  const petsNoRadio = document.getElementById('petsNo');
+                  const petsNoRadio  = document.getElementById('petsNo');
                   const petsYesRadio = document.getElementById('petsYes');
-                  if (petsNoRadio) { petsNoRadio.checked = true; petsNoRadio.dispatchEvent(new Event('change', { bubbles: true })); }
-                  if (petsYesRadio) petsYesRadio.disabled = true;
-                  if (petsNoRadio) petsNoRadio.disabled = true;
-                  const petDetailsGroup = document.getElementById('petDetailsGroup');
-                  if (petDetailsGroup) petDetailsGroup.style.display = 'none';
+                  const petGroup     = document.getElementById('petDetailsGroup');
+                  if (petsNoRadio)  { petsNoRadio.checked = true; petsNoRadio.dispatchEvent(new Event('change', { bubbles: true })); }
+                  if (petsYesRadio) { petsYesRadio.disabled = true; petsYesRadio.parentElement.style.opacity = '0.45'; }
+                  // NOTE: petsNoRadio is intentionally NOT disabled — it must stay enabled
+                  // so its value ("No") is submitted with the form to GAS. Only the Yes option is locked.
+                  if (petGroup)     { petGroup.style.display = 'none'; }
+                  // Show a clear policy notice so users understand why the option is locked
+                  const _petsFormGroup = petsNoRadio && petsNoRadio.closest('.form-group');
+                  if (_petsFormGroup && !_petsFormGroup.querySelector('.policy-lock-notice')) {
+                      const _notice = document.createElement('div');
+                      _notice.className = 'policy-lock-notice';
+                      _notice.style.cssText = 'margin-top:8px;padding:8px 12px;background:#fff3e0;border:1px solid #ffb74d;border-radius:6px;font-size:13px;color:#e65100;display:flex;align-items:center;gap:8px;';
+                      _notice.innerHTML = '<i class="fas fa-ban"></i> <span>This property does not allow pets.</span>';
+                      _petsFormGroup.appendChild(_notice);
+                  }
               }
 
               // ── Phase 1 fix 1.3: Enforce smoking policy from URL param ──
               if (smoking && smoking.toLowerCase() !== 'true') {
-                  const smokeNoRadio = document.getElementById('smokeNo');
+                  const smokeNoRadio  = document.getElementById('smokeNo');
                   const smokeYesRadio = document.getElementById('smokeYes');
-                  if (smokeNoRadio) { smokeNoRadio.checked = true; smokeNoRadio.dispatchEvent(new Event('change', { bubbles: true })); }
-                  if (smokeYesRadio) smokeYesRadio.disabled = true;
-                  if (smokeNoRadio) smokeNoRadio.disabled = true;
+                  if (smokeNoRadio)  { smokeNoRadio.checked = true; smokeNoRadio.dispatchEvent(new Event('change', { bubbles: true })); }
+                  if (smokeYesRadio) { smokeYesRadio.disabled = true; smokeYesRadio.parentElement.style.opacity = '0.45'; }
+                  // NOTE: smokeNoRadio is intentionally NOT disabled — it must stay enabled
+                  // so its value ("No") is submitted with the form to GAS. Only the Yes option is locked.
+                  // Show a clear policy notice
+                  const _smokeFormGroup = smokeNoRadio && smokeNoRadio.closest('.form-group');
+                  if (_smokeFormGroup && !_smokeFormGroup.querySelector('.policy-lock-notice')) {
+                      const _sNotice = document.createElement('div');
+                      _sNotice.className = 'policy-lock-notice';
+                      _sNotice.style.cssText = 'margin-top:8px;padding:8px 12px;background:#fce4ec;border:1px solid #ef9a9a;border-radius:6px;font-size:13px;color:#b71c1c;display:flex;align-items:center;gap:8px;';
+                      _sNotice.innerHTML = '<i class="fas fa-smoking-ban"></i> <span>This is a non-smoking property. Smoking is not permitted on the premises.</span>';
+                      _smokeFormGroup.appendChild(_sNotice);
+                  }
               }
 
 
@@ -379,6 +470,9 @@ class RentalApplication {
 
             // Show the property context banner (with extended listing details)
             this._showPropertyBanner({ id, name, addr, city, state, rent, beds, baths, deposit, avail, terms, lastMonthsRent, adminFee, moveInSpecial, laundryType, heatingType, coolingType, garageSpaces, evCharging, parkingFee });
+
+            // Pre-populate the pet policy hint so it is ready when the user selects "Yes" for pets
+            this._applyPetPolicyHint();
 
         } catch (err) {
             // Silent — never break the form over a missing URL param
@@ -524,7 +618,82 @@ class RentalApplication {
             .replace(/"/g, '&quot;');
     }
 
-    // ---------- Offline detection ----------
+    // ─────────────────────────────────────────────────────────────────────
+    // PET POLICY HINT — reads pet_types and pet_weight URL params and
+    // shows an informational banner inside the pet details section so the
+    // applicant knows exactly what this property allows before they type.
+    // Called when the user selects "Yes" for pets, and also after prefill.
+    // ─────────────────────────────────────────────────────────────────────
+    _applyPetPolicyHint() {
+        try {
+            const p = new URLSearchParams(window.location.search);
+            const petTypes  = p.get('pet_types')   || '';
+            const petWeight = p.get('pet_weight')  || '';
+            const hintBox   = document.getElementById('petPolicyHint');
+            const hintText  = document.getElementById('petPolicyHintText');
+            const petArea   = document.getElementById('petDetails');
+            if (!hintBox || !hintText) return;
+
+            const parts = [];
+            if (petTypes)  parts.push('Allowed pet types: <strong>' + this._escHtml(petTypes) + '</strong>');
+            if (petWeight) parts.push('Max weight: <strong>' + this._escHtml(petWeight) + ' lbs</strong>');
+
+            if (parts.length) {
+                hintText.innerHTML = parts.join(' &nbsp;·&nbsp; ') + '. Please describe your pet(s) accordingly.';
+                hintBox.style.display = 'block';
+                // Update textarea placeholder to be more specific
+                if (petArea) {
+                    const typesLabel = petTypes ? petTypes : 'type';
+                    const weightLabel = petWeight ? ', under ' + petWeight + ' lbs' : '';
+                    petArea.placeholder = 'e.g., Labrador mix' + weightLabel + ' — include type, breed, weight';
+                }
+            } else {
+                hintBox.style.display = 'none';
+            }
+        } catch (e) { /* non-fatal */ }
+    }
+
+    // ─────────────────────────────────────────────────────────────────────
+    // PET DETAILS VALIDATION — called from validateStep(2) when Has Pets=Yes.
+    // Warns (not hard-blocks) if the pet weight limit param is set and the
+    // user's description doesn't appear to include a numeric weight at all.
+    // ─────────────────────────────────────────────────────────────────────
+    _validatePetDetails() {
+        const petField = document.getElementById('petDetails');
+        const errEl    = document.getElementById('petDetailsError');
+        if (!petField || !errEl) return true;
+        const val = petField.value.trim();
+        if (!val) {
+            errEl.textContent = 'Please describe your pet(s) — type, breed, and weight.';
+            errEl.style.display = 'block';
+            petField.classList.add('is-invalid');
+            return false;
+        }
+        // Check weight limit if param present
+        const p = new URLSearchParams(window.location.search);
+        const petWeight = p.get('pet_weight');
+        if (petWeight) {
+            const limit = parseFloat(petWeight);
+            if (!isNaN(limit)) {
+                // Look for any number in the description that could be a weight
+                const nums = val.match(/\d+(\.\d+)?/g);
+                if (nums) {
+                    const maxInDesc = Math.max(...nums.map(Number));
+                    if (maxInDesc > limit) {
+                        errEl.textContent = 'This property has a ' + limit + ' lb pet weight limit. Please confirm your pet meets this requirement.';
+                        errEl.style.display = 'block';
+                        petField.classList.add('is-invalid');
+                        return false;
+                    }
+                }
+            }
+        }
+        errEl.style.display = 'none';
+        petField.classList.remove('is-invalid');
+        return true;
+    }
+
+
 
     setupOfflineDetection() {
         window.addEventListener('online', () => {
@@ -564,13 +733,20 @@ class RentalApplication {
         fields.forEach(id => {
             const input = document.getElementById(id);
             if (!input) return;
-            const container = document.createElement('div');
-            container.style.position = 'relative';
-            input.parentNode.insertBefore(container, input);
-            container.appendChild(input);
+            // Wrap in a relative-positioned container for dropdown positioning
+            // Use the existing form-group as the anchor if possible, else create a wrapper
+            let container = input.closest('.form-group');
+            if (!container) {
+                container = document.createElement('div');
+                container.style.position = 'relative';
+                input.parentNode.insertBefore(container, input);
+                container.appendChild(input);
+            } else {
+                // Ensure the form-group has relative positioning
+                container.style.position = 'relative';
+            }
             const dropdown = document.createElement('div');
             dropdown.className = 'autocomplete-dropdown';
-            dropdown.style.cssText = 'position: absolute; top: 100%; left: 0; right: 0; background: white; border: 1px solid #ddd; z-index: 1000; display: none; max-height: 200px; overflow-y: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); border-radius: 4px;';
             container.appendChild(dropdown);
             input.addEventListener('input', this.debounce(async (e) => {
                 const text = e.target.value;
@@ -585,10 +761,7 @@ class RentalApplication {
                         dropdown.innerHTML = '';
                         data.features.forEach(feature => {
                             const item = document.createElement('div');
-                            item.style.cssText = 'padding: 10px; cursor: pointer; border-bottom: 1px solid #eee; font-size: 14px;';
                             item.textContent = feature.properties.formatted;
-                            item.addEventListener('mouseover', () => item.style.background = '#f0f7ff');
-                            item.addEventListener('mouseout', () => item.style.background = 'white');
                             item.addEventListener('click', () => {
                                 input.value = feature.properties.formatted;
                                 dropdown.style.display = 'none';
@@ -643,6 +816,82 @@ class RentalApplication {
         }
     }
 
+    // ---------- Income-to-Rent Ratio Display ----------
+    // Shows a live affordability indicator in Step 3 when the rent param is in the URL.
+    // Updates whenever the applicant types in monthlyIncome or otherIncome.
+    setupIncomeRatioDisplay() {
+        const p = new URLSearchParams(window.location.search);
+        const rent = parseFloat(p.get('rent'));
+        if (!rent || isNaN(rent) || rent <= 0) return; // no rent param — skip
+
+        const incomeEl    = document.getElementById('monthlyIncome');
+        const otherEl     = document.getElementById('otherIncome');
+        const incomeGroup = incomeEl && incomeEl.closest('.form-group');
+        if (!incomeGroup) return;
+
+        // Inject the ratio widget once, below the income field
+        if (!document.getElementById('incomeRatioWidget')) {
+            const widget = document.createElement('div');
+            widget.id = 'incomeRatioWidget';
+            widget.style.cssText = 'margin-top:10px;padding:12px 14px;border-radius:8px;font-size:13px;line-height:1.5;border:1px solid #e2e8f0;background:#f8fafc;display:none;';
+            widget.innerHTML =
+                '<div style="font-weight:600;margin-bottom:4px;display:flex;align-items:center;gap:6px;">' +
+                    '<i class="fas fa-chart-bar" style="color:var(--secondary);"></i>' +
+                    '<span>Affordability Check</span>' +
+                    '<span id="incomeRatioBadge" style="margin-left:auto;font-size:12px;padding:2px 10px;border-radius:50px;font-weight:700;"></span>' +
+                '</div>' +
+                '<div id="incomeRatioDetail" style="color:#5f6b7a;"></div>';
+            // Insert after the income group, before the next sibling
+            incomeGroup.parentNode.insertBefore(widget, incomeGroup.nextSibling);
+        }
+
+        const updateRatio = () => {
+            const widget  = document.getElementById('incomeRatioWidget');
+            const badge   = document.getElementById('incomeRatioBadge');
+            const detail  = document.getElementById('incomeRatioDetail');
+            if (!widget || !badge || !detail) return;
+
+            const rawIncome = (incomeEl ? incomeEl.value : '').replace(/[$,\s]/g, '');
+            const rawOther  = (otherEl  ? otherEl.value  : '').replace(/[$,\s]/g, '');
+            const income    = parseFloat(rawIncome) || 0;
+            const other     = parseFloat(rawOther)  || 0;
+            const total     = income + other;
+
+            if (!income) { widget.style.display = 'none'; return; }
+
+            const ratio  = total / rent; // typically landlords require 2.5x–3x
+            const pct    = Math.round((rent / total) * 100);
+            widget.style.display = 'block';
+
+            let color, bg, label, msg;
+            if (ratio >= 3) {
+                color = '#1b5e20'; bg = '#e8f5e9'; label = '✓ Qualifies';
+                msg = 'Your income is <strong>' + ratio.toFixed(1) + '×</strong> the monthly rent ($' +
+                      rent.toLocaleString('en-US') + '), which meets the standard 3× requirement.';
+            } else if (ratio >= 2.5) {
+                color = '#e65100'; bg = '#fff8e1'; label = '⚠ Borderline';
+                msg = 'Your income is <strong>' + ratio.toFixed(1) + '×</strong> the monthly rent ($' +
+                      rent.toLocaleString('en-US') + '). Most landlords require 2.5–3×. This may be reviewed closely.';
+            } else {
+                color = '#b71c1c'; bg = '#ffebee'; label = '✗ May Not Qualify';
+                msg = 'Your income is <strong>' + ratio.toFixed(1) + '×</strong> the monthly rent ($' +
+                      rent.toLocaleString('en-US') + '). Most landlords require at least 2.5–3×. ' +
+                      (other ? '' : 'Adding any additional income above may help.');
+            }
+
+            widget.style.background  = bg;
+            widget.style.borderColor = color + '55';
+            badge.textContent  = label;
+            badge.style.cssText = 'margin-left:auto;font-size:12px;padding:2px 10px;border-radius:50px;font-weight:700;background:' + color + ';color:#fff;';
+            detail.innerHTML = msg + ' <span style="color:#94a3b8;">(' + pct + '% of income goes to rent)</span>';
+        };
+
+        if (incomeEl) { incomeEl.addEventListener('input', updateRatio); incomeEl.addEventListener('change', updateRatio); }
+        if (otherEl)  { otherEl.addEventListener('input',  updateRatio); otherEl.addEventListener('change',  updateRatio); }
+        // Run once on setup in case progress was restored
+        setTimeout(updateRatio, 100);
+    }
+
     // ---------- Real-time validation ----------
     setupRealTimeValidation() {
         const form = document.getElementById('rentalApplication');
@@ -683,7 +932,13 @@ class RentalApplication {
             }
         } else if (field.id === 'dob' || field.id === 'coDob') {
             const birthDate = this._parseLocalDate(field.value);
-            const today = new Date();
+            // Build today as date-only integers (no time, no timezone) to avoid
+            // the UTC-midnight parse bug where new Date('YYYY-MM-DD') returns
+            // midnight UTC which shifts to the previous day in negative-offset zones.
+            const now = new Date();
+            const todayY = now.getFullYear();
+            const todayM = now.getMonth() + 1; // 1-based
+            const todayD = now.getDate();
             if (!field.value) {
                 isValid = false;
                 errorMessage = this.state.language === 'en' ? 'Please enter your date of birth.' : 'Por favor ingrese su fecha de nacimiento.';
@@ -691,9 +946,14 @@ class RentalApplication {
                 isValid = false;
                 errorMessage = this.state.language === 'en' ? 'Please enter a valid date of birth (18+ required).' : 'Por favor ingrese una fecha válida (18+ requerido).';
             } else {
-                let age = today.getFullYear() - birthDate.getFullYear();
-                const m = today.getMonth() - birthDate.getMonth();
-                if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) age--;
+                // Date-only age calculation: compare year/month/day integers directly.
+                // birthDate was constructed by _parseLocalDate which uses new Date(y,m-1,d)
+                // so its y/m/d values are always local and correct.
+                const bY = birthDate.getFullYear();
+                const bM = birthDate.getMonth() + 1; // 1-based
+                const bD = birthDate.getDate();
+                let age = todayY - bY;
+                if (todayM < bM || (todayM === bM && todayD < bD)) age--;
                 if (age < 18) {
                     isValid = false;
                     errorMessage = this.state.language === 'en' ? 'Applicants must be at least 18 years old.' : 'Los solicitantes deben tener al menos 18 años.';
@@ -709,6 +969,19 @@ class RentalApplication {
             } else if (!moveInDate || moveInDate < today) {
                 isValid = false;
                 errorMessage = this.state.language === 'en' ? 'Move-in date cannot be in the past.' : 'La fecha de mudanza no puede ser en el pasado.';
+            } else {
+                // Also validate against property availability date if set
+                const availInput = document.getElementById('hiddenAvailableDate');
+                const availVal = availInput ? availInput.value : '';
+                if (availVal) {
+                    const availDate = this._parseLocalDate(availVal);
+                    if (availDate && moveInDate < availDate) {
+                        isValid = false;
+                        errorMessage = this.state.language === 'en'
+                            ? `This property is not available until ${availVal}. Please select a date on or after that date.`
+                            : `Esta propiedad no estará disponible hasta ${availVal}. Por favor seleccione una fecha en o después de esa fecha.`;
+                    }
+                }
             }
         } else if (field.hasAttribute('required')) {
             if (field.type === 'checkbox') {
@@ -721,6 +994,16 @@ class RentalApplication {
             }
         }
         if (isValid && field.value.trim()) {
+            // Numeric validation for income fields
+            if (field.id === 'monthlyIncome' || field.id === 'otherIncome' || field.id === 'coMonthlyIncome') {
+                const numVal = field.value.replace(/[$,\s]/g, '');
+                if (numVal !== '' && (isNaN(parseFloat(numVal)) || parseFloat(numVal) < 0)) {
+                    isValid = false;
+                    errorMessage = this.state.language === 'en'
+                        ? 'Please enter a valid dollar amount (numbers only).'
+                        : 'Por favor ingrese un monto válido (solo números).';
+                }
+            }
             if (field.type === 'email') {
                 const email = field.value.trim();
                 if (!email.includes('@')) {
@@ -1005,6 +1288,17 @@ class RentalApplication {
                   section.querySelectorAll('input[name="Preferred Time"]').forEach(cb => cb.classList.remove('is-invalid'));
               }
           }
+        // Step 2: validate pet details when user has pets
+        if (stepNumber === 2) {
+            const petsYes = document.getElementById('petsYes');
+            if (petsYes && petsYes.checked) {
+                if (!this._validatePetDetails()) {
+                    isStepValid = false;
+                    const petField = document.getElementById('petDetails');
+                    if (!firstInvalidField) firstInvalidField = petField;
+                }
+            }
+        }
         if (!isStepValid && firstInvalidField) this.scrollToInvalidField(firstInvalidField);
         return isStepValid;
     }
@@ -1058,12 +1352,15 @@ class RentalApplication {
         const petGroup = document.getElementById('petDetailsGroup');
         if (petsRadio && petGroup) {
             petsRadio.forEach(r => r.addEventListener('change', (e) => {
-                petGroup.style.display = e.target.value === 'Yes' ? 'block' : 'none';
+                const show = e.target.value === 'Yes';
+                petGroup.style.display = show ? 'block' : 'none';
+                // When showing the pet section, populate the policy hint from URL params
+                if (show) this._applyPetPolicyHint();
             }));
         }
         const hasCoApplicantCheck = document.getElementById('hasCoApplicant');
         const coApplicantSection = document.getElementById('coApplicantSection');
-        const coRequiredIds = ['coFirstName', 'coLastName', 'coEmail', 'coPhone'];
+        const coRequiredIds = ['coFirstName', 'coLastName', 'coEmail', 'coPhone', 'coDob', 'coSsn'];
         if (hasCoApplicantCheck && coApplicantSection) {
             hasCoApplicantCheck.addEventListener('change', (e) => {
                 coApplicantSection.style.display = e.target.checked ? 'block' : 'none';
@@ -1072,11 +1369,17 @@ class RentalApplication {
                         const el = document.getElementById(id);
                         if (el) el.setAttribute('required', 'required');
                     });
+                    // coConsent must be checked when section is visible
+                    const coConsentEl = document.getElementById('coConsent');
+                    if (coConsentEl) coConsentEl.setAttribute('required', 'required');
                 } else {
                     coRequiredIds.forEach(id => {
                         const el = document.getElementById(id);
                         if (el) { el.removeAttribute('required'); el.value = ''; }
                     });
+                    // Remove required from coConsent and uncheck it when section hides
+                    const coConsentEl = document.getElementById('coConsent');
+                    if (coConsentEl) { coConsentEl.removeAttribute('required'); coConsentEl.checked = false; }
                     const inputs = coApplicantSection.querySelectorAll('input, select, textarea');
                     inputs.forEach(input => this.clearError(input));
                 }
@@ -2382,11 +2685,8 @@ class RentalApplication {
 
         const certify = document.getElementById('certifyCorrect');
         const authorize = document.getElementById('authorizeVerify');
-        const terms = document.getElementById('termsAgree');
         const feeAck = document.getElementById('feeAcknowledge');
-        const infoAcc = document.getElementById('infoAccuracy');
-        const dataConsent = document.getElementById('dataConsent');
-        const allDeclarations = [feeAck, infoAcc, dataConsent, certify, authorize, terms].filter(Boolean);
+        const allDeclarations = [certify, authorize, feeAck].filter(Boolean);
         if (allDeclarations.some(cb => !cb.checked)) {
             // Show inline error instead of alert — scroll to first unchecked declaration
               const _firstUnchecked = allDeclarations.find(cb => !cb.checked);
@@ -2452,6 +2752,8 @@ class RentalApplication {
                     if (uploadWarn) {
                         uploadWarn.textContent = 'Your attached files are too large to submit together. They have been removed from this submission. Please email your documents to us separately after submitting.';
                         uploadWarn.style.display = 'block';
+                        // Scroll the warning into view so it isn't missed on Step 6
+                        uploadWarn.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
                 } else {
                     const encodeFile = (file) => new Promise((resolve, reject) => {
@@ -2758,8 +3060,6 @@ class RentalApplication {
             ? '<a href="' + this._escHtml(this.state.sourceUrl) + '" style="display:inline-block;margin-top:8px;font-size:0.9rem;color:#1a5276;text-decoration:none;">← Back to this listing</a>'
             : '';
 
-        const dashboardLink = `${this.BACKEND_URL}?path=dashboard&id=${appId}`;
-        
         successState.style.display = 'block';
         successState.innerHTML = `
             <div class="success-card">
@@ -2777,6 +3077,7 @@ class RentalApplication {
                     <button class="copy-btn" type="button">
                         <i class="fas fa-copy"></i> ${t.clickToCopy}
                     </button>
+                    <p style="font-size:12px;color:#64748b;margin:8px 0 0;"><i class="fas fa-info-circle"></i> Save this ID — you will need it to reference your application.</p>
                 </div>
 
                 <div class="divider"></div>
@@ -2842,20 +3143,9 @@ class RentalApplication {
                 </div>
 
                 <div class="action-buttons">
-                    <a href="${dashboardLink}" class="btn-track">
-                        <i class="fas fa-chart-line"></i> ${t.trackStatus}
-                    </a>
                     <button type="button" class="btn-new">
                         <i class="fas fa-plus"></i> ${t.newApplication}
                     </button>
-                </div>
-
-                <div class="qr-track-section">
-                    <div class="qr-track-label">
-                        <i class="fas fa-mobile-alt"></i>
-                        Scan to track your application on your phone
-                    </div>
-                    <div id="successQRCode" class="qr-code-box"></div>
                 </div>
 
                 <div class="spam-warning-notice" style="background:#fff8e1;border:1px solid #ffe082;border-radius:10px;padding:14px 16px;margin:16px 0;font-size:13.5px;color:#5d4037;line-height:1.5;">
@@ -2879,25 +3169,6 @@ class RentalApplication {
         }
         
         window.scrollTo({ top: 0, behavior: 'smooth' });
-
-        // Generate QR code pointing to the applicant dashboard
-        try {
-            const qrContainer = document.getElementById('successQRCode');
-            if (qrContainer && typeof QRCode !== 'undefined') {
-                new QRCode(qrContainer, {
-                    text: dashboardLink,
-                    width: 140,
-                    height: 140,
-                    colorDark: '#1B3A5C',
-                    colorLight: '#ffffff',
-                    correctLevel: QRCode.CorrectLevel.M
-                });
-            }
-        } catch (qrErr) {
-            // Non-fatal — QR code is a convenience feature only
-            const qrContainer = document.getElementById('successQRCode');
-            if (qrContainer) qrContainer.style.display = 'none';
-        }
     }
 
     getTranslations() {
@@ -3102,10 +3373,7 @@ class RentalApplication {
             case 6: {
                 chk('certifyCorrect', true);
                 chk('authorizeVerify', true);
-                chk('termsAgree', true);
                 chk('feeAcknowledge', true);
-                chk('infoAccuracy', true);
-                chk('dataConsent', true);
                 this.generateApplicationSummary();
                 break;
             }

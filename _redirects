@@ -1,1 +1,3 @@
-/apply.html / 301
+# Cloudflare Pages redirect rules
+# All routes serve index.html for SPA-style URL param handling
+/*    /index.html    200

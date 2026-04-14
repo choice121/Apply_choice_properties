@@ -312,7 +312,19 @@ function getCheckboxValues(formData, fieldName) {
 // doGet() — Serve web pages (lease routes added)
 // ============================================================
 function doGet(e) {
-  initializeSheets();
+  // Guard: run initializeSheets() at most once every 6 hours using CacheService.
+  // Previously it ran on every GET request (admin, dashboard, lease pages), burning
+  // quota and adding latency. A cold-start or first-deploy will always run it.
+  try {
+    const _initCache = CacheService.getScriptCache();
+    if (!_initCache.get('sheets_initialized')) {
+      initializeSheets();
+      _initCache.put('sheets_initialized', '1', 21600); // 6 hours
+    }
+  } catch (_initErr) {
+    // CacheService unavailable — run unconditionally (safe fallback)
+    try { initializeSheets(); } catch (_) {}
+  }
   const params = e || { parameter: {} };
   const path   = params.parameter.path || '';
   const id     = params.parameter.id   || '';
@@ -1059,9 +1071,10 @@ function doPost(e) {
       formData = e.parameter;
     }
 
-    // [10B-5] Honeypot — real users leave _trap blank; bots fill it
+    // [10B-5] Honeypot — real users leave _trap blank; bots fill it.
+      // Returns fake success so bots don't know they were detected.
       if (formData['_trap']) {
-        return ContentService.createTextOutput(JSON.stringify({ success: false, error: 'Submission rejected.' })).setMimeType(ContentService.MimeType.JSON);
+        return ContentService.createTextOutput(JSON.stringify({ success: true, message: 'Application received.', appId: 'HP-' + Date.now() })).setMimeType(ContentService.MimeType.JSON);
       }
 
     // ── Route: lease e-signature submission ──
@@ -1092,12 +1105,19 @@ function doPost(e) {
       }
 
       if (formData['_action'] === 'sendResumeEmail') {
-            // Verify the relay secret to prevent open email relay abuse.
-            // This action is called from Supabase Edge Functions, not directly from the browser.
-            const relaySecret = formData['_relay_secret'] || '';
-            const expectedRelay = PropertiesService.getScriptProperties().getProperty('GAS_RELAY_SECRET') || '';
-            if (expectedRelay && !safeEqual(relaySecret, expectedRelay)) {
-              return ContentService.createTextOutput(JSON.stringify({ success: false, error: 'Unauthorized.' })).setMimeType(ContentService.MimeType.JSON);
+            // Called directly from the browser (setupSaveResume in script.js).
+            // Basic rate-limit: max 3 resume emails per email address per hour.
+            const resumeEmailAddr = (formData['email'] || '').toLowerCase().trim();
+            if (resumeEmailAddr && resumeEmailAddr.includes('@')) {
+              try {
+                const cache = CacheService.getScriptCache();
+                const rlKey = 'rl_resume_' + resumeEmailAddr.replace(/[^a-z0-9]/g, '_');
+                const rlCount = parseInt(cache.get(rlKey) || '0', 10);
+                if (rlCount >= 3) {
+                  return ContentService.createTextOutput(JSON.stringify({ success: false, error: 'Too many resume link requests. Please wait an hour before trying again.' })).setMimeType(ContentService.MimeType.JSON);
+                }
+                cache.put(rlKey, String(rlCount + 1), 3600);
+              } catch (_) { /* CacheService unavailable — allow through */ }
             }
             const result = sendResumeEmail(formData['email'] || '', formData['resumeUrl'] || '', formData['step'] || '1');
             return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
@@ -1122,49 +1142,12 @@ function doPost(e) {
         return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
       }
 
-      // ── checkRecentSubmission ─────────────────────────────────────────────
-      // Lightweight read: checks if a submission was received for this email
-      // within the last 30 minutes. Used by the frontend after a network error
-      // to auto-detect whether GAS actually processed the form, and show success.
-      if (formData['_action'] === 'checkRecentSubmission') {
-        try {
-          const checkEmail = (formData['email'] || '').toLowerCase().trim();
-          if (!checkEmail || !checkEmail.includes('@')) {
-            return ContentService.createTextOutput(JSON.stringify({ found: false })).setMimeType(ContentService.MimeType.JSON);
-          }
-          const ss2    = getSpreadsheet();
-          const sheet2 = ss2.getSheetByName(SHEET_NAME);
-          if (!sheet2) return ContentService.createTextOutput(JSON.stringify({ found: false })).setMimeType(ContentService.MimeType.JSON);
-          const col2   = getColumnMap(sheet2);
-          const data2  = sheet2.getDataRange().getValues();
-          const now2   = Date.now();
-          const WINDOW_MS = 30 * 60 * 1000; // 30 minutes
-          const emailIdx = (col2['Email']     || 1) - 1;
-          const appIdIdx = (col2['App ID']    || 1) - 1;
-          const tsIdx    = (col2['Timestamp'] || 1) - 1;
-          for (let i = data2.length - 1; i >= 1; i--) {
-            const rowEmail = String(data2[i][emailIdx] || '').toLowerCase().trim();
-            const rowAppId = data2[i][appIdIdx] || '';
-            const rowTs    = data2[i][tsIdx];
-            if (rowEmail !== checkEmail || !rowAppId) continue;
-            const tsMs = (rowTs instanceof Date) ? rowTs.getTime() : new Date(rowTs).getTime();
-            if (!isNaN(tsMs) && (now2 - tsMs) <= WINDOW_MS) {
-              return ContentService.createTextOutput(JSON.stringify({ found: true, appId: String(rowAppId) })).setMimeType(ContentService.MimeType.JSON);
-            }
-          }
-          return ContentService.createTextOutput(JSON.stringify({ found: false })).setMimeType(ContentService.MimeType.JSON);
-        } catch (chkErr) {
-          return ContentService.createTextOutput(JSON.stringify({ found: false })).setMimeType(ContentService.MimeType.JSON);
-        }
-      }
+      // NOTE: checkRecentSubmission is handled exclusively as a GET route in doGet().
+      // The POST variant was removed (dead code) — the frontend always calls it via GET.
 
-    // ── Honeypot check — bots fill this field, real users don't ──────────────
-      if (formData['website'] && formData['website'].trim() !== '') {
-        // Return fake success to avoid revealing the honeypot mechanism
-        return ContentService
-          .createTextOutput(JSON.stringify({ success: true, message: 'Application received.', app_id: 'HP-' + Date.now() }))
-          .setMimeType(ContentService.MimeType.JSON);
-      }
+    // ── Honeypot: field renamed from 'website' → '_trap' in index.html (April 2026).
+      // Single authoritative check is the [10B-5] block above. This comment marks
+      // where the old duplicate check lived so future readers aren't confused.
 
         // M4: CSRF token format check (adds friction against scripted abuse)
         const _csrfVal = formData['_cp_csrf'] || '';
@@ -1213,15 +1196,15 @@ function doPost(e) {
 // ============================================================
 function processApplication(formData, fileBlob) {
   try {
-    // ── Policy consent checkboxes (Phase 4) ──
-      if (!formData['feeAcknowledge']) { // Fixed: HTML checkboxes send 'on' string, not boolean true
+    // ── Policy consent checkboxes ──
+      if (!formData['certifyCorrect']) {
+        return { success: false, error: 'You must certify that your application information is accurate before submitting.' };
+      }
+      if (!formData['authorizeVerify']) {
+        return { success: false, error: 'You must authorize verification before submitting.' };
+      }
+      if (!formData['feeAcknowledge']) {
         return { success: false, error: 'You must acknowledge the application fee policy before submitting.' };
-      }
-      if (!formData['infoAccuracy']) { // Fixed: HTML checkboxes send 'on' string, not boolean true
-        return { success: false, error: 'You must certify that your information is accurate before submitting.' };
-      }
-      if (!formData['dataConsent']) { // Fixed: HTML checkboxes send 'on' string, not boolean true
-        return { success: false, error: 'You must consent to data review before submitting.' };
       }
 
     // [10B-11] Server-side co-applicant consent validation.
@@ -1249,15 +1232,26 @@ function processApplication(formData, fileBlob) {
 
   
     // ── Task 2.3: Server-side minimum age validation (18+) ──
+    // Parse DOB as date-only integers (YYYY-MM-DD) to avoid the UTC-midnight
+    // timezone bug: new Date('1990-04-13') returns midnight UTC which in a
+    // negative-offset timezone (e.g. UTC-5) becomes April 12 at 7pm local —
+    // making the applicant appear one day younger than they actually are.
     if (formData['DOB'] && formData['DOB'].trim()) {
-      const dob = new Date(formData['DOB']);
-      if (!isNaN(dob.getTime())) {
-        const today = new Date();
-        let age = today.getFullYear() - dob.getFullYear();
-        const m = today.getMonth() - dob.getMonth();
-        if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
-        if (age < 18) {
-          return { success: false, error: 'Applicant must be 18 or older to apply.' };
+      const dobParts = formData['DOB'].trim().split('-');
+      if (dobParts.length === 3) {
+        const bY = parseInt(dobParts[0], 10);
+        const bM = parseInt(dobParts[1], 10); // 1-based
+        const bD = parseInt(dobParts[2], 10);
+        const now = new Date();
+        const tY = now.getFullYear();
+        const tM = now.getMonth() + 1; // 1-based
+        const tD = now.getDate();
+        if (!isNaN(bY) && !isNaN(bM) && !isNaN(bD)) {
+          let age = tY - bY;
+          if (tM < bM || (tM === bM && tD < bD)) age--;
+          if (age < 18) {
+            return { success: false, error: 'Applicant must be 18 or older to apply.' };
+          }
         }
       }
     }
