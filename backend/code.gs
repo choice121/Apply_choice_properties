@@ -46,6 +46,166 @@ function trustedFeeFromProperty(row) {
   return null;
 }
 
+function cpValue(val) {
+  return val === null || val === undefined ? '' : String(val).trim();
+}
+
+function cpList(val) {
+  if (Array.isArray(val)) return val.map(function(v) { return cpValue(v); }).filter(Boolean);
+  const raw = cpValue(val);
+  if (!raw) return [];
+  return raw.split(/[|,]/).map(function(v) { return v.trim(); }).filter(Boolean);
+}
+
+function cpBool(val) {
+  if (val === true || val === false) return val;
+  const raw = cpValue(val).toLowerCase();
+  if (['true', 'yes', '1', 'y', 'allowed'].indexOf(raw) !== -1) return true;
+  if (['false', 'no', '0', 'n', 'not allowed', 'none'].indexOf(raw) !== -1) return false;
+  return null;
+}
+
+function cpIsYes(val) {
+  return ['yes', 'true', '1', 'on'].indexOf(cpValue(val).toLowerCase()) !== -1;
+}
+
+function cpTermMonths(term) {
+  const raw = cpValue(term).toLowerCase();
+  if (!raw) return null;
+  if (/month\s*[- ]?\s*to\s*[- ]?\s*month|month-to-month|monthly/.test(raw)) return 1;
+  const match = raw.match(/(\d+(?:\.\d+)?)/);
+  return match ? parseFloat(match[1]) : null;
+}
+
+function cpSetFormValue(formData, key, value) {
+  if (value !== null && value !== undefined && value !== '') formData[key] = value;
+}
+
+function applyTrustedPropertyContextToFormData(formData, row) {
+  if (!row) return;
+  const leaseTerms = cpList(row.lease_terms);
+  const petTypes = cpList(row.pet_types_allowed || row.pet_types);
+  const utilities = cpList(row.utilities_included);
+  cpSetFormValue(formData, 'Property ID', row.id);
+  cpSetFormValue(formData, 'Property Name', row.title);
+  cpSetFormValue(formData, 'Property City', row.city);
+  cpSetFormValue(formData, 'Property State', row.state);
+  cpSetFormValue(formData, 'Property Zip', row.zip);
+  cpSetFormValue(formData, 'Property Address', [row.address, row.city, row.state].filter(Boolean).join(', '));
+  cpSetFormValue(formData, 'Listed Rent', row.monthly_rent);
+  cpSetFormValue(formData, 'Security Deposit', row.security_deposit);
+  cpSetFormValue(formData, 'Application Fee', trustedFeeFromProperty(row));
+  cpSetFormValue(formData, 'Bedrooms', row.bedrooms);
+  cpSetFormValue(formData, 'Bathrooms', row.bathrooms);
+  cpSetFormValue(formData, 'Available Date', row.available_date);
+  cpSetFormValue(formData, 'Lease Terms', leaseTerms.join('|'));
+  cpSetFormValue(formData, 'Min Lease Months', row.minimum_lease_months);
+  cpSetFormValue(formData, 'Pets Allowed', cpBool(row.pets_allowed) === true ? 'true' : 'false');
+  cpSetFormValue(formData, 'Pet Types Allowed', petTypes.join('|'));
+  cpSetFormValue(formData, 'Pet Weight Limit', row.pet_weight_limit);
+  cpSetFormValue(formData, 'Pet Deposit', row.pet_deposit);
+  cpSetFormValue(formData, 'Smoking Allowed', cpBool(row.smoking_allowed) === true ? 'true' : 'false');
+  cpSetFormValue(formData, 'Utilities Included', utilities.join('|'));
+  cpSetFormValue(formData, 'Parking', row.parking);
+  cpSetFormValue(formData, 'Parking Fee', row.parking_fee);
+  cpSetFormValue(formData, 'Garage Spaces', row.garage_spaces);
+  cpSetFormValue(formData, 'EV Charging', row.ev_charging);
+  cpSetFormValue(formData, 'Laundry Type', row.laundry_type);
+  cpSetFormValue(formData, 'Heating Type', row.heating_type);
+  cpSetFormValue(formData, 'Cooling Type', row.cooling_type);
+  cpSetFormValue(formData, 'Last Months Rent', row.last_months_rent);
+  cpSetFormValue(formData, 'Admin Fee', row.admin_fee);
+  cpSetFormValue(formData, 'Move-in Special', row.move_in_special);
+}
+
+function validateTrustedPropertyRules(formData, row) {
+  if (!row) return null;
+  const leaseTerms = cpList(row.lease_terms);
+  const submittedTerm = cpValue(formData['Desired Lease Term']);
+  if (submittedTerm) {
+    if (leaseTerms.length) {
+      const allowedLower = leaseTerms.map(function(term) { return term.toLowerCase(); });
+      if (allowedLower.indexOf(submittedTerm.toLowerCase()) === -1) {
+        return 'The selected lease term is not available for this property. Please return to the listing and start the application again.';
+      }
+    }
+    const minMonths = parseInt(row.minimum_lease_months, 10);
+    const submittedMonths = cpTermMonths(submittedTerm);
+    if (!isNaN(minMonths) && minMonths > 0 && submittedMonths !== null && submittedMonths < minMonths) {
+      return 'The selected lease term is shorter than this property allows. Please choose a qualifying lease term.';
+    }
+  }
+  const petsAllowed = cpBool(row.pets_allowed);
+  if (petsAllowed === false && cpIsYes(formData['Has Pets'])) {
+    return 'This property does not allow pets. Please return to the listing and choose a property that allows pets.';
+  }
+  const smokingAllowed = cpBool(row.smoking_allowed);
+  if (smokingAllowed === false && cpIsYes(formData['Smoker'])) {
+    return 'This is a non-smoking property. Smoking is not permitted for this listing.';
+  }
+  const petWeightLimit = parseFloat(row.pet_weight_limit);
+  if (cpIsYes(formData['Has Pets']) && !isNaN(petWeightLimit) && petWeightLimit > 0) {
+    const details = cpValue(formData['Pet Details']);
+    const numbers = details.match(/\d+(?:\.\d+)?/g) || [];
+    for (let i = 0; i < numbers.length; i++) {
+      const weight = parseFloat(numbers[i]);
+      if (!isNaN(weight) && weight > petWeightLimit) {
+        return 'One or more pets appear to exceed this property\'s pet weight limit. Please review the listing pet policy before applying.';
+      }
+    }
+  }
+  const requestedMoveIn = cpValue(formData['Requested Move-in Date']);
+  const trustedAvailable = cpValue(row.available_date);
+  if (requestedMoveIn && trustedAvailable) {
+    const moveInDate = new Date(requestedMoveIn);
+    const availableDate = new Date(trustedAvailable);
+    if (!isNaN(moveInDate.getTime()) && !isNaN(availableDate.getTime())) {
+      moveInDate.setUTCHours(0, 0, 0, 0);
+      availableDate.setUTCHours(0, 0, 0, 0);
+      if (moveInDate < availableDate) {
+        return 'Your requested move-in date is before the property\'s available date. Please select a move-in date on or after ' + trustedAvailable + '.';
+      }
+    }
+  }
+  return null;
+}
+
+function validateCoApplicantFields(formData) {
+  if (!cpIsYes(formData['Has Co-Applicant'])) return null;
+  const required = [
+    'Additional Person Role',
+    'Co-Applicant First Name',
+    'Co-Applicant Last Name',
+    'Co-Applicant Email',
+    'Co-Applicant Phone',
+    'Co-Applicant DOB',
+    'Co-Applicant SSN',
+    'Co-Applicant Monthly Income',
+    'Co-Applicant Consent'
+  ];
+  for (let i = 0; i < required.length; i++) {
+    if (!cpValue(formData[required[i]])) return 'Missing required co-applicant information: ' + required[i] + '. Please complete the co-applicant section and resubmit.';
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cpValue(formData['Co-Applicant Email']))) return 'Co-applicant email must be a valid email address.';
+  if (cpValue(formData['Co-Applicant Phone']).replace(/\D/g, '').length < 10) return 'Co-applicant phone number must contain at least 10 digits.';
+  if (!/^\d{4}$/.test(cpValue(formData['Co-Applicant SSN']))) return 'Co-applicant SSN must be exactly 4 numeric digits.';
+  const dobParts = cpValue(formData['Co-Applicant DOB']).split('-');
+  if (dobParts.length === 3) {
+    const bY = parseInt(dobParts[0], 10);
+    const bM = parseInt(dobParts[1], 10);
+    const bD = parseInt(dobParts[2], 10);
+    const now = new Date();
+    let age = now.getFullYear() - bY;
+    if ((now.getMonth() + 1) < bM || ((now.getMonth() + 1) === bM && now.getDate() < bD)) age--;
+    if (isNaN(age) || age < 18) return 'Co-applicant must be 18 or older to apply.';
+  } else {
+    return 'Co-applicant date of birth must be valid.';
+  }
+  const income = parseFloat(cpValue(formData['Co-Applicant Monthly Income']).replace(/[^0-9.]/g, ''));
+  if (isNaN(income) || income < 0) return 'Co-applicant monthly income must be a valid dollar amount.';
+  return null;
+}
+
 // ============================================================
 // D-002/D-003/D-004: JURISDICTION MAP
 // Maps 2-letter state codes → lease legal language.
@@ -1215,6 +1375,10 @@ function processApplication(formData, fileBlob) {
           return { success: false, error: 'Co-applicant verification consent is required. Please check the co-applicant authorization box before submitting.' };
         }
       }
+      const coApplicantError = validateCoApplicantFields(formData);
+      if (coApplicantError) {
+        return { success: false, error: coApplicantError };
+      }
 
         // [10B-8] Expanded required fields — property address, reference 1, and emergency contact
       // are now validated server-side in addition to the core identity fields.
@@ -1411,6 +1575,7 @@ function processApplication(formData, fileBlob) {
       // [L3 fix] Track validation outcome — written to Admin Notes so admins can spot unverified property links
       let propertyValidationNote = '';
       let trustedApplicationFee = null;
+      let trustedPropertyRecord = null;
         if (formData['Property ID']) {
         const scriptProps  = PropertiesService.getScriptProperties();
         const supabaseUrl  = scriptProps.getProperty('SUPABASE_URL');
@@ -1434,7 +1599,13 @@ function processApplication(formData, fileBlob) {
               if (propRows[0].status !== 'active') {
                 return { success: false, error: 'This property is no longer accepting applications. Please check our listings for other available homes.' };
               }
-              trustedApplicationFee = trustedFeeFromProperty(propRows[0]);
+              trustedPropertyRecord = propRows[0];
+              trustedApplicationFee = trustedFeeFromProperty(trustedPropertyRecord);
+              applyTrustedPropertyContextToFormData(formData, trustedPropertyRecord);
+              const trustedRulesError = validateTrustedPropertyRules(formData, trustedPropertyRecord);
+              if (trustedRulesError) {
+                return { success: false, error: trustedRulesError };
+              }
             }
             // Non-200 from Supabase: log and fall through (graceful degradation)
           } catch (validErr) {

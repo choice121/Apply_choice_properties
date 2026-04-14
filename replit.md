@@ -64,6 +64,8 @@ Fixed a critical bug where users saw "Unable to reach our servers" even though t
 - Replit static server only serves public frontend assets and blocks backend source/docs from browser access.
 - Test Fill is hidden by default and appears only when the URL includes `?test=true` or `?test=1`.
 - Application fee submitted from the browser is no longer authoritative. The GAS backend uses a trusted property fee from Supabase when available, rejects mismatched fee links, and otherwise falls back to the backend default while flagging the row for manual fee verification.
+- The GAS backend now rehydrates trusted property context from Supabase before saving an application, then enforces property lease terms, minimum lease months, pets allowed, smoking allowed, pet weight limit, and available-date rules server-side instead of trusting URL/hidden fields.
+- The GAS backend now fully validates required co-applicant fields server-side when a co-applicant/guarantor is included.
 - Frontend inline click/key handlers were removed from success and review-summary UI so the Cloudflare Content Security Policy can block inline scripts without breaking those buttons.
 
 ## Encoding Cleanup (April 2026)
