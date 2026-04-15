@@ -1954,7 +1954,7 @@ function generateAndSendLease(appId, monthlyRent, securityDeposit, leaseStartDat
       rent          : rent,
       deposit       : deposit,
       moveInCosts   : moveInCosts,
-      startDate     : leaseStartDate,
+      startDate     : Utilities.formatDate(new Date(leaseStartDate), Session.getScriptTimeZone(), 'MMMM dd, yyyy'),
       endDate       : endDateStr,
       term          : desiredTerm,
       property      : (verifiedPropertyAddress && verifiedPropertyAddress.trim()) ? verifiedPropertyAddress.trim() : sheet.getRange(rowIndex, col['Property Address']).getValue(),
@@ -2186,7 +2186,10 @@ function renderLeaseSigningPage(appId) {
   const holdingFeePending= holdingFeeStatus === 'requested' && holdingFeeAmt > 0;
   const rawMoveIn     = parseFloat(app['Move-in Costs'])      || (rent + deposit);
   const moveInCost    = holdingFeePaid ? Math.max(0, rawMoveIn - holdingFeeAmt) : rawMoveIn;
-  const startDate     = app['Lease Start Date']   || '';
+  const startDateRaw  = app['Lease Start Date']   || '';
+  const startDate     = startDateRaw
+    ? (() => { try { const d = new Date(startDateRaw); return isNaN(d.getTime()) ? String(startDateRaw) : Utilities.formatDate(d, Session.getScriptTimeZone(), 'MMMM dd, yyyy'); } catch(e) { return String(startDateRaw); } })()
+    : '';
   const endDate       = app['Lease End Date']     || '';
   const phone         = app['Phone']              || '';
   const email         = app['Email']              || '';
@@ -2834,7 +2837,7 @@ function renderLeaseSigningPage(appId) {
                  class="sig-input"
                  placeholder="e.g. jane@example.com"
                  autocomplete="email"
-                 oninput="validateSignatureForm()"
+                 oninput="validateSignatureForm()" onchange="validateSignatureForm()" onblur="validateSignatureForm()"
                  style="font-size:15px;letter-spacing:normal;font-family:sans-serif;">
         </div>
         <!-- Signature input -->
