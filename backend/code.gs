@@ -2278,14 +2278,19 @@ function renderLeaseSigningPage(appId) {
     ? 'Michigan Electronic Signature Act and the federal E-SIGN Act'
     : 'applicable state Uniform Electronic Transactions Act (UETA) and the federal E-SIGN Act';
 
-  // Determine correct landlord for this property
-  const propertyOwner = app['Property Owner'] || 'Choice Properties';
+  // Determine correct landlord for this property.
+  // The landlord's legal name (from "Property Owner" column) appears ONLY in the formal
+  // Article I party definitions — nowhere else in public-facing surfaces.  Choice Properties
+  // is the contact for all communications, payments, and day-to-day management.
+  const propertyOwner = app['Property Owner'] || '';
   const isChoiceOwned = !propertyOwner || propertyOwner === 'Choice Properties' || propertyOwner.trim() === '';
+  // landlordName is the legal name used solely in the Article I definitions.
+  // For Choice-owned properties it is "Choice Properties"; for managed properties it is
+  // the actual owner's legal name (individual or LLC) stored in the Property Owner column.
   const landlordName  = isChoiceOwned ? 'Choice Properties' : propertyOwner;
-  const landlordAddr  = isChoiceOwned ? '2265 Livernois, Suite 500, Troy, MI 48083' : '';
-  const managedByLine = isChoiceOwned
-    ? ''
-    : `<li><b>Property Manager:</b> Choice Properties, 2265 Livernois Suite 500, Troy, MI 48083 | 707-706-3137 (acting as authorized management agent)</li>`;
+  // We never display the owner's personal address in the lease — Choice Properties address
+  // is always used as the formal notice/contact address for tenants.
+  const choiceAddr    = '2265 Livernois, Suite 500, Troy, MI 48083';
 
   // Utilities clause — dynamic (D-019): list included utilities if specified, else generic
   const includedUtilities = app['Included Utilities'] || '';
@@ -2568,10 +2573,9 @@ function renderLeaseSigningPage(appId) {
     <span>Prepared for: ${fullName} — Exclusively</span>
   </div>
 
-  ${!isChoiceOwned ? `
   <div class="mgmt-notice">
-    <strong>📋 Management Notice:</strong> This property is owned by <strong>${landlordName}</strong> and managed by <strong>Choice Properties</strong> as the authorized management agent. All lease administration, communications, and tenant services are handled by Choice Properties on behalf of the property owner.
-  </div>` : ''}
+    <strong>📋 Management Notice:</strong> This property is managed by <strong>Choice Properties</strong> as the authorized management agent. All lease administration, maintenance requests, communications, and rent collection are handled exclusively by Choice Properties. For any questions or concerns, contact us at <strong>707-706-3137</strong> (text) or <strong>choicepropertygroup@hotmail.com</strong>.
+  </div>
 
   <!-- LEASE BODY -->
   <div class="lease-body">
@@ -2590,14 +2594,15 @@ function renderLeaseSigningPage(appId) {
     <div class="section-title">📋 Parties</div>
     <p class="clause">This Residential Lease Agreement ("Agreement" or "Lease") is entered into as of <b>${todayStr}</b>, by and between the following parties:</p>
     <ul style="margin:10px 0 20px 20px;font-size:14px;line-height:2;">
-      <li><b>Landlord:</b> ${landlordName}${landlordAddr ? ', ' + landlordAddr : ''}</li>
-      ${managedByLine}
+      <li><b>Landlord:</b> ${landlordName}</li>
+      <li><b>Authorized Management Agent:</b> Choice Properties, ${choiceAddr} | 707-706-3137</li>
       <li><b>Tenant(s):</b> ${allTenantsStr}</li>
       <li><b>Contact / Text:</b> ${phone} &nbsp;·&nbsp; ${email}</li>
     </ul>
     <p class="clause" style="font-size:13px;color:#555;">
       Where this Agreement refers to the "Landlord," it refers to <b>${landlordName}</b>.
-      Where it refers to "Management" or "Choice Properties," it refers to Choice Properties acting as the authorized management agent responsible for day-to-day operations, communications, and administration on behalf of the Landlord.
+      Where it refers to "Management," "Manager," or "Choice Properties," it refers to Choice Properties acting as the exclusive authorized management agent, responsible for all day-to-day operations, tenant communications, maintenance coordination, and rent collection on behalf of the Landlord.
+      Tenants should direct all communications, payments, and notices to Choice Properties — not to the Landlord directly.
     </p>
 
     <!-- ═══════════════════════════════════════
@@ -2656,7 +2661,7 @@ function renderLeaseSigningPage(appId) {
 
       <li>
         <b>1. Rent Payment.</b>
-        Tenant agrees to pay $${rent.toLocaleString()}.00 per month, due on the ${rentDueStr}, payable to ${landlordName} via the payment method agreed upon with Management. Partial payments are not accepted unless expressly agreed to in writing. Rent not received by the ${ordSfx(graceLateDay)} of the month is considered late and subject to the late fees outlined in Article III.
+        Tenant agrees to pay $${rent.toLocaleString()}.00 per month, due on the ${rentDueStr}, payable to Choice Properties (as authorized management agent) via the payment method agreed upon with Management. Partial payments are not accepted unless expressly agreed to in writing. Rent not received by the ${ordSfx(graceLateDay)} of the month is considered late and subject to the late fees outlined in Article III.
       </li>
 
       <li>
@@ -2817,9 +2822,9 @@ function renderLeaseSigningPage(appId) {
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px 32px;margin-bottom:16px;">
         <div>
-          <div style="font-size:11px;color:#94a3b8;margin-bottom:4px;">For and on behalf of</div>
-          <div style="font-size:14px;font-weight:600;color:#1e293b;">${landlordName}</div>
-          <div style="font-size:12px;color:#64748b;">By its authorized management agent, Choice Properties</div>
+          <div style="font-size:11px;color:#94a3b8;margin-bottom:4px;">Executed by</div>
+          <div style="font-size:14px;font-weight:600;color:#1e293b;">Choice Properties</div>
+          <div style="font-size:12px;color:#64748b;">As Authorized Management Agent for the Property Owner</div>
         </div>
         <div>
           <div style="font-size:11px;color:#94a3b8;margin-bottom:4px;">Title</div>
@@ -2951,7 +2956,7 @@ function renderLeaseSigningPage(appId) {
         </div>
         <div class="checkbox-row" id="row4" onclick="toggleCheck('agreeOwnership','row4')">
           <input type="checkbox" id="agreeOwnership" onclick="event.stopPropagation()" onchange="onCbChange(this,'row4')">
-          <label for="agreeOwnership" onclick="event.stopPropagation()">I understand that <b>${landlordName}</b> is the Landlord for this property${!isChoiceOwned ? ', and that Choice Properties is acting as the authorized management agent on their behalf' : ''}, and that Choice Properties will handle all communications, maintenance requests, and rent collection.</label>
+          <label for="agreeOwnership" onclick="event.stopPropagation()">I understand that <b>Choice Properties</b> is the authorized management agent for this property and will handle all communications, maintenance requests, and rent collection on behalf of the property owner as identified in Article I of this Lease.</label>
         </div>
         <div class="checkbox-row" id="row5" onclick="toggleCheck('agreeInsurance','row5')">
           <input type="checkbox" id="agreeInsurance" onclick="event.stopPropagation()" onchange="onCbChange(this,'row5')">

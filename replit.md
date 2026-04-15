@@ -55,7 +55,7 @@ Without these, the form renders but submissions and autocomplete won't work.
 - **Bilingual:** Full English and Spanish support
 - **Admin Dashboard:** GAS-rendered UI for reviewing applications
 - **Applicant Dashboard:** Status tracking page
-- **Lease Generation:** State-specific legal jurisdictions, e-signatures
+- **Lease Generation:** State-specific legal jurisdictions, e-signatures. Landlord's legal name (from "Property Owner" column) appears only in Article I of the lease. Everywhere else — emails, dashboard, reminder emails, signature block, and confirmation page — shows Choice Properties as the management contact.
 - **Security:** OTP-based admin login, device fingerprinting
 
 ## Workflows
