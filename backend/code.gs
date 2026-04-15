@@ -471,6 +471,24 @@ function getCheckboxValues(formData, fieldName) {
   return val || '';
 }
 
+function escapeHtml(value) {
+  if (value === null || value === undefined) return '';
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function sanitizeObjectForHtml(obj) {
+  Object.keys(obj || {}).forEach(key => {
+    const value = obj[key];
+    if (typeof value === 'string') obj[key] = escapeHtml(value);
+  });
+  return obj;
+}
+
 // ============================================================
 // doGet() — Serve web pages (lease routes added)
 // ============================================================
@@ -2035,11 +2053,16 @@ function calculateLeaseEndDate(startDate, termString) {
 // ─────────────────────────────────────────────────────────
 function signLease(appId, tenantSignature, ipAddress, rentersInsuranceAgreed, applicantEmail) {
   try {
-    if (!tenantSignature || tenantSignature.trim().length < 5) {
+    const cleanSignature = (tenantSignature || '').toString().replace(/[\u0000-\u001F\u007F]/g, '').trim();
+    const cleanEmail = (applicantEmail || '').toString().toLowerCase().trim();
+    if (!cleanSignature || cleanSignature.length < 5) {
       throw new Error('A valid full legal name is required (minimum 5 characters).');
     }
-    if (!applicantEmail || !applicantEmail.trim()) {
+    if (!cleanEmail) {
       throw new Error('Your email address is required to verify your identity before signing.');
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      throw new Error('Please enter a valid email address to verify your identity before signing.');
     }
 
     const ss    = getSpreadsheet();
@@ -2057,9 +2080,8 @@ function signLease(appId, tenantSignature, ipAddress, rentersInsuranceAgreed, ap
 
     // ── Identity verification: confirm caller is the actual applicant ──────
     const storedEmail = (sheet.getRange(rowIndex, col['Email']).getValue() || '').toString().toLowerCase().trim();
-    const callerEmail = applicantEmail.toLowerCase().trim();
-    if (!storedEmail || storedEmail !== callerEmail) {
-      throw new Error('The email address you entered does not match the application on record. Please verify your email and try again.');
+    if (!storedEmail || storedEmail !== cleanEmail) {
+      throw new Error('The email address entered does not match this application. Please use the same email address from your rental application, or text Choice Properties at 707-706-3137 for help.');
     }
     // ── End identity verification ──────────────────────────────────────────
 
@@ -2070,7 +2092,7 @@ function signLease(appId, tenantSignature, ipAddress, rentersInsuranceAgreed, ap
     const signedAt = new Date();
     sheet.getRange(rowIndex, col['Lease Status']).setValue('signed');
     sheet.getRange(rowIndex, col['Lease Signed Date']).setValue(signedAt);
-    sheet.getRange(rowIndex, col['Tenant Signature']).setValue(tenantSignature.trim());
+    sheet.getRange(rowIndex, col['Tenant Signature']).setValue(cleanSignature);
     sheet.getRange(rowIndex, col['Signature Timestamp']).setValue(signedAt.toISOString());
     sheet.getRange(rowIndex, col['Lease IP Address']).setValue(ipAddress || 'not captured');
     if (col['Renter Insurance Agreed']) {
@@ -2079,7 +2101,7 @@ function signLease(appId, tenantSignature, ipAddress, rentersInsuranceAgreed, ap
 
     // Add audit note
     const currentNotes = sheet.getRange(rowIndex, col['Admin Notes']).getValue();
-    const auditNote = `[${signedAt.toLocaleString()}] Lease signed electronically by "${tenantSignature.trim()}" from IP ${ipAddress || 'unknown'}.`;
+    const auditNote = `[${signedAt.toLocaleString()}] Lease signed electronically by "${cleanSignature}" from IP ${ipAddress || 'unknown'}.`;
     sheet.getRange(rowIndex, col['Admin Notes']).setValue(
       currentNotes ? currentNotes + '\n' + auditNote : auditNote
     );
@@ -2112,12 +2134,12 @@ function signLease(appId, tenantSignature, ipAddress, rentersInsuranceAgreed, ap
       moveInCost    : moveInCost,
       startDate     : startDate,
       endDate       : endDate,
-      signature     : tenantSignature.trim(),
+      signature     : cleanSignature,
       propertyState : propertyState,
       dashboardLink
     });
 
-    sendLeaseSignedAdminAlert(appId, firstName + ' ' + lastName, email, phone, tenantSignature.trim(), property);
+    sendLeaseSignedAdminAlert(appId, firstName + ' ' + lastName, email, phone, cleanSignature, property);
 
     // ── Task 4.4: Send move-in preparation guide to tenant ──
     sendMoveInPreparationGuide(appId, email, firstName, {
@@ -2182,6 +2204,9 @@ function renderLeaseSigningPage(appId) {
   }
 
   const app = result.application;
+  sanitizeObjectForHtml(app);
+  const safeAppId = escapeHtml(appId);
+  const appIdParam = encodeURIComponent(String(appId));
 
   const leaseStatus = app['Lease Status'] || 'none';
   if (leaseStatus === 'signed') {
@@ -2191,7 +2216,7 @@ function renderLeaseSigningPage(appId) {
         <div style="font-size:64px;">✅</div>
         <h2 style="color:#27ae60;">Lease Already Signed</h2>
         <p>This lease has already been signed. Please check your email for your copy, or log in to your dashboard.</p>
-        <a href="?path=dashboard&id=${appId}" style="display:inline-block;margin-top:20px;background:#1a5276;color:white;padding:14px 32px;border-radius:50px;text-decoration:none;font-weight:600;">View My Dashboard</a>
+        <a href="?path=lease_confirm&id=${appIdParam}" style="display:inline-block;margin-top:20px;background:#1a5276;color:white;padding:14px 32px;border-radius:50px;text-decoration:none;font-weight:600;">View Signing Confirmation</a>
       </div></body></html>
     `).setTitle('Already Signed');
   }
@@ -2241,6 +2266,8 @@ function renderLeaseSigningPage(appId) {
   const smoker        = app['Smoker']             || 'No';
   const leaseNotes    = (app['Lease Notes'] || '').toString().trim();
   const baseUrl       = ScriptApp.getService().getUrl();
+  const jsAppId       = JSON.stringify(String(appId));
+  const jsBaseUrl     = JSON.stringify(String(baseUrl));
   const todayStr      = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MMMM dd, yyyy');
 
   // ── D-005/D-006: Lease financial config (admin-set, defaults for existing rows) ──
@@ -2559,7 +2586,7 @@ function renderLeaseSigningPage(appId) {
     <div class="hdr-divider"></div>
     <div class="hdr-title">Residential Lease Agreement</div>
     <div class="hdr-badges">
-      <span class="hdr-badge">REF: ${appId}</span>
+      <span class="hdr-badge">REF: ${safeAppId}</span>
       <span class="hdr-badge">🔒 CONFIDENTIAL</span>
       <span class="hdr-badge">E-SIGN ACT COMPLIANT</span>
     </div>
@@ -2567,7 +2594,7 @@ function renderLeaseSigningPage(appId) {
 
   <!-- Doc reference bar -->
   <div class="doc-ref-bar">
-    <span>Document: CP-LEASE-${appId}</span>
+    <span>Document: CP-LEASE-${safeAppId}</span>
     <span>Prepared: ${todayStr}</span>
     <span>Jurisdiction: State of ${jur.stateName}</span>
     <span>Prepared for: ${fullName} — Exclusively</span>
@@ -2583,7 +2610,7 @@ function renderLeaseSigningPage(appId) {
     <!-- Personalization notice -->
     <div class="personal-banner">
       🔒 This lease agreement was prepared exclusively for <strong>${fullName}</strong>
-      and is linked to Application ID <strong>${appId}</strong>.
+      and is linked to Application ID <strong>${safeAppId}</strong>.
       Please read every section carefully before signing.
     </div>
 
@@ -2620,7 +2647,7 @@ function renderLeaseSigningPage(appId) {
       <tr><td>Lease Term</td><td>${term}</td></tr>
       <tr><td>Commencement Date</td><td><b>${startDate}</b></td></tr>
       <tr><td>${endDate === 'Month-to-Month — No Fixed Expiration' ? 'Tenancy Type' : 'Expiration Date'}</td><td><b>${endDate}</b></td></tr>
-      <tr><td>Application ID</td><td>${appId}</td></tr>
+      <tr><td>Application ID</td><td>${safeAppId}</td></tr>
       <tr><td>Authorized Occupants</td><td>${occupantsStr} — as listed in the rental application</td></tr>
     </table>
     <p class="clause" style="font-size:13px;color:#555;margin-top:12px;">
@@ -2929,7 +2956,7 @@ function renderLeaseSigningPage(appId) {
           <div class="sig-preview-footer">
             <span>Signed by: <span id="previewSigName">—</span></span>
             <span>Date: ${todayStr}</span>
-            <span>Ref: ${appId}</span>
+            <span>Ref: ${safeAppId}</span>
           </div>
         </div>
 
@@ -2977,7 +3004,7 @@ function renderLeaseSigningPage(appId) {
           ✍️ Execute Lease Agreement
         </button>
         <div class="btn-sign-sub" id="signBtnSub">
-          Enter your email, full legal name, and complete all 6 checkboxes to activate
+          Enter your email, full legal name, and complete the 6 required confirmations to activate
         </div>
       </div>
 
@@ -2989,7 +3016,7 @@ function renderLeaseSigningPage(appId) {
       </div>
 
       <p style="font-size:12px;color:#95a5a6;text-align:center;margin-top:20px;padding-top:16px;border-top:1px solid #f1f5f9;">
-        Executed on: <strong>${todayStr}</strong> &nbsp;·&nbsp; Application ID: <strong>${appId}</strong>
+        Executed on: <strong>${todayStr}</strong> &nbsp;·&nbsp; Application ID: <strong>${safeAppId}</strong>
       </p>
     </div>
 
@@ -3011,8 +3038,8 @@ function renderLeaseSigningPage(appId) {
 </div><!-- /wrapper -->
 
 <script>
-  const APP_ID    = '${appId}';
-  const BASE_URL  = '${baseUrl}';
+  const APP_ID    = ${jsAppId};
+  const BASE_URL  = ${jsBaseUrl};
   // FIX-11: APP_EMAIL removed — email verification is fully server-side in signLease().
   // Embedding the tenant's email in page source leaked PII to anyone viewing source.
   let   capturedIP = '';
@@ -3084,7 +3111,7 @@ function renderLeaseSigningPage(appId) {
     const btn        = document.getElementById('signBtn');
     const sub        = document.getElementById('signBtnSub');
     allChecked = readConfirm && terms && binding && financial && ownership && insurance;
-    const emailOk  = email.length > 0 && email.includes('@');
+    const emailOk  = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email);
     const sigOk    = sig.length >= 5;
 
     // Step indicators
@@ -3118,6 +3145,7 @@ function renderLeaseSigningPage(appId) {
   // 4. Submit
   async function submitSignature() {
     const sig = document.getElementById('tenantSignature').value.trim();
+    if (window.__leaseSigningInProgress) return;
     if (sig.length < 5) { showAlert('Please enter your full legal name (minimum 5 characters).', 'danger'); return; }
     if (!document.getElementById('leaseReadConfirm').checked) { showAlert('Please confirm that you have read the lease agreement.', 'danger'); return; }
 
@@ -3130,16 +3158,19 @@ function renderLeaseSigningPage(appId) {
     }
 
     const signerEmail = (document.getElementById('signerEmail')?.value || '').trim().toLowerCase();
-      if (!signerEmail || !signerEmail.includes('@')) {
-        showAlert('Please enter your email address to verify your identity.', 'danger');
+      if (!signerEmail || !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(signerEmail)) {
+        showAlert('Please enter a valid email address to verify your identity.', 'danger');
         return;
       }
       const insuranceAgreed = document.getElementById('agreeInsurance').checked;
     const btn = document.getElementById('signBtn');
+    window.__leaseSigningInProgress = true;
     btn.disabled = true;
     btn.textContent = '⏳ Securing signature...';
     document.getElementById('sigSpinner').style.display = 'block';
     document.getElementById('tenantSignature').disabled = true;
+    document.getElementById('signerEmail').disabled = true;
+    document.getElementById('leaseReadConfirm').disabled = true;
     ['agreeTerms','agreeBinding','agreeFinancial','agreeOwnership','agreeInsurance'].forEach(id => {
       document.getElementById(id).disabled = true;
     });
@@ -3148,7 +3179,7 @@ function renderLeaseSigningPage(appId) {
     google.script.run
       .withSuccessHandler(function(result) {
         document.getElementById('sigSpinner').style.display = 'none';
-        if (result.success) {
+        if (result && result.success) {
           document.getElementById('step3Panel').style.display = 'none';
           document.getElementById('step1Panel').style.display = 'none';
           document.getElementById('step2Panel').style.display = 'none';
@@ -3158,24 +3189,35 @@ function renderLeaseSigningPage(appId) {
             document.getElementById(id).className = 'sig-step done';
           });
           setTimeout(function() {
-            window.location.href = BASE_URL + '?path=lease_confirm&id=' + APP_ID;
+            window.location.href = BASE_URL + '?path=lease_confirm&id=' + encodeURIComponent(APP_ID);
           }, 1800);
         } else {
+          window.__leaseSigningInProgress = false;
           document.getElementById('sigSpinner').style.display = 'none';
           btn.disabled = false;
           btn.textContent = '✍️ Execute Lease Agreement';
           document.getElementById('tenantSignature').disabled = false;
+          document.getElementById('signerEmail').disabled = false;
+          document.getElementById('leaseReadConfirm').disabled = false;
           ['agreeTerms','agreeBinding','agreeFinancial','agreeOwnership','agreeInsurance'].forEach(id => {
             document.getElementById(id).disabled = false;
           });
-          showAlert('⚠️ ' + result.error, 'danger');
+          const errText = result && result.error ? result.error : 'We could not complete the signature. Please try again or text us at 707-706-3137.';
+          if (/already been signed/i.test(errText)) {
+            window.location.href = BASE_URL + '?path=lease_confirm&id=' + encodeURIComponent(APP_ID);
+            return;
+          }
+          showAlert('⚠️ ' + errText, 'danger');
         }
       })
       .withFailureHandler(function(err) {
+        window.__leaseSigningInProgress = false;
         document.getElementById('sigSpinner').style.display = 'none';
         btn.disabled = false;
         btn.textContent = '✍️ Execute Lease Agreement';
         document.getElementById('tenantSignature').disabled = false;
+        document.getElementById('signerEmail').disabled = false;
+        document.getElementById('leaseReadConfirm').disabled = false;
         ['agreeTerms','agreeBinding','agreeFinancial','agreeOwnership','agreeInsurance'].forEach(id => {
           document.getElementById(id).disabled = false;
         });
@@ -3186,7 +3228,11 @@ function renderLeaseSigningPage(appId) {
 
   function showAlert(msg, type) {
     const el = document.getElementById('alertArea');
-    el.innerHTML = '<div class="alert alert-' + type + ' animate-in">' + msg + '</div>';
+    el.innerHTML = '';
+    const box = document.createElement('div');
+    box.className = 'alert alert-' + type + ' animate-in';
+    box.textContent = msg;
+    el.appendChild(box);
     el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
   function clearAlert() {
@@ -3206,7 +3252,35 @@ function renderLeaseSigningPage(appId) {
 // ============================================================
 function renderLeaseConfirmPage(appId) {
   const result = getApplication(appId);
+  if (!result.success) {
+    return HtmlService.createHtmlOutput(`
+<!DOCTYPE html>
+<html><body style="font-family:sans-serif;text-align:center;padding:60px;">
+  <h2>⚠️ Confirmation Not Found</h2>
+  <p>We could not find this lease confirmation. Please text Choice Properties at <strong>707-706-3137</strong> for help.</p>
+</body></html>
+    `).setTitle('Confirmation Not Found');
+  }
   const app    = result.success ? result.application : {};
+  sanitizeObjectForHtml(app);
+  const leaseStatus = app['Lease Status'] || 'none';
+  const appIdParam  = encodeURIComponent(String(appId));
+  const safeAppId   = escapeHtml(appId);
+  if (leaseStatus !== 'signed' && leaseStatus !== 'executed') {
+    const retryLink = leaseStatus === 'sent' ? '?path=lease&id=' + appIdParam : '?path=dashboard&id=' + appIdParam;
+    const retryText = leaseStatus === 'sent' ? 'Return to Lease Signing' : 'View My Dashboard';
+    return HtmlService.createHtmlOutput(`
+<!DOCTYPE html>
+<html><body style="font-family:sans-serif;text-align:center;padding:60px;background:#f5f7fa;">
+  <div style="max-width:560px;margin:auto;background:white;border-radius:16px;padding:40px;box-shadow:0 4px 20px rgba(0,0,0,.1);">
+    <div style="font-size:56px;">⏳</div>
+    <h2 style="color:#1a5276;">Signature Not Completed Yet</h2>
+    <p style="color:#5f6b7a;line-height:1.6;">This confirmation page appears after your lease signature is recorded. If you were in the middle of signing, please return and finish the final signature step.</p>
+    <a href="${retryLink}" style="display:inline-block;margin-top:20px;background:#1a5276;color:white;padding:14px 32px;border-radius:50px;text-decoration:none;font-weight:600;">${retryText}</a>
+  </div>
+</body></html>
+    `).setTitle('Signature Not Completed');
+  }
   const firstName = app['First Name'] || 'Tenant';
   const property  = app['Verified Property Address'] || app['Property Address'] || '';
   // FIX-07: Format rent with comma separator and date in human-readable form.
@@ -3221,7 +3295,7 @@ function renderLeaseConfirmPage(appId) {
     if (!isNaN(d.getTime())) startFmt = Utilities.formatDate(d, Session.getScriptTimeZone(), 'MMMM dd, yyyy');
   } catch(_) {}
   const baseUrl   = ScriptApp.getService().getUrl();
-  const dashLink  = baseUrl + '?path=dashboard&id=' + appId;
+  const dashLink  = baseUrl + '?path=dashboard&id=' + appIdParam;
 
   return HtmlService.createHtmlOutput(`
 <!DOCTYPE html>
@@ -3263,13 +3337,13 @@ function renderLeaseConfirmPage(appId) {
   <div class="card">
     <div class="check-icon">🎉</div>
     <h1>Lease Signed!</h1>
-    <p class="subtitle">Welcome to Choice Properties, ${firstName}. Your lease is now fully executed.</p>
+    <p class="subtitle">Welcome to Choice Properties, ${firstName}. Your signature has been recorded successfully.</p>
 
     <div class="detail-box">
       <div class="detail-row"><span class="detail-label">Property</span><span class="detail-value">${property}</span></div>
       <div class="detail-row"><span class="detail-label">Move-in Date</span><span class="detail-value">${startFmt}</span></div>
       <div class="detail-row"><span class="detail-label">Monthly Rent</span><span class="detail-value">${rentFmt}</span></div>
-      <div class="detail-row"><span class="detail-label">Application ID</span><span class="detail-value">${appId}</span></div>
+      <div class="detail-row"><span class="detail-label">Application ID</span><span class="detail-value">${safeAppId}</span></div>
     </div>
 
     <div style="background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;padding:16px 20px;margin:16px 0;text-align:left;">
