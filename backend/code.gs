@@ -214,8 +214,8 @@ function validateCoApplicantFields(formData) {
 // Add states as Choice Properties expands into new markets.
 // ============================================================
 const JURISDICTION_MAP = {
-  // entryNoticeDays = required advance notice (hours) before landlord entry for non-emergency
-  'AL': { stateName: 'Alabama',       county: 'applicable county', depositReturnDays: 60, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30, entryNoticeDays: 2,
+  // entryNoticeDays = required advance notice in HOURS (not days) before landlord entry for non-emergency
+  'AL': { stateName: 'Alabama',       county: 'applicable county', depositReturnDays: 60, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30, entryNoticeDays: 24,
           eSignAct: 'Alabama Uniform Electronic Transactions Act (Ala. Code § 8-1A-1 et seq.) and the federal' },
   'AK': { stateName: 'Alaska',        county: 'applicable borough', depositReturnDays: 14, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30, entryNoticeDays: 24,
           eSignAct: 'Alaska Uniform Electronic Transactions Act (AS § 09.80) and the federal' },
@@ -2478,8 +2478,11 @@ function renderLeaseSigningPage(appId) {
       .wrapper{margin:0!important;padding:0!important;}
       .lease-header{border-radius:0!important;background:#1a3050!important;print-color-adjust:exact;-webkit-print-color-adjust:exact;}
       .signature-section{box-shadow:none!important;border:1px solid #ccc!important;}
-      .btn-sign-wrap,.spinner,.success-overlay,.sig-steps,.sig-step,
-      #step2Panel .checkbox-row,.personal-banner{display:none!important;}
+      .btn-sign-wrap,.spinner,.success-overlay,.sig-steps,
+      #step2Panel,.personal-banner,#step1Panel_emailVerif,
+      #legalBadge,#alertArea{display:none!important;}
+      /* Hide the legal-notice blue box (leaseReadConfirm) */
+      .signature-section > div:first-of-type{display:none!important;}
       .signature-section{page-break-inside:avoid;}
       .kv-table,.highlight-box{page-break-inside:avoid;}
       ol.clauses > li{page-break-inside:avoid;}
@@ -2563,7 +2566,7 @@ function renderLeaseSigningPage(appId) {
       <tr><td>Authorized Occupants</td><td>${occupantsStr} — as listed in the rental application</td></tr>
     </table>
     <p class="clause" style="font-size:13px;color:#555;margin-top:12px;">
-      The Tenant is granted the right to occupy the above-referenced property as a private residence for the duration of this Lease. Occupancy is limited to the person(s) listed in the approved rental application. Any additional occupant not listed must receive prior written approval from Management.
+      The Tenant is granted the right to occupy the above-referenced property as a private residence for the duration of this Lease. Occupancy is limited to the ${occupantsStr} listed in the approved rental application. Any additional occupant not listed must receive prior written approval from Management.
     </p>
 
     <!-- ═══════════════════════════════════════
@@ -2610,7 +2613,7 @@ function renderLeaseSigningPage(appId) {
 
       <li>
         <b>3. Occupancy.</b>
-        The property shall be used exclusively as a private residential dwelling. Occupancy is restricted to the person(s) named in the approved rental application (${allTenantsStr}). No additional persons may reside at the property without prior written consent from Management. Subletting, short-term rentals (including Airbnb or similar platforms), or assignment of this Lease are strictly prohibited without written approval.
+        The property shall be used exclusively as a private residential dwelling. Occupancy is restricted to the ${occupantsStr} named in the approved rental application (${allTenantsStr}). No additional persons may reside at the property without prior written consent from Management. Subletting, short-term rentals (including Airbnb or similar platforms), or assignment of this Lease are strictly prohibited without written approval.
       </li>
 
       <li>
@@ -2882,24 +2885,24 @@ function renderLeaseSigningPage(appId) {
       <!-- Step 2: Confirmation checkboxes -->
       <div class="checkbox-group" id="step2Panel" style="margin-top:24px;">
         <div class="checkbox-row" id="row1" onclick="toggleCheck('agreeTerms','row1')">
-          <input type="checkbox" id="agreeTerms" onchange="validateSignatureForm()">
-          <label for="agreeTerms">I have read and agree to all 25 provisions of this Residential Lease Agreement, including all financial terms, occupancy rules, and my obligations as Tenant.</label>
+          <input type="checkbox" id="agreeTerms" onclick="event.stopPropagation()" onchange="onCbChange(this,'row1')">
+          <label for="agreeTerms" onclick="event.stopPropagation()">I have read and agree to all 25 provisions of this Residential Lease Agreement, including all financial terms, occupancy rules, and my obligations as Tenant.</label>
         </div>
         <div class="checkbox-row" id="row2" onclick="toggleCheck('agreeBinding','row2')">
-          <input type="checkbox" id="agreeBinding" onchange="validateSignatureForm()">
-          <label for="agreeBinding">I understand this electronic signature is legally binding under the ${eSignShort}, and has the same legal effect as a handwritten signature.</label>
+          <input type="checkbox" id="agreeBinding" onclick="event.stopPropagation()" onchange="onCbChange(this,'row2')">
+          <label for="agreeBinding" onclick="event.stopPropagation()">I understand this electronic signature is legally binding under the ${eSignShort}, and has the same legal effect as a handwritten signature.</label>
         </div>
         <div class="checkbox-row" id="row3" onclick="toggleCheck('agreeFinancial','row3')">
-          <input type="checkbox" id="agreeFinancial" onchange="validateSignatureForm()">
-          <label for="agreeFinancial">I agree to pay the move-in total of <b>$${moveInCostWithPet.toLocaleString()}.00</b> prior to taking possession${holdingFeePaid ? ` (after holding fee credit of $${holdingFeeAmt.toLocaleString()}.00)` : ''}${petDeposit > 0 ? ` (includes $${petDeposit.toFixed(2)} pet deposit)` : ''}, and monthly rent of <b>$${rent.toLocaleString()}.00</b> on the ${rentDueDay}${rentDueSuffix} of each month as outlined in Article III.</label>
+          <input type="checkbox" id="agreeFinancial" onclick="event.stopPropagation()" onchange="onCbChange(this,'row3')">
+          <label for="agreeFinancial" onclick="event.stopPropagation()">I agree to pay the move-in total of <b>$${moveInCostWithPet.toLocaleString()}.00</b> prior to taking possession${holdingFeePaid ? ` (after holding fee credit of $${holdingFeeAmt.toLocaleString()}.00)` : ''}${petDeposit > 0 ? ` (includes $${petDeposit.toFixed(2)} pet deposit)` : ''}, and monthly rent of <b>$${rent.toLocaleString()}.00</b> on the ${rentDueDay}${rentDueSuffix} of each month as outlined in Article III.</label>
         </div>
         <div class="checkbox-row" id="row4" onclick="toggleCheck('agreeOwnership','row4')">
-          <input type="checkbox" id="agreeOwnership" onchange="validateSignatureForm()">
-          <label for="agreeOwnership">I understand that <b>${landlordName}</b> is the Landlord for this property${!isChoiceOwned ? ', and that Choice Properties is acting as the authorized management agent on their behalf' : ''}, and that Choice Properties will handle all communications, maintenance requests, and rent collection.</label>
+          <input type="checkbox" id="agreeOwnership" onclick="event.stopPropagation()" onchange="onCbChange(this,'row4')">
+          <label for="agreeOwnership" onclick="event.stopPropagation()">I understand that <b>${landlordName}</b> is the Landlord for this property${!isChoiceOwned ? ', and that Choice Properties is acting as the authorized management agent on their behalf' : ''}, and that Choice Properties will handle all communications, maintenance requests, and rent collection.</label>
         </div>
         <div class="checkbox-row" id="row5" onclick="toggleCheck('agreeInsurance','row5')">
-          <input type="checkbox" id="agreeInsurance" onchange="validateSignatureForm()">
-          <label for="agreeInsurance">I confirm that I will obtain and maintain a renter's insurance policy for the full duration of this lease term, as required by Clause 13, and will provide proof of coverage upon request.</label>
+          <input type="checkbox" id="agreeInsurance" onclick="event.stopPropagation()" onchange="onCbChange(this,'row5')">
+          <label for="agreeInsurance" onclick="event.stopPropagation()">I confirm that I will obtain and maintain a renter's insurance policy for the full duration of this lease term, as required by Clause 13, and will provide proof of coverage upon request.</label>
         </div>
       </div>
 
@@ -2993,7 +2996,15 @@ function renderLeaseSigningPage(appId) {
     validateSignatureForm();
   }
 
-  // 3. Checkbox toggle + step progress
+  // 3a. Called by onchange on each checkbox (direct click or label-for click).
+  //     Stops the change from needing to also handle the visual update separately.
+  function onCbChange(cb, rowId) {
+    document.getElementById(rowId).classList.toggle('checked', cb.checked);
+    validateSignatureForm();
+  }
+
+  // 3b. Fallback: clicking the row background (not the input/label) toggles the box.
+  //     stopPropagation on inputs/labels prevents this from double-firing.
   function toggleCheck(cbId, rowId) {
     const cb  = document.getElementById(cbId);
     const row = document.getElementById(rowId);
