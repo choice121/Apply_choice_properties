@@ -73,6 +73,34 @@ Fixed a critical bug where users saw "Unable to reach our servers" even though t
 - Repaired remaining frontend encoding artifacts in `index.html` and `js/script.js`, including Spanish SSN labels, email warning icon text, and "Back to this listing" link text.
 - Verified `backend/code.gs`, `js/script.js`, `index.html`, and `css/style.css` have no remaining suspicious mojibake sequences.
 
+## Lease System Final Audit & Polish (April 2026)
+Complete audit and fix of `renderLeaseSigningPage()`, `signLease()`, `renderLeaseConfirmPage()`, and `generateAndSendLease()` in `backend/code.gs`. All issues are now resolved — the lease system is considered production-final.
+
+### Critical Bug Fixes
+- **`btnNext1` JS error:** The top "I have read" checkbox (`leaseReadConfirm`) was calling `document.getElementById('btnNext1').disabled` — that element never existed. Fixed to call `validateSignatureForm()` instead.
+- **Email not gating sign button:** `validateSignatureForm()` now checks that `signerEmail` is filled and valid before enabling the sign button. The email input also gets an `oninput` handler for real-time validation.
+- **`leaseReadConfirm` not in validation:** The pre-read acknowledgment checkbox is now included in `validateSignatureForm()` and `submitSignature()` — all 6 conditions must be met (email, signature, leaseReadConfirm, plus the 5 agreement checkboxes).
+- **Pet deposit missing from move-in total:** The "Total Due at Move-In" row now includes `petDeposit` via `moveInCostWithPet`. The `agreeFinancial` checkbox and the move-in highlight box also reflect the correct total including pet deposit.
+- **Wrong property address in confirmation/emails:** `renderLeaseConfirmPage()` and `signLease()` now prefer `Verified Property Address` over `Property Address` (consistent with the lease document itself).
+
+### Signature Security
+- **Minimum signature length raised from 2→5 characters** in both backend (`signLease()`) and frontend (`validateSignatureForm()` / `submitSignature()`).
+
+### Jurisdiction Compliance
+- **`entryNoticeDays` added to all 21 states** in `JURISDICTION_MAP`. Article 7 (Right of Entry) now reads the correct hours for each state (e.g., 48h for AZ, 12h for FL) instead of hardcoding "24 hours" for all jurisdictions.
+- **`graceLateDay` overflow fix:** If `rentDueDay + gracePeriodDays > 28`, `graceLateDay` is now capped at 28 to prevent impossible ordinals like "the 33rd of the month".
+
+### Legal Completeness
+- **Admin lease notes now displayed in the lease document:** If the admin entered notes when sending the lease, a "Special Terms & Conditions" section appears after Article 25.
+- **Co-applicant names now on the lease:** If a co-applicant is on the application, their name appears in Article I (Parties), Article II (Tenant row), and Article 3 (Occupancy).
+
+### UX / Polish
+- **"person(s)" grammar fixed** → proper "1 person" or "N persons".
+- **Font Awesome CDN added** to the lease signing page — the `fa-gavel` icon in the e-sign notice now renders.
+- **`@media print` styles added** to the lease signing page — hides signature controls and buttons, ensures clean print output for saving the full lease as a PDF.
+- **"Print / Save PDF of this Lease" button added** to the lease footer — tenants can save the actual lease document at any time, not just after signing.
+- **Sign button subtitle updated** to mention email as a requirement.
+
 ## Cloudflare-First ZIP Replacement (April 2026)
 - Replaced the main frontend/runtime files from the uploaded fixed v2 package: `index.html`, `js/script.js`, `css/style.css`, `server.js`, `_headers`, `_redirects`, `generate-config.js`, and `backend/code.gs`.
 - Preserved Replit preview compatibility by keeping `npm start` in `package.json` and continuing to serve the preview on `0.0.0.0:5000`.

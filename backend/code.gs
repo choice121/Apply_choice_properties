@@ -214,52 +214,53 @@ function validateCoApplicantFields(formData) {
 // Add states as Choice Properties expands into new markets.
 // ============================================================
 const JURISDICTION_MAP = {
-  'AL': { stateName: 'Alabama',       county: 'applicable county', depositReturnDays: 60, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+  // entryNoticeDays = required advance notice (hours) before landlord entry for non-emergency
+  'AL': { stateName: 'Alabama',       county: 'applicable county', depositReturnDays: 60, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30, entryNoticeDays: 2,
           eSignAct: 'Alabama Uniform Electronic Transactions Act (Ala. Code § 8-1A-1 et seq.) and the federal' },
-  'AK': { stateName: 'Alaska',        county: 'applicable borough', depositReturnDays: 14, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+  'AK': { stateName: 'Alaska',        county: 'applicable borough', depositReturnDays: 14, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30, entryNoticeDays: 24,
           eSignAct: 'Alaska Uniform Electronic Transactions Act (AS § 09.80) and the federal' },
-  'AZ': { stateName: 'Arizona',       county: 'applicable county', depositReturnDays: 14, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+  'AZ': { stateName: 'Arizona',       county: 'applicable county', depositReturnDays: 14, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30, entryNoticeDays: 48,
           eSignAct: 'Arizona Uniform Electronic Transactions Act (A.R.S. § 44-7001 et seq.) and the federal' },
-  'CA': { stateName: 'California',    county: 'applicable county', depositReturnDays: 21, earlyTermNoticeDays: 60, moveOutNoticeDays: 30, mtmNoticeDays: 60,
+  'CA': { stateName: 'California',    county: 'applicable county', depositReturnDays: 21, earlyTermNoticeDays: 60, moveOutNoticeDays: 30, mtmNoticeDays: 60, entryNoticeDays: 24,
           eSignAct: 'California Uniform Electronic Transactions Act (Cal. Civ. Code § 1633.1 et seq.) and the federal' },
-  'CO': { stateName: 'Colorado',      county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 21, moveOutNoticeDays: 21, mtmNoticeDays: 21,
+  'CO': { stateName: 'Colorado',      county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 21, moveOutNoticeDays: 21, mtmNoticeDays: 21, entryNoticeDays: 24,
           eSignAct: 'Colorado Uniform Electronic Transactions Act (C.R.S. § 24-71.3-101 et seq.) and the federal' },
-  'FL': { stateName: 'Florida',       county: 'applicable county', depositReturnDays: 15, earlyTermNoticeDays: 60, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+  'FL': { stateName: 'Florida',       county: 'applicable county', depositReturnDays: 15, earlyTermNoticeDays: 60, moveOutNoticeDays: 30, mtmNoticeDays: 30, entryNoticeDays: 12,
           eSignAct: 'Florida Electronic Signature Act (F.S. § 668.001 et seq.) and the federal' },
-  'GA': { stateName: 'Georgia',       county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 60, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+  'GA': { stateName: 'Georgia',       county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 60, moveOutNoticeDays: 30, mtmNoticeDays: 30, entryNoticeDays: 24,
           eSignAct: 'Georgia Electronic Records and Signatures Act (O.C.G.A. § 10-12-1 et seq.) and the federal' },
-  'IL': { stateName: 'Illinois',      county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 60, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+  'IL': { stateName: 'Illinois',      county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 60, moveOutNoticeDays: 30, mtmNoticeDays: 30, entryNoticeDays: 24,
           eSignAct: 'Illinois Electronic Commerce Security Act (5 ILCS 175) and the federal' },
-  'MI': { stateName: 'Michigan',      county: 'Oakland County',    depositReturnDays: 30, earlyTermNoticeDays: 60, moveOutNoticeDays: 60, mtmNoticeDays: 30,
+  'MI': { stateName: 'Michigan',      county: 'Oakland County',    depositReturnDays: 30, earlyTermNoticeDays: 60, moveOutNoticeDays: 60, mtmNoticeDays: 30, entryNoticeDays: 24,
           eSignAct: 'Michigan Electronic Signature Act (MCL § 450.832 et seq.) and the federal' },
-  'MN': { stateName: 'Minnesota',     county: 'applicable county', depositReturnDays: 21, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+  'MN': { stateName: 'Minnesota',     county: 'applicable county', depositReturnDays: 21, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30, entryNoticeDays: 24,
           eSignAct: 'Minnesota Uniform Electronic Transactions Act (Minn. Stat. § 325L) and the federal' },
-  'NV': { stateName: 'Nevada',        county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+  'NV': { stateName: 'Nevada',        county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30, entryNoticeDays: 24,
           eSignAct: 'Nevada Electronic Transactions Act (NRS § 719) and the federal' },
-  'NJ': { stateName: 'New Jersey',    county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 60, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+  'NJ': { stateName: 'New Jersey',    county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 60, moveOutNoticeDays: 30, mtmNoticeDays: 30, entryNoticeDays: 24,
           eSignAct: 'New Jersey Uniform Electronic Transactions Act (N.J.S.A. § 12A:12-1 et seq.) and the federal' },
-  'NY': { stateName: 'New York',      county: 'applicable county', depositReturnDays: 14, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+  'NY': { stateName: 'New York',      county: 'applicable county', depositReturnDays: 14, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30, entryNoticeDays: 24,
           eSignAct: 'New York Electronic Signatures and Records Act (State Technology Law §§ 301-309) and the federal' },
-  'NC': { stateName: 'North Carolina',county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 7,
+  'NC': { stateName: 'North Carolina',county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 7,  entryNoticeDays: 24,
           eSignAct: 'North Carolina Uniform Electronic Transactions Act (N.C.G.S. § 66-311 et seq.) and the federal' },
-  'OH': { stateName: 'Ohio',          county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+  'OH': { stateName: 'Ohio',          county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30, entryNoticeDays: 24,
           eSignAct: 'Ohio Uniform Electronic Transactions Act (R.C. § 1306) and the federal' },
-  'OR': { stateName: 'Oregon',        county: 'applicable county', depositReturnDays: 31, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+  'OR': { stateName: 'Oregon',        county: 'applicable county', depositReturnDays: 31, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30, entryNoticeDays: 24,
           eSignAct: 'Oregon Uniform Electronic Transactions Act (ORS § 84.001 et seq.) and the federal' },
-  'PA': { stateName: 'Pennsylvania',  county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 15,
+  'PA': { stateName: 'Pennsylvania',  county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 15, entryNoticeDays: 24,
           eSignAct: 'Pennsylvania Electronic Transactions Act (73 P.S. § 2260.101 et seq.) and the federal' },
-  'TN': { stateName: 'Tennessee',     county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+  'TN': { stateName: 'Tennessee',     county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30, entryNoticeDays: 24,
           eSignAct: 'Tennessee Uniform Electronic Transactions Act (T.C.A. § 47-10-101 et seq.) and the federal' },
-  'TX': { stateName: 'Texas',         county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+  'TX': { stateName: 'Texas',         county: 'applicable county', depositReturnDays: 30, earlyTermNoticeDays: 30, moveOutNoticeDays: 30, mtmNoticeDays: 30, entryNoticeDays: 24,
           eSignAct: 'Texas Uniform Electronic Transactions Act (Tex. Bus. & Com. Code § 322) and the federal' },
-  'VA': { stateName: 'Virginia',      county: 'applicable county', depositReturnDays: 45, earlyTermNoticeDays: 60, moveOutNoticeDays: 30, mtmNoticeDays: 30,
+  'VA': { stateName: 'Virginia',      county: 'applicable county', depositReturnDays: 45, earlyTermNoticeDays: 60, moveOutNoticeDays: 30, mtmNoticeDays: 30, entryNoticeDays: 24,
           eSignAct: 'Virginia Electronic Transactions Act (Va. Code § 59.1-479 et seq.) and the federal' },
-  'WA': { stateName: 'Washington',    county: 'applicable county', depositReturnDays: 21, earlyTermNoticeDays: 20, moveOutNoticeDays: 20, mtmNoticeDays: 20,
+  'WA': { stateName: 'Washington',    county: 'applicable county', depositReturnDays: 21, earlyTermNoticeDays: 20, moveOutNoticeDays: 20, mtmNoticeDays: 20, entryNoticeDays: 24,
           eSignAct: 'Washington Uniform Electronic Transactions Act (RCW § 19.360) and the federal' },
   // ── DEFAULT — used when state is unknown or not yet mapped ──
   'DEFAULT': { stateName: 'the applicable state', county: 'the applicable county',
                depositReturnDays: 30, earlyTermNoticeDays: 60,
-               moveOutNoticeDays: 30, mtmNoticeDays: 30,
+               moveOutNoticeDays: 30, mtmNoticeDays: 30, entryNoticeDays: 24,
                eSignAct: 'the federal' }
 };
 
@@ -1997,8 +1998,8 @@ function calculateLeaseEndDate(startDate, termString) {
 // ─────────────────────────────────────────────────────────
 function signLease(appId, tenantSignature, ipAddress, rentersInsuranceAgreed, applicantEmail) {
   try {
-    if (!tenantSignature || tenantSignature.trim().length < 2) {
-      throw new Error('A valid signature is required.');
+    if (!tenantSignature || tenantSignature.trim().length < 5) {
+      throw new Error('A valid full legal name is required (minimum 5 characters).');
     }
     if (!applicantEmail || !applicantEmail.trim()) {
       throw new Error('Your email address is required to verify your identity before signing.');
@@ -2051,7 +2052,8 @@ function signLease(appId, tenantSignature, ipAddress, rentersInsuranceAgreed, ap
     const firstName     = sheet.getRange(rowIndex, col['First Name']).getValue();
     const lastName      = sheet.getRange(rowIndex, col['Last Name']).getValue();
     const phone         = sheet.getRange(rowIndex, col['Phone']).getValue();
-    const property      = sheet.getRange(rowIndex, col['Property Address']).getValue();
+    const property      = (col['Verified Property Address'] && sheet.getRange(rowIndex, col['Verified Property Address']).getValue())
+                          || sheet.getRange(rowIndex, col['Property Address']).getValue();
     const rent          = sheet.getRange(rowIndex, col['Monthly Rent']).getValue();
     const deposit       = sheet.getRange(rowIndex, col['Security Deposit']).getValue();
     const startDate     = sheet.getRange(rowIndex, col['Lease Start Date']).getValue();
@@ -2168,6 +2170,12 @@ function renderLeaseSigningPage(appId) {
   const firstName     = app['First Name']         || '';
   const lastName      = app['Last Name']          || '';
   const fullName      = firstName + ' ' + lastName;
+  // Co-applicant — include on lease if present
+  const coFirstName   = app['Co-Applicant First Name'] || '';
+  const coLastName    = app['Co-Applicant Last Name']  || '';
+  const coApplicantName = (coFirstName && coLastName) ? coFirstName + ' ' + coLastName : '';
+  const allTenantsStr = coApplicantName ? fullName + ' and ' + coApplicantName : fullName;
+
   const property      = app['Verified Property Address'] || app['Property Address'] || '';
   const term          = app['Desired Lease Term'] || '';
   const rent          = parseFloat(app['Monthly Rent'])       || 0;
@@ -2182,10 +2190,12 @@ function renderLeaseSigningPage(appId) {
   const endDate       = app['Lease End Date']     || '';
   const phone         = app['Phone']              || '';
   const email         = app['Email']              || '';
-  const totalOccupants= app['Total Occupants']    || '1';
+  const totalOccupants= parseInt(app['Total Occupants']) || 1;
+  const occupantsStr  = totalOccupants === 1 ? '1 person' : totalOccupants + ' persons';
   const hasPets       = app['Has Pets']           || 'No';
   const petDetails    = app['Pet Details']        || '';
   const smoker        = app['Smoker']             || 'No';
+  const leaseNotes    = (app['Lease Notes'] || '').toString().trim();
   const baseUrl       = ScriptApp.getService().getUrl();
   const todayStr      = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), 'MMMM dd, yyyy');
 
@@ -2194,9 +2204,11 @@ function renderLeaseSigningPage(appId) {
   const gracePeriodDays= parseInt(app['Grace Period Days']) || 5;
   const lateFeeAmount  = parseFloat(app['Late Fee Amount']) || 50;
   // Build human-readable due/grace strings
+  // Cap graceLateDay to 28 to avoid month-boundary overflow (e.g., day 28+5=33)
   const rentDueSuffix  = rentDueDay === 1 ? 'st' : rentDueDay === 2 ? 'nd' : rentDueDay === 3 ? 'rd' : 'th';
   const rentDueStr     = `${rentDueDay}${rentDueSuffix} day of each calendar month`;
-  const graceLateDay   = rentDueDay + gracePeriodDays;
+  const rawGraceLateDay= rentDueDay + gracePeriodDays;
+  const graceLateDay   = rawGraceLateDay > 28 ? 28 : rawGraceLateDay;
   const graceDateSfx   = graceLateDay === 1 ? 'st' : graceLateDay === 2 ? 'nd' : graceLateDay === 3 ? 'rd' : 'th';
   const graceStr       = `${gracePeriodDays} days — rent is considered late after the ${graceLateDay}${graceDateSfx} of the month`;
   const lateFeeStr     = `$${lateFeeAmount.toFixed(2)} assessed on the ${graceLateDay}${graceDateSfx}; $10.00 per day thereafter`;
@@ -2204,10 +2216,11 @@ function renderLeaseSigningPage(appId) {
   // ── D-002/D-003/D-004: Jurisdiction derived from property state ──
   // Property State is stored on the sheet row from D-001. Falls back to MI
   // (Choice Properties HQ state) so existing rows before the D-001 fix still work.
-  const propertyState = app['Property State'] || 'MI';
-  const jur           = getJurisdiction(propertyState);
-  const eSignText     = getESignText(propertyState);
-  const eSignShort    = propertyState === 'MI'
+  const propertyState    = app['Property State'] || 'MI';
+  const jur              = getJurisdiction(propertyState);
+  const entryNoticeHours = jur.entryNoticeDays || 24;
+  const eSignText        = getESignText(propertyState);
+  const eSignShort       = propertyState === 'MI'
     ? 'Michigan Electronic Signature Act and the federal E-SIGN Act'
     : 'applicable state Uniform Electronic Transactions Act (UETA) and the federal E-SIGN Act';
 
@@ -2236,6 +2249,12 @@ function renderLeaseSigningPage(appId) {
   const petDeposit    = parseFloat(app['Pet Deposit Amount'])  || 0;
   const monthlyPetRent= parseFloat(app['Monthly Pet Rent'])    || 0;
 
+  // Move-in cost breakdown label — includes pet deposit if applicable
+  const moveInBreakdown = holdingFeePaid
+    ? 'first month\'s rent + security deposit − holding fee credit' + (petDeposit > 0 ? ' + pet deposit' : '')
+    : 'first month\'s rent + security deposit' + (petDeposit > 0 ? ' + pet deposit' : '');
+  const moveInCostWithPet = moveInCost + petDeposit;
+
   return HtmlService.createHtmlOutput(`
 <!DOCTYPE html>
 <html>
@@ -2243,6 +2262,7 @@ function renderLeaseSigningPage(appId) {
   <title>Residential Lease Agreement - Choice Properties</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
   <style>
     /* ── Base ── */
     *{box-sizing:border-box;margin:0;padding:0;}
@@ -2448,6 +2468,20 @@ function renderLeaseSigningPage(appId) {
     @keyframes fadeInUp{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
     @keyframes checkDraw{0%{transform:scale(0);}60%{transform:scale(1.2);}100%{transform:scale(1);}}
     .animate-in{animation:fadeInUp .4s ease forwards;}
+
+    /* ── Print styles — tenant can print/save a clean copy of the lease ── */
+    @media print{
+      body{background:white!important;}
+      .wrapper{margin:0!important;padding:0!important;}
+      .lease-header{border-radius:0!important;background:#1a3050!important;print-color-adjust:exact;-webkit-print-color-adjust:exact;}
+      .signature-section{box-shadow:none!important;border:1px solid #ccc!important;}
+      .btn-sign-wrap,.spinner,.success-overlay,.sig-steps,.sig-step,
+      #step2Panel .checkbox-row,.personal-banner{display:none!important;}
+      .signature-section{page-break-inside:avoid;}
+      .kv-table,.highlight-box{page-break-inside:avoid;}
+      ol.clauses > li{page-break-inside:avoid;}
+      .doc-ref-bar{background:#1a5276!important;print-color-adjust:exact;-webkit-print-color-adjust:exact;}
+    }
   </style>
 </head>
 <body>
@@ -2499,7 +2533,7 @@ function renderLeaseSigningPage(appId) {
     <ul style="margin:10px 0 20px 20px;font-size:14px;line-height:2;">
       <li><b>Landlord:</b> ${landlordName}${landlordAddr ? ', ' + landlordAddr : ''}</li>
       ${managedByLine}
-      <li><b>Tenant(s):</b> ${fullName}</li>
+      <li><b>Tenant(s):</b> ${allTenantsStr}</li>
       <li><b>Contact / Text:</b> ${phone} &nbsp;·&nbsp; ${email}</li>
     </ul>
     <p class="clause" style="font-size:13px;color:#555;">
@@ -2518,12 +2552,12 @@ function renderLeaseSigningPage(appId) {
       ${bedrooms      ? `<tr><td>Bedrooms</td><td>${bedrooms}</td></tr>` : ''}
       ${bathrooms     ? `<tr><td>Bathrooms</td><td>${bathrooms}</td></tr>` : ''}
       ${parkingSpace  ? `<tr><td>Parking Space</td><td>${parkingSpace}</td></tr>` : ''}
-      <tr><td>Tenant(s)</td><td>${fullName}</td></tr>
+      <tr><td>Tenant(s)</td><td>${allTenantsStr}</td></tr>
       <tr><td>Lease Term</td><td>${term}</td></tr>
       <tr><td>Commencement Date</td><td><b>${startDate}</b></td></tr>
       <tr><td>${endDate === 'Month-to-Month — No Fixed Expiration' ? 'Tenancy Type' : 'Expiration Date'}</td><td><b>${endDate}</b></td></tr>
       <tr><td>Application ID</td><td>${appId}</td></tr>
-      <tr><td>Authorized Occupants</td><td>${totalOccupants} person(s) — as listed in the rental application</td></tr>
+      <tr><td>Authorized Occupants</td><td>${occupantsStr} — as listed in the rental application</td></tr>
     </table>
     <p class="clause" style="font-size:13px;color:#555;margin-top:12px;">
       The Tenant is granted the right to occupy the above-referenced property as a private residence for the duration of this Lease. Occupancy is limited to the person(s) listed in the approved rental application. Any additional occupant not listed must receive prior written approval from Management.
@@ -2543,13 +2577,14 @@ function renderLeaseSigningPage(appId) {
       <tr><td>Security Deposit</td><td><b>$${deposit.toLocaleString()}.00</b></td></tr>
       ${holdingFeePaid ? `<tr><td>Holding Fee Credit</td><td style="color:#059669;"><b>− $${holdingFeeAmt.toLocaleString()}.00</b> (applied from holding deposit received)</td></tr>` : ''}
       ${holdingFeePending ? `<tr><td>Holding Fee (Pending)</td><td style="color:#b45309;"><b>$${holdingFeeAmt.toLocaleString()}.00</b> requested — credit will apply upon receipt</td></tr>` : ''}
-      <tr><td>Total Due at Move-In</td><td><b>$${moveInCost.toLocaleString()}.00</b> (${holdingFeePaid ? 'first month\'s rent + security deposit − holding fee credit' : 'first month\'s rent + security deposit'})</td></tr>
+      ${petDeposit > 0 ? `<tr><td>Pet Deposit</td><td><b>$${petDeposit.toFixed(2)}</b> (non-refundable, due at move-in)</td></tr>` : ''}
+      <tr><td>Total Due at Move-In</td><td><b>$${moveInCostWithPet.toLocaleString()}.00</b> (${moveInBreakdown})</td></tr>
     </table>
 
     <div class="highlight-box blue">
       <b>📅 Move-In Payment:</b>${holdingFeePaid
-        ? ` A holding deposit of <b>$${holdingFeeAmt.toLocaleString()}.00</b> was previously received and has been credited toward your move-in total. Your remaining balance due at move-in is <b>$${moveInCost.toLocaleString()}.00</b>. This must be paid in full prior to receiving keys.`
-        : ` A total of <b>$${moveInCost.toLocaleString()}.00</b> is due in full prior to receiving keys and taking possession of the property. This amount covers your first month's rent ($${rent.toLocaleString()}) and security deposit ($${deposit.toLocaleString()}). No keys will be released until this payment is confirmed in writing by Management.`
+        ? ` A holding deposit of <b>$${holdingFeeAmt.toLocaleString()}.00</b> was previously received and has been credited toward your move-in total. Your remaining balance due at move-in is <b>$${moveInCostWithPet.toLocaleString()}.00</b>${petDeposit > 0 ? ` (including the $${petDeposit.toFixed(2)} pet deposit)` : ''}. This must be paid in full prior to receiving keys.`
+        : ` A total of <b>$${moveInCostWithPet.toLocaleString()}.00</b> is due in full prior to receiving keys and taking possession of the property. This amount covers your first month's rent ($${rent.toLocaleString()}), security deposit ($${deposit.toLocaleString()})${petDeposit > 0 ? `, and pet deposit ($${petDeposit.toFixed(2)})` : ''}. No keys will be released until this payment is confirmed in writing by Management.`
       }
     </div>
 
@@ -2572,7 +2607,7 @@ function renderLeaseSigningPage(appId) {
 
       <li>
         <b>3. Occupancy.</b>
-        The property shall be used exclusively as a private residential dwelling. Occupancy is restricted to the person(s) named in the approved rental application (${fullName} and any approved co-occupants). No additional persons may reside at the property without prior written consent from Management. Subletting, short-term rentals (including Airbnb or similar platforms), or assignment of this Lease are strictly prohibited without written approval.
+        The property shall be used exclusively as a private residential dwelling. Occupancy is restricted to the person(s) named in the approved rental application (${allTenantsStr}). No additional persons may reside at the property without prior written consent from Management. Subletting, short-term rentals (including Airbnb or similar platforms), or assignment of this Lease are strictly prohibited without written approval.
       </li>
 
       <li>
@@ -2595,7 +2630,7 @@ function renderLeaseSigningPage(appId) {
 
       <li>
         <b>7. Right of Entry.</b>
-        Management and/or the Landlord may enter the premises with at least 24 hours' advance written notice for purposes including but not limited to inspections, repairs, maintenance, and showing the unit to prospective tenants or buyers. In the event of an emergency — including fire, flood, gas leak, or a threat to health and safety — entry may be made without prior notice. Tenant shall not unreasonably withhold consent to entry.
+        Management and/or the Landlord may enter the premises with at least ${entryNoticeHours} hours' advance written notice for purposes including but not limited to inspections, repairs, maintenance, and showing the unit to prospective tenants or buyers, as required by ${jur.stateName} law. In the event of an emergency — including fire, flood, gas leak, or a threat to health and safety — entry may be made without prior notice. Tenant shall not unreasonably withhold consent to entry.
       </li>
 
       <li>
@@ -2700,6 +2735,15 @@ function renderLeaseSigningPage(appId) {
 
     </ol>
 
+    ${leaseNotes ? `
+    <!-- ═══════════════════════════════════════
+         SPECIAL TERMS & ADDENDUM NOTES
+    ═══════════════════════════════════════ -->
+    <div class="article-header">Special Terms & Conditions</div>
+    <div class="section-title">📎 Addendum Notes from Management</div>
+    <div class="highlight-box" style="white-space:pre-wrap;font-size:14px;">${leaseNotes}</div>
+    ` : ''}
+
     <!-- Legal notice -->
     <div class="highlight-box slate">
       <b>⚖️ Electronic Signature Legal Notice:</b> By signing below, you confirm that you have read, understood, and agreed to all 25 articles and provisions of this Residential Lease Agreement. Your electronic signature is legally binding under the <em>${eSignText}</em>. Your full legal name, IP address, and timestamp will be permanently recorded as part of the execution record of this Agreement.
@@ -2770,7 +2814,7 @@ function renderLeaseSigningPage(appId) {
           <p style="font-size:12px;color:#0369a1;margin:0;"><strong>Please read the full lease agreement above carefully before signing.</strong> By signing, you confirm that you have read, understood, and agree to be bound by all terms of the lease.</p>
           <div style="margin-top:12px;">
             <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:#0c4a6e;line-height:1.5;">
-              <input type="checkbox" id="leaseReadConfirm" required style="margin-top:3px;flex-shrink:0;" onchange="document.getElementById('btnNext1').disabled = !this.checked;">
+              <input type="checkbox" id="leaseReadConfirm" style="margin-top:3px;flex-shrink:0;" onchange="validateSignatureForm()">
               <span>I have read and understand the lease agreement above, and I agree to be legally bound by its terms.</span>
             </label>
           </div>
@@ -2790,6 +2834,7 @@ function renderLeaseSigningPage(appId) {
                  class="sig-input"
                  placeholder="e.g. jane@example.com"
                  autocomplete="email"
+                 oninput="validateSignatureForm()"
                  style="font-size:15px;letter-spacing:normal;font-family:sans-serif;">
         </div>
         <!-- Signature input -->
@@ -2843,7 +2888,7 @@ function renderLeaseSigningPage(appId) {
         </div>
         <div class="checkbox-row" id="row3" onclick="toggleCheck('agreeFinancial','row3')">
           <input type="checkbox" id="agreeFinancial" onchange="validateSignatureForm()">
-          <label for="agreeFinancial">I agree to pay the move-in total of <b>$${moveInCost.toLocaleString()}.00</b> prior to taking possession${holdingFeePaid ? ` (after holding fee credit of $${holdingFeeAmt.toLocaleString()}.00)` : ''}, and monthly rent of <b>$${rent.toLocaleString()}.00</b> on the ${rentDueDay}${rentDueSuffix} of each month as outlined in Article III.</label>
+          <label for="agreeFinancial">I agree to pay the move-in total of <b>$${moveInCostWithPet.toLocaleString()}.00</b> prior to taking possession${holdingFeePaid ? ` (after holding fee credit of $${holdingFeeAmt.toLocaleString()}.00)` : ''}${petDeposit > 0 ? ` (includes $${petDeposit.toFixed(2)} pet deposit)` : ''}, and monthly rent of <b>$${rent.toLocaleString()}.00</b> on the ${rentDueDay}${rentDueSuffix} of each month as outlined in Article III.</label>
         </div>
         <div class="checkbox-row" id="row4" onclick="toggleCheck('agreeOwnership','row4')">
           <input type="checkbox" id="agreeOwnership" onchange="validateSignatureForm()">
@@ -2868,7 +2913,7 @@ function renderLeaseSigningPage(appId) {
           ✍️ Execute Lease Agreement
         </button>
         <div class="btn-sign-sub" id="signBtnSub">
-          Complete your name and all 5 checkboxes to activate
+          Enter your email, full legal name, and complete all 6 checkboxes to activate
         </div>
       </div>
 
@@ -2892,6 +2937,11 @@ function renderLeaseSigningPage(appId) {
     <p>2265 Livernois, Suite 500 &nbsp;·&nbsp; Troy, MI 48083<br>
     📱 707-706-3137 &nbsp;·&nbsp; choicepropertygroup@hotmail.com</p>
     <div class="tagline">Your trust is our standard.</div>
+    <div style="margin-top:16px;">
+      <button onclick="window.print()" style="background:transparent;border:1px solid rgba(212,175,55,.5);color:rgba(212,175,55,.8);padding:8px 20px;border-radius:50px;font-size:12px;cursor:pointer;letter-spacing:1px;">
+        🖨️ Print / Save PDF of this Lease
+      </button>
+    </div>
   </div>
 
 </div><!-- /wrapper -->
@@ -2950,37 +3000,43 @@ function renderLeaseSigningPage(appId) {
   }
 
   function validateSignatureForm() {
-    const sig       = document.getElementById('tenantSignature').value.trim();
-    const terms     = document.getElementById('agreeTerms').checked;
-    const binding   = document.getElementById('agreeBinding').checked;
-    const financial = document.getElementById('agreeFinancial').checked;
-    const ownership = document.getElementById('agreeOwnership').checked;
-    const insurance = document.getElementById('agreeInsurance').checked;
-    const btn       = document.getElementById('signBtn');
-    const sub       = document.getElementById('signBtnSub');
-    allChecked = terms && binding && financial && ownership && insurance;
+    const sig        = document.getElementById('tenantSignature').value.trim();
+    const email      = (document.getElementById('signerEmail')?.value || '').trim();
+    const readConfirm= document.getElementById('leaseReadConfirm').checked;
+    const terms      = document.getElementById('agreeTerms').checked;
+    const binding    = document.getElementById('agreeBinding').checked;
+    const financial  = document.getElementById('agreeFinancial').checked;
+    const ownership  = document.getElementById('agreeOwnership').checked;
+    const insurance  = document.getElementById('agreeInsurance').checked;
+    const btn        = document.getElementById('signBtn');
+    const sub        = document.getElementById('signBtnSub');
+    allChecked = readConfirm && terms && binding && financial && ownership && insurance;
+    const emailOk  = email.length > 0 && email.includes('@');
+    const sigOk    = sig.length >= 5;
 
     // Step indicators
     document.getElementById('step1').className =
-      'sig-step ' + (sig.length >= 3 ? 'done' : 'active');
+      'sig-step ' + (sigOk && emailOk ? 'done' : 'active');
     document.getElementById('step2').className =
-      'sig-step ' + (sig.length < 3 ? '' : allChecked ? 'done' : 'active');
+      'sig-step ' + (!sigOk || !emailOk ? '' : allChecked ? 'done' : 'active');
     document.getElementById('step3').className =
-      'sig-step ' + (sig.length >= 3 && allChecked ? 'active' : '');
+      'sig-step ' + (sigOk && emailOk && allChecked ? 'active' : '');
 
-    const ready = sig.length >= 3 && allChecked;
+    const ready = sigOk && emailOk && allChecked;
     btn.disabled = !ready;
     if (ready) {
       sub.textContent = 'Click to execute this lease with your electronic signature';
       sub.style.color = '#059669';
     } else {
       const missing = [];
-      if (sig.length < 3)  missing.push('your full legal name');
-      if (!terms)          missing.push('terms agreement');
-      if (!binding)        missing.push('binding acknowledgment');
-      if (!financial)      missing.push('financial agreement');
-      if (!ownership)      missing.push('ownership acknowledgment');
-      if (!insurance)      missing.push('renter\'s insurance confirmation');
+      if (!sigOk)      missing.push('your full legal name (min 5 characters)');
+      if (!emailOk)    missing.push('your email address');
+      if (!readConfirm)missing.push('read confirmation');
+      if (!terms)      missing.push('terms agreement');
+      if (!binding)    missing.push('binding acknowledgment');
+      if (!financial)  missing.push('financial agreement');
+      if (!ownership)  missing.push('ownership acknowledgment');
+      if (!insurance)  missing.push('renter\'s insurance confirmation');
       sub.textContent = 'Still needed: ' + missing.join(' · ');
       sub.style.color = '#94a3b8';
     }
@@ -2989,7 +3045,8 @@ function renderLeaseSigningPage(appId) {
   // 4. Submit
   async function submitSignature() {
     const sig = document.getElementById('tenantSignature').value.trim();
-    if (sig.length < 3) { showAlert('Please enter your full legal name.', 'danger'); return; }
+    if (sig.length < 5) { showAlert('Please enter your full legal name (minimum 5 characters).', 'danger'); return; }
+    if (!document.getElementById('leaseReadConfirm').checked) { showAlert('Please confirm that you have read the lease agreement.', 'danger'); return; }
 
     if (!capturedIP) {
       try {
@@ -3078,7 +3135,7 @@ function renderLeaseConfirmPage(appId) {
   const result = getApplication(appId);
   const app    = result.success ? result.application : {};
   const firstName = app['First Name'] || 'Tenant';
-  const property  = app['Property Address'] || '';
+  const property  = app['Verified Property Address'] || app['Property Address'] || '';
   const rent      = app['Monthly Rent']      || '';
   const startDate = app['Lease Start Date']  || '';
   const baseUrl   = ScriptApp.getService().getUrl();
