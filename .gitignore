@@ -1,4 +1,4 @@
-# Editor environment files (Replit, Codespaces, etc.)
+# Editor environment files
 .replit
 replit.nix
 .cache/
@@ -6,13 +6,19 @@ replit.nix
 .agents/
 attached_assets/
 
+# Dependencies
+node_modules/
+
+# Generated config
+config.js
+
+# Google Apps Script local credentials/config
+.clasp.json
+.clasprc.json
+
 # OS files
 .DS_Store
 Thumbs.db
 
 # Archives
 *.zip
-
-  # Auto-generated at build time from environment variables — never commit
-  config.js
-  

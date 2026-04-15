@@ -7,7 +7,7 @@ A static web application for managing rental applications for Choice Properties.
 ## Architecture
 
 - **Frontend:** Pure HTML5, CSS3, and Vanilla JavaScript (ES6+) — no frameworks
-- **Backend:** Google Apps Script (GAS) — runs externally, not in this repo
+- **Backend:** Google Apps Script (GAS) — source tracked in `backend/` and deployed externally
 - **Database:** Google Sheets (via GAS)
 - **External APIs:** Geoapify (address autocomplete), Supabase (property status sync)
 - **Libraries (CDN):** Font Awesome, Inter font, QRCode.js
@@ -16,20 +16,23 @@ A static web application for managing rental applications for Choice Properties.
 
 ```
 /
-├── index.html          # 6-step rental application form (main entry point)
-├── server.js           # Local/Replit dev server (serves static files on port 5000)
-├── generate-config.js  # Build-time config generator (Cloudflare Pages)
-├── config.js           # Auto-generated config file (injected env vars)
-├── package.json        # npm scripts
-├── _headers            # Cloudflare Pages HTTP headers
-├── _redirects          # Cloudflare Pages redirects
+├── index.html              # 6-step rental application form (main entry point)
+├── server.js               # Local/Replit dev server (serves static files on port 5000)
+├── generate-config.js      # Build-time config generator (Cloudflare Pages)
+├── config.js               # Auto-generated config file (injected env vars)
+├── package.json            # npm scripts, including GAS deploy helpers
+├── _headers                # Cloudflare Pages HTTP headers
+├── _redirects              # Cloudflare Pages redirects
 ├── css/
-│   └── style.css       # Mobile-first stylesheet (~2300 lines)
+│   └── style.css           # Mobile-first stylesheet (~2300 lines)
 ├── js/
-│   └── script.js       # RentalApplication class — all frontend logic (~2300 lines)
+│   └── script.js           # RentalApplication class — all frontend logic (~2300 lines)
 ├── backend/
-│   └── code.gs         # Google Apps Script source (manually deployed to GAS)
-└── docs/               # Architecture docs, implementation plans
+│   ├── code.gs             # Google Apps Script backend source
+│   └── appsscript.json     # GAS manifest used by clasp push
+├── scripts/
+│   └── gas-push.js         # One-command GAS push helper
+└── docs/                   # Architecture docs, implementation plans
 ```
 
 ## Running in Replit
@@ -46,8 +49,19 @@ The app runs via `node server.js` on port 5000. The server:
 | `BACKEND_URL` | Google Apps Script web app URL for form submissions |
 | `GEOAPIFY_API_KEY` | API key for address autocomplete |
 | `LISTING_SITE_URL` | Base URL of the main listing platform |
+| `GAS_SCRIPT_ID` | Apps Script project ID used by `npm run gas:push` |
 
-Without these, the form renders but submissions and autocomplete won't work.
+Without the frontend variables, the form renders but submissions and autocomplete won't work. Without `GAS_SCRIPT_ID`, the GAS push helper will tell the operator how to provide it.
+
+## Google Apps Script Deployment
+
+The project includes a CLI-based GAS deployment path using `@google/clasp`:
+
+1. Run `npm run gas:login` and complete the Google authorization flow.
+2. Run `GAS_SCRIPT_ID="your-script-id" npm run gas:push` to push `backend/code.gs` and `backend/appsscript.json`.
+3. Use `npm run gas:open` to open the Apps Script project after `.clasp.json` has been generated locally.
+
+`.clasp.json` and `.clasprc.json` are ignored so local script IDs and OAuth credentials are not committed.
 
 ## Key Features
 
@@ -65,4 +79,4 @@ Without these, the form renders but submissions and autocomplete won't work.
 
 ## Deployment
 
-Configured for autoscale deployment with `node server.js`. In production on Cloudflare Pages, `generate-config.js` runs at build time to inject secrets. The backend (`backend/code.gs`) must be manually deployed to Google Apps Script.
+Configured for autoscale deployment with `node server.js`. In production on Cloudflare Pages, `generate-config.js` runs at build time to inject secrets. The backend (`backend/code.gs`) can now be pushed to Google Apps Script with the GAS deploy helper after Google login and `GAS_SCRIPT_ID` are configured.

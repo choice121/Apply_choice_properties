@@ -7,9 +7,16 @@
     "start": "node server.js",
     "preview": "node server.js",
     "dev": "node server.js",
-    "build": "node generate-config.js"
+    "build": "node generate-config.js",
+    "gas:login": "clasp login --no-localhost",
+    "gas:push": "node scripts/gas-push.js",
+    "gas:status": "clasp status",
+    "gas:open": "clasp open"
   },
   "engines": {
     "node": ">=18"
+  },
+  "dependencies": {
+    "@google/clasp": "^2.5.0"
   }
 }
