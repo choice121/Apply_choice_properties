@@ -436,7 +436,9 @@ function addMissingLeaseColumns(sheet) {
     'Last Contacted', 'Document URLs',
     // 2026-04-07: Extended property context — new data-collection fields
     'Garage Spaces', 'EV Charging', 'Laundry Type', 'Heating Type', 'Cooling Type',
-    'Last Months Rent', 'Admin Fee', 'Move-in Special'
+    'Last Months Rent', 'Admin Fee', 'Move-in Special',
+    // FIX-03a: Lease Link column — stores signing URL so reminder emails have a working link
+    'Lease Link'
   ];
   const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   newColumns.forEach(col => {
@@ -1877,6 +1879,11 @@ function generateAndSendLease(appId, monthlyRent, securityDeposit, leaseStartDat
 
     const currentLeaseStatus = sheet.getRange(rowIndex, col['Lease Status']).getValue();
     if (currentLeaseStatus === 'signed') throw new Error('Lease already signed by tenant.');
+    // FIX-06: Block accidental re-sends — overwriting a pending lease changes terms and
+    // sends a second email to the tenant. Admin must manually reset status to re-send.
+    if (currentLeaseStatus === 'sent') {
+      return { success: false, error: 'A lease has already been sent to this applicant and is awaiting their signature. To issue a revised lease, first reset the Lease Status to blank in the sheet, then send again.' };
+    }
 
     // ── Task 1.5: Validate required financial fields before proceeding ──
     const rentVal = parseFloat(monthlyRent);
@@ -1900,10 +1907,14 @@ function generateAndSendLease(appId, monthlyRent, securityDeposit, leaseStartDat
       ? 'Month-to-Month — No Fixed Expiration'
       : Utilities.formatDate(endDateObj, Session.getScriptTimeZone(), 'MMMM dd, yyyy');
 
-    // Move-in costs = first month + deposit
+    // Move-in costs = first month + deposit + pet deposit (if any).
+    // FIX-04: Pet deposit was previously excluded from the stored Move-in Costs value,
+    // causing dashboards, emails, and the confirm page to show a lower total than the
+    // actual amount due. Now the full total is stored correctly in the sheet.
     const rent          = rentVal;
     const deposit       = parseFloat(securityDeposit)  || 0;
-    const moveInCosts   = rent + deposit;
+    const petDepositAmt = parseFloat(petDeposit)        || 0;
+    const moveInCosts   = rent + deposit + petDepositAmt;
     const rentDue       = parseInt(rentDueDay)          || 1;
     const graceDays     = parseInt(gracePeriodDays)     || 5;
     const lateFee       = parseFloat(lateFeeAmount)     || 50;
@@ -1949,8 +1960,12 @@ function generateAndSendLease(appId, monthlyRent, securityDeposit, leaseStartDat
 
     const baseUrl   = ScriptApp.getService().getUrl();
     const leaseLink = baseUrl + '?path=lease&id=' + appId;
+    // FIX-03b: Write signing URL to sheet so checkUnsignedLeases() can include it in reminders.
+    if (col['Lease Link']) sheet.getRange(rowIndex, col['Lease Link']).setValue(leaseLink);
 
-    sendLeaseEmail(appId, tenantEmail, firstName + ' ' + lastName, phone, leaseLink, {
+    // FIX-05: Capture email send result — if it fails, we still return success (lease is
+    // saved in the sheet) but include a warning so the admin knows to follow up manually.
+    const emailSent = sendLeaseEmail(appId, tenantEmail, firstName + ' ' + lastName, phone, leaseLink, {
       rent          : rent,
       deposit       : deposit,
       moveInCosts   : moveInCosts,
@@ -1965,8 +1980,13 @@ function generateAndSendLease(appId, monthlyRent, securityDeposit, leaseStartDat
       lateFeeAmount : lateFee
     });
 
-    logEmail('lease_sent', tenantEmail, 'success', appId);
-    return { success: true, message: 'Lease sent to ' + tenantEmail, leaseLink: leaseLink };
+    logEmail('lease_sent', tenantEmail, emailSent ? 'success' : 'failed', appId);
+    return {
+      success      : true,
+      message      : 'Lease sent to ' + tenantEmail,
+      leaseLink    : leaseLink,
+      emailWarning : emailSent ? null : 'Lease was saved but the email failed to send. Please verify the tenant\'s email address and resend the signing link manually.'
+    };
 
   } catch (error) {
     console.error('generateAndSendLease error:', error);
@@ -1979,17 +1999,34 @@ function generateAndSendLease(appId, monthlyRent, securityDeposit, leaseStartDat
 // Returns a Date for fixed terms, or null for month-to-month.
 // Callers must check: if (endDate === null) treat as month-to-month.
 function calculateLeaseEndDate(startDate, termString) {
-  const term = (termString || '').toLowerCase();
-  if (term.includes('month-to-month') || term.includes('month to month') || term === 'mtm') {
-    return null; // month-to-month has no fixed expiration
-  }
+  const term = (termString || '').toLowerCase().trim();
+  if (!term) return null;
+  if (/month[- ]?to[- ]?month|mtm/.test(term)) return null;
+
   const end = new Date(startDate);
-  if      (term.includes('6'))  end.setMonth(end.getMonth() + 6);
-  else if (term.includes('12')) end.setMonth(end.getMonth() + 12);
-  else if (term.includes('18')) end.setMonth(end.getMonth() + 18);
-  else if (term.includes('24')) end.setMonth(end.getMonth() + 24);
-  else                          end.setMonth(end.getMonth() + 12); // default to 12 months
-  end.setDate(end.getDate() - 1); // end = day before next period
+
+  // FIX-01: Extract the leading number (e.g., "12" from "12 months" or "12-month").
+  // Old code used substring matching (term.includes('6')) which incorrectly matched
+  // "36 months", "16 months", etc. Now we parse the actual numeric value.
+  const numMatch = term.match(/^(\d+(?:\.\d+)?)/);
+  if (numMatch) {
+    const months = Math.round(parseFloat(numMatch[1]));
+    end.setMonth(end.getMonth() + months);
+    end.setDate(end.getDate() - 1); // end = day before next period
+    return end;
+  }
+
+  // Handle "1 year", "2 years", etc.
+  const yearMatch = term.match(/(\d+)\s*year/);
+  if (yearMatch) {
+    end.setFullYear(end.getFullYear() + parseInt(yearMatch[1], 10));
+    end.setDate(end.getDate() - 1);
+    return end;
+  }
+
+  // Default to 12 months
+  end.setMonth(end.getMonth() + 12);
+  end.setDate(end.getDate() - 1);
   return end;
 }
 
@@ -2184,7 +2221,11 @@ function renderLeaseSigningPage(appId) {
   const holdingFeeStatus = app['Holding Fee Status'] || 'none';
   const holdingFeePaid   = holdingFeeStatus === 'paid' && holdingFeeAmt > 0;
   const holdingFeePending= holdingFeeStatus === 'requested' && holdingFeeAmt > 0;
-  const rawMoveIn     = parseFloat(app['Move-in Costs'])      || (rent + deposit);
+  // FIX-04 companion: petDeposit defined early so the fallback for rawMoveIn can include it.
+  // For new leases (post-FIX-04), Move-in Costs already includes petDeposit in the sheet.
+  // For old leases where Move-in Costs is empty, the fallback adds petDeposit explicitly.
+  const petDeposit    = parseFloat(app['Pet Deposit Amount']) || 0;
+  const rawMoveIn     = parseFloat(app['Move-in Costs'])      || (rent + deposit + petDeposit);
   const moveInCost    = holdingFeePaid ? Math.max(0, rawMoveIn - holdingFeeAmt) : rawMoveIn;
   const startDateRaw  = app['Lease Start Date']   || '';
   const startDate     = startDateRaw
@@ -2206,15 +2247,25 @@ function renderLeaseSigningPage(appId) {
   const rentDueDay     = parseInt(app['Rent Due Day'])      || 1;
   const gracePeriodDays= parseInt(app['Grace Period Days']) || 5;
   const lateFeeAmount  = parseFloat(app['Late Fee Amount']) || 50;
+  // FIX-10: Proper ordinal suffix helper — handles 11th/12th/13th and 21st/22nd/23rd correctly.
+  // Old code (n===1?'st':n===2?'nd':n===3?'rd':'th') gave "21th", "22th", "23th".
+  function ordSfx(n) {
+    const v = n % 100;
+    if (v >= 11 && v <= 13) return n + 'th';
+    switch (n % 10) {
+      case 1: return n + 'st';
+      case 2: return n + 'nd';
+      case 3: return n + 'rd';
+      default: return n + 'th';
+    }
+  }
   // Build human-readable due/grace strings
   // Cap graceLateDay to 28 to avoid month-boundary overflow (e.g., day 28+5=33)
-  const rentDueSuffix  = rentDueDay === 1 ? 'st' : rentDueDay === 2 ? 'nd' : rentDueDay === 3 ? 'rd' : 'th';
-  const rentDueStr     = `${rentDueDay}${rentDueSuffix} day of each calendar month`;
+  const rentDueStr     = `${ordSfx(rentDueDay)} day of each calendar month`;
   const rawGraceLateDay= rentDueDay + gracePeriodDays;
   const graceLateDay   = rawGraceLateDay > 28 ? 28 : rawGraceLateDay;
-  const graceDateSfx   = graceLateDay === 1 ? 'st' : graceLateDay === 2 ? 'nd' : graceLateDay === 3 ? 'rd' : 'th';
-  const graceStr       = `${gracePeriodDays} days — rent is considered late after the ${graceLateDay}${graceDateSfx} of the month`;
-  const lateFeeStr     = `$${lateFeeAmount.toFixed(2)} assessed on the ${graceLateDay}${graceDateSfx}; $10.00 per day thereafter`;
+  const graceStr       = `${gracePeriodDays} days — rent is considered late after the ${ordSfx(graceLateDay)} of the month`;
+  const lateFeeStr     = `$${lateFeeAmount.toFixed(2)} assessed on the ${ordSfx(graceLateDay)}; $10.00 per day thereafter`;
 
   // ── D-002/D-003/D-004: Jurisdiction derived from property state ──
   // Property State is stored on the sheet row from D-001. Falls back to MI
@@ -2249,14 +2300,16 @@ function renderLeaseSigningPage(appId) {
   const parkingSpace  = app['Parking Space'] || '';
 
   // Phase 5 pet financial fields (D-018)
-  const petDeposit    = parseFloat(app['Pet Deposit Amount'])  || 0;
+  // Note: petDeposit is defined earlier (before rawMoveIn) for use in the fallback calculation.
   const monthlyPetRent= parseFloat(app['Monthly Pet Rent'])    || 0;
 
-  // Move-in cost breakdown label — includes pet deposit if applicable
+  // Move-in cost breakdown label — includes pet deposit if applicable.
+  // FIX-04 companion: moveInCostWithPet = moveInCost because petDeposit is already baked
+  // into the stored Move-in Costs (for new leases) or the fallback above (for old ones).
   const moveInBreakdown = holdingFeePaid
     ? 'first month\'s rent + security deposit − holding fee credit' + (petDeposit > 0 ? ' + pet deposit' : '')
     : 'first month\'s rent + security deposit' + (petDeposit > 0 ? ' + pet deposit' : '');
-  const moveInCostWithPet = moveInCost + petDeposit;
+  const moveInCostWithPet = moveInCost;
 
   return HtmlService.createHtmlOutput(`
 <!DOCTYPE html>
@@ -2603,7 +2656,7 @@ function renderLeaseSigningPage(appId) {
 
       <li>
         <b>1. Rent Payment.</b>
-        Tenant agrees to pay $${rent.toLocaleString()}.00 per month, due on the ${rentDueStr}, payable to ${landlordName} via the payment method agreed upon with Management. Partial payments are not accepted unless expressly agreed to in writing. Rent not received by the ${graceLateDay}${graceDateSfx} of the month is considered late and subject to the late fees outlined in Article III.
+        Tenant agrees to pay $${rent.toLocaleString()}.00 per month, due on the ${rentDueStr}, payable to ${landlordName} via the payment method agreed upon with Management. Partial payments are not accepted unless expressly agreed to in writing. Rent not received by the ${ordSfx(graceLateDay)} of the month is considered late and subject to the late fees outlined in Article III.
       </li>
 
       <li>
@@ -2894,7 +2947,7 @@ function renderLeaseSigningPage(appId) {
         </div>
         <div class="checkbox-row" id="row3" onclick="toggleCheck('agreeFinancial','row3')">
           <input type="checkbox" id="agreeFinancial" onclick="event.stopPropagation()" onchange="onCbChange(this,'row3')">
-          <label for="agreeFinancial" onclick="event.stopPropagation()">I agree to pay the move-in total of <b>$${moveInCostWithPet.toLocaleString()}.00</b> prior to taking possession${holdingFeePaid ? ` (after holding fee credit of $${holdingFeeAmt.toLocaleString()}.00)` : ''}${petDeposit > 0 ? ` (includes $${petDeposit.toFixed(2)} pet deposit)` : ''}, and monthly rent of <b>$${rent.toLocaleString()}.00</b> on the ${rentDueDay}${rentDueSuffix} of each month as outlined in Article III.</label>
+          <label for="agreeFinancial" onclick="event.stopPropagation()">I agree to pay the move-in total of <b>$${moveInCostWithPet.toLocaleString()}.00</b> prior to taking possession${holdingFeePaid ? ` (after holding fee credit of $${holdingFeeAmt.toLocaleString()}.00)` : ''}${petDeposit > 0 ? ` (includes $${petDeposit.toFixed(2)} pet deposit)` : ''}, and monthly rent of <b>$${rent.toLocaleString()}.00</b> on the ${ordSfx(rentDueDay)} of each month as outlined in Article III.</label>
         </div>
         <div class="checkbox-row" id="row4" onclick="toggleCheck('agreeOwnership','row4')">
           <input type="checkbox" id="agreeOwnership" onclick="event.stopPropagation()" onchange="onCbChange(this,'row4')">
@@ -2955,7 +3008,8 @@ function renderLeaseSigningPage(appId) {
 <script>
   const APP_ID    = '${appId}';
   const BASE_URL  = '${baseUrl}';
-  const APP_EMAIL = '${app['Email']}'; // pre-filled from server for identity verification
+  // FIX-11: APP_EMAIL removed — email verification is fully server-side in signLease().
+  // Embedding the tenant's email in page source leaked PII to anyone viewing source.
   let   capturedIP = '';
   let   allChecked = false;
 
@@ -3150,8 +3204,17 @@ function renderLeaseConfirmPage(appId) {
   const app    = result.success ? result.application : {};
   const firstName = app['First Name'] || 'Tenant';
   const property  = app['Verified Property Address'] || app['Property Address'] || '';
-  const rent      = app['Monthly Rent']      || '';
-  const startDate = app['Lease Start Date']  || '';
+  // FIX-07: Format rent with comma separator and date in human-readable form.
+  // Previously raw values were interpolated directly — a raw Date object renders as an
+  // ugly JS date string, and a number like 1500 shows without commas as "$1500".
+  const rentRaw   = parseFloat(app['Monthly Rent']) || 0;
+  const rentFmt   = '$' + rentRaw.toLocaleString() + '.00';
+  const startRaw  = app['Lease Start Date'] || '';
+  let   startFmt  = startRaw;
+  try {
+    const d = new Date(startRaw);
+    if (!isNaN(d.getTime())) startFmt = Utilities.formatDate(d, Session.getScriptTimeZone(), 'MMMM dd, yyyy');
+  } catch(_) {}
   const baseUrl   = ScriptApp.getService().getUrl();
   const dashLink  = baseUrl + '?path=dashboard&id=' + appId;
 
@@ -3199,8 +3262,8 @@ function renderLeaseConfirmPage(appId) {
 
     <div class="detail-box">
       <div class="detail-row"><span class="detail-label">Property</span><span class="detail-value">${property}</span></div>
-      <div class="detail-row"><span class="detail-label">Move-in Date</span><span class="detail-value">${startDate}</span></div>
-      <div class="detail-row"><span class="detail-label">Monthly Rent</span><span class="detail-value">$${rent}</span></div>
+      <div class="detail-row"><span class="detail-label">Move-in Date</span><span class="detail-value">${startFmt}</span></div>
+      <div class="detail-row"><span class="detail-label">Monthly Rent</span><span class="detail-value">${rentFmt}</span></div>
       <div class="detail-row"><span class="detail-label">Application ID</span><span class="detail-value">${appId}</span></div>
     </div>
 
@@ -4614,7 +4677,8 @@ function sendLeaseEmail(appId, email, tenantName, phone, leaseLink, leaseData) {
       to: email,
       subject: `📜 Your Lease is Ready to Sign - ${appId}`,
       htmlBody: EmailTemplates.leaseSent(appId, tenantName, leaseLink, leaseData),
-      name: 'Choice Properties Leasing'
+      name: 'Choice Properties Leasing',
+      replyTo: 'choicepropertygroup@hotmail.com' // FIX-09: tenant replies go to company inbox
     });
     return true;
   } catch (error) { console.error('sendLeaseEmail error:', error); return false; }
@@ -4646,7 +4710,8 @@ function sendLeaseSignedAdminAlert(appId, tenantName, email, phone, signature, p
         to: adminEmail,
         subject: `✍️ LEASE SIGNED: ${appId} - ${tenantName}`,
         htmlBody: EmailTemplates.leaseSignedAdmin(appId, tenantName, email, phone, signature, property, adminUrl),
-        name: 'Choice Properties System'
+        name: 'Choice Properties System',
+        replyTo: 'choicepropertygroup@hotmail.com' // FIX-09: admin replies route to company inbox
       });
     });
     return true;
@@ -7533,8 +7598,20 @@ function renderAdminPanel(authToken) {
     const petDeposit        = document.getElementById('leasePetDeposit').value       || '0';
     const monthlyPetRent    = document.getElementById('leaseMonthlyPetRent').value   || '0';
     const alertArea = document.getElementById('leaseAlertArea');
-    if (!rent || !deposit || !startDate) {
-      alertArea.innerHTML = '<div class="alert alert-danger">Please fill in all required fields.</div>';
+    // FIX-08: Validate rent and deposit as numeric values, not just truthy strings.
+    // Previously "abc" would pass the !deposit check and silently become $0 on the lease.
+    const rentVal    = parseFloat(rent);
+    const depositVal = parseFloat(deposit);
+    if (!rent || isNaN(rentVal) || rentVal <= 0) {
+      alertArea.innerHTML = '<div class="alert alert-danger">Monthly rent must be a number greater than $0.</div>';
+      return;
+    }
+    if (!deposit || isNaN(depositVal) || depositVal < 0) {
+      alertArea.innerHTML = '<div class="alert alert-danger">Security deposit must be a valid number (enter 0 if there is no deposit).</div>';
+      return;
+    }
+    if (!startDate) {
+      alertArea.innerHTML = '<div class="alert alert-danger">Please select a lease start date.</div>';
       return;
     }
     const btn = document.getElementById('leaseSendBtn');
@@ -7547,7 +7624,12 @@ function renderAdminPanel(authToken) {
         btn.disabled = false; btn.textContent = 'Send Lease to Tenant';
         if (result.success) {
           closeLeaseModal();
-          showToast('✅ Lease sent! The tenant has been emailed a signing link.', 'success');
+          // FIX-05: Surface email failure warning to admin if the GAS email send failed
+          if (result.emailWarning) {
+            showToast('⚠️ ' + result.emailWarning, 'error');
+          } else {
+            showToast('✅ Lease sent! The tenant has been emailed a signing link.', 'success');
+          }
           // Immediately fetch fresh data and update dashboard
           fetchAndRenderAll('');
         } else {
@@ -8123,14 +8205,20 @@ function buildAdminCard(app, baseUrl) {
         const lastName   = col['Last Name']        ? row[col['Last Name'] - 1]         : '';
         const tenantName = (firstName + ' ' + lastName).trim();
         const tenantPhone= col['Phone']            ? row[col['Phone'] - 1]             : '';
-        const property   = col['Property Address'] ? row[col['Property Address'] - 1]  : '';
+        // FIX-12: Prefer admin-verified address over raw applicant-entered address
+        const property   = (col['Verified Property Address'] && row[col['Verified Property Address'] - 1])
+                         || (col['Property Address'] && row[col['Property Address'] - 1])
+                         || '';
         const leaseLink  = col['Lease Link']       ? row[col['Lease Link'] - 1]        : '';
         const adminNotes = col['Admin Notes']      ? String(row[col['Admin Notes'] - 1] || '') : '';
 
         if (!appId || !email) continue;
 
-        // 24h window: send tenant reminder once (between 24h and 36h after send)
-        if (hoursElapsed >= 24 && hoursElapsed < 36 && !adminNotes.includes('[REMINDER_SENT]')) {
+        // 24h window: send tenant reminder once (between 24h and 48h after send).
+        // FIX-02: Upper bound widened from 36 to 48 — a daily 9 AM trigger will miss the
+        // 24-36h window for any lease sent after 9 AM. 24-48h ensures the reminder is
+        // always sent on the first trigger run after the 24h mark, regardless of send time.
+        if (hoursElapsed >= 24 && hoursElapsed < 48 && !adminNotes.includes('[REMINDER_SENT]')) {
           sendLeaseSigningReminder(appId, email, firstName, leaseLink, property);
           const note = '[' + new Date().toLocaleString() + '] [REMINDER_SENT] 24h lease signing reminder emailed to tenant.';
           sheet.getRange(rowNum, col['Admin Notes']).setValue(adminNotes ? adminNotes + '\n' + note : note);

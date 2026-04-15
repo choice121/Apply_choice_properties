@@ -477,3 +477,23 @@ const property = (col['Verified Property Address'] && row[col['Verified Property
 | 12 | FIX-12 (verified address in reminder) | Low priority |
 
 **After applying all fixes, re-deploy `backend/code.gs` to Google Apps Script and run `setupLeaseReminderTrigger()` once from the GAS IDE to refresh the daily trigger.**
+
+---
+
+## Fix Status — All Completed ✅
+
+| Fix | Title | Status |
+|-----|-------|--------|
+| FIX-01 | `calculateLeaseEndDate` numeric extraction | ✅ DONE |
+| FIX-02 | Reminder window 36h → 48h | ✅ DONE |
+| FIX-03a | Add `Lease Link` column in `addMissingLeaseColumns` | ✅ DONE |
+| FIX-03b | Write `leaseLink` to sheet in `generateAndSendLease` | ✅ DONE |
+| FIX-04 | Include pet deposit in stored `Move-in Costs` | ✅ DONE |
+| FIX-05 | Warn admin when lease email fails | ✅ DONE |
+| FIX-06 | Block re-sending a `sent` lease | ✅ DONE |
+| FIX-07 | Format rent and date in `renderLeaseConfirmPage` | ✅ DONE |
+| FIX-08 | Numeric deposit/rent validation in admin `submitLease` | ✅ DONE |
+| FIX-09 | `replyTo` on `sendLeaseEmail` + `sendLeaseSignedAdminAlert` | ✅ DONE |
+| FIX-10 | Ordinal suffix helper (`ordSfx`) + all template references | ✅ DONE |
+| FIX-11 | Remove `APP_EMAIL` PII leak from client HTML | ✅ DONE |
+| FIX-12 | Use `Verified Property Address` in reminder emails | ✅ DONE |
