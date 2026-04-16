@@ -3171,7 +3171,7 @@ function renderLeaseSigningPage(appId) {
   const BASE_URL  = ${jsBaseUrl};
   // FIX-11: APP_EMAIL removed — email verification is fully server-side in signLease().
   // Embedding the tenant's email in page source leaked PII to anyone viewing source.
-  let   capturedIP = '';
+  let   capturedIP = 'unavailable';
   let   allChecked = false;
 
   // 1. Capture IP
@@ -3367,6 +3367,72 @@ function renderLeaseSigningPage(appId) {
   function clearAlert() {
     document.getElementById('alertArea').innerHTML = '';
   }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    const signerEmail = document.getElementById('signerEmail');
+    if (signerEmail) {
+      signerEmail.addEventListener('input', validateSignatureForm);
+      signerEmail.addEventListener('change', validateSignatureForm);
+      signerEmail.addEventListener('blur', validateSignatureForm);
+    }
+
+    const tenantSignature = document.getElementById('tenantSignature');
+    if (tenantSignature) {
+      tenantSignature.addEventListener('input', function() {
+        onSigInput(document.getElementById('tenantSignature'));
+      });
+    }
+
+    const leaseReadConfirm = document.getElementById('leaseReadConfirm');
+    if (leaseReadConfirm) {
+      leaseReadConfirm.addEventListener('change', validateSignatureForm);
+    }
+
+    [
+      ['row1', 'agreeTerms'],
+      ['row2', 'agreeBinding'],
+      ['row3', 'agreeFinancial'],
+      ['row4', 'agreeOwnership'],
+      ['row5', 'agreeInsurance']
+    ].forEach(function(pair) {
+      const row = document.getElementById(pair[0]);
+      if (row) {
+        row.addEventListener('click', function(e) {
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'LABEL') return;
+          toggleCheck(pair[1], pair[0]);
+        });
+      }
+    });
+
+    [
+      ['agreeTerms', 'row1'],
+      ['agreeBinding', 'row2'],
+      ['agreeFinancial', 'row3'],
+      ['agreeOwnership', 'row4'],
+      ['agreeInsurance', 'row5']
+    ].forEach(function(pair) {
+      const cb = document.getElementById(pair[0]);
+      if (cb) {
+        cb.addEventListener('change', function() {
+          onCbChange(this, pair[1]);
+        });
+      }
+    });
+
+    const signBtn = document.getElementById('signBtn');
+    if (signBtn) {
+      signBtn.addEventListener('click', submitSignature);
+    }
+
+    const printBtn = document.getElementById('printBtn');
+    if (printBtn) {
+      printBtn.addEventListener('click', function() {
+        window.print();
+      });
+    }
+
+    validateSignatureForm();
+  });
 </script>
 </body>
 </html>
