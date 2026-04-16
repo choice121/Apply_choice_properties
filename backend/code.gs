@@ -1030,7 +1030,7 @@ function renderAdminLoginPage(errorMsg) {
   <input type="text" id="upUser" placeholder="Username" autocomplete="username">
   <label for="upPass">Password</label>
   <div class="pass-wrap">
-    <input type="password" id="upPass" placeholder="••••••••" autocomplete="current-password">
+    <input type="password" id="upPass" placeholder="••••��•••" autocomplete="current-password">
     <button class="pass-toggle" type="button" onclick="togglePass()" id="passToggleBtn" aria-label="Show password">👁</button>
   </div>
   <button class="btn btn-primary" onclick="passwordLogin()">Sign In</button>
@@ -1505,7 +1505,7 @@ function processApplication(formData, fileBlob) {
       }
     }
 
-    // ── Phase 3.3: Server-side move-in date validation ─────────────────────────────
+    // ── Phase 3.3: Server-side move-in date validation ────────────────────────────���
       // Rejects submissions where the requested move-in is before the property's available date.
       const requestedMoveIn = (formData['Requested Move-in Date'] || '').trim();
       const availableDate = (formData['Available Date'] || '').trim();
@@ -1862,7 +1862,7 @@ function normalizePhone(phone) {
 // ============================================================
 //  ██╗     ███████╗ █████╗ ███████╗███████╗
 //  ██║     ██╔════╝██╔══██╗██╔════╝██╔════╝
-//  ██║     █████╗  ███████║███████╗█████╗
+//  ██║     █████╗  █��█████║███████╗█████╗
 //  ██║     ██╔══╝  ██╔══██║╚════██║██╔══╝
 //  ███████╗███████╗██║  ██║███████║███████╗
 //  ╚══════╝╚══════╝╚═╝  ╚═╝╚══════╝╚══════╝
@@ -2179,7 +2179,7 @@ function dryRunLease(appId, monthlyRent, securityDeposit, leaseStartDate, leaseN
   }
 }
 
-// ── signLease() ───────────────────────────────────────────
+// ── signLease() ──────────────────────���────────────────────
 // Called via google.script.run from the lease signing page.
 // ─────────────────────────────────────────────────────────
 function signLease(appId, tenantSignature, ipAddress, rentersInsuranceAgreed, applicantEmail) {
@@ -2763,7 +2763,7 @@ function renderLeaseSigningPage(appId) {
       Tenants should direct all communications, payments, and notices to Choice Properties — not to the Landlord directly.
     </p>
 
-    <!-- ═══════════════════════════════════════
+    <!-- ═══════════════════════════════��═══════
          ARTICLE II — PROPERTY & LEASE TERM
     ═══════════════════════════════════════ -->
     <div class="article-header">Article II — Property & Lease Term</div>
@@ -5388,7 +5388,7 @@ function withdrawApplication(appId) {
 
   // ─────────────────────────────────────────────────────────────────────────────
   // PHASE 5 — Application Credit System
-  // ─────────────────────────────────────────────────────────────────────────────
+  // ───���─────────────────────────────────────────────────────────────────────────
 
   const CREDITS_SHEET_NAME = 'Credits';
   const MAX_ACTIVE_CREDITS  = 2;
@@ -7410,7 +7410,7 @@ function renderAdminPanel(authToken) {
         <div class="form-group" style="margin-bottom:12px;">
           <label class="form-label" for="actualPaymentMethod">Payment Method <span style="color:#ef4444;">*</span></label>
           <select class="form-control" id="actualPaymentMethod">
-            <option value="">— select —</option>
+            <option value="">��� select —</option>
             <option value="Cash">Cash</option>
             <option value="Venmo">Venmo</option>
             <option value="Zelle">Zelle</option>
@@ -7579,7 +7579,7 @@ function renderAdminPanel(authToken) {
   let currentSearch = '';
   const baseUrl = '${baseUrl}';
 
-  // ══════════════════════════════════════════════════════════
+  // ═══════════════════��══════════════════════════════════════
   // LIVE POLLING ENGINE — Admin Dashboard
   // Polls server every 20s. Only re-renders if data changed.
   // ══════════════════════════════════════════════════════════
