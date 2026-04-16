@@ -13,7 +13,8 @@
     "gas:status": "clasp status",
     "gas:open": "clasp open",
     "gas:encrypt": "node scripts/gas-encrypt.js",
-    "gas:setup": "node scripts/gas-setup.js"
+    "gas:setup": "node scripts/gas-setup.js",
+    "gas:pull": "node scripts/gas-pull.js"
   },
   "engines": {
     "node": ">=18"

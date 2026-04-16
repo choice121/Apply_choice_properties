@@ -144,15 +144,39 @@ async function main() {
   const replitDomain = process.env.REPLIT_DEV_DOMAIN || 'localhost:5000';
   const redirectUri = `https://${replitDomain}/auth/callback`;
 
-  // Write ~/.clasprc.json
+  // Validate token and get fresh access token before writing clasprc
+  console.log('\n🔍 Validating credentials...');
+  let accessToken;
+  let tokenValid = false;
+  try {
+    accessToken = await refreshAccessToken(
+      payload.token,
+      payload.oauth2ClientSettings.clientId,
+      payload.oauth2ClientSettings.clientSecret
+    );
+    const me = await httpsGet('https://www.googleapis.com/oauth2/v2/userinfo', accessToken);
+    if (me.email) {
+      console.log(`✅ Credentials valid — logged in as ${me.email}`);
+      tokenValid = true;
+    } else {
+      throw new Error('Unexpected response from userinfo endpoint');
+    }
+  } catch (e) {
+    console.log(`⚠️  Token check failed: ${e.message}`);
+  }
+
+  // Write ~/.clasprc.json with fresh access token and isLocalCreds: true
+  // so clasp uses the custom OAuth client (not the built-in clasp client)
+  const freshToken = Object.assign({}, payload.token);
+  if (accessToken) freshToken.access_token = accessToken;
   const clasprc = {
-    token: payload.token,
+    token: freshToken,
     oauth2ClientSettings: {
       clientId: payload.oauth2ClientSettings.clientId,
       clientSecret: payload.oauth2ClientSettings.clientSecret,
       redirectUri,
     },
-    isLocalCreds: false,
+    isLocalCreds: true,
   };
   fs.writeFileSync(CLASPRC, JSON.stringify(clasprc, null, 2));
   console.log('✅ ~/.clasprc.json written');
@@ -164,28 +188,6 @@ async function main() {
     GAS_OAUTH_CLIENT_SECRET: payload.oauth2ClientSettings.clientSecret,
   });
   console.log('✅ .env written');
-
-  // Validate token is still working
-  console.log('\n🔍 Validating credentials...');
-  let accessToken;
-  let tokenValid = false;
-  try {
-    accessToken = await refreshAccessToken(
-      payload.token,
-      payload.oauth2ClientSettings.clientId,
-      payload.oauth2ClientSettings.clientSecret
-    );
-    // Quick sanity-check API call
-    const me = await httpsGet('https://www.googleapis.com/oauth2/v2/userinfo', accessToken);
-    if (me.email) {
-      console.log(`✅ Credentials valid — logged in as ${me.email}`);
-      tokenValid = true;
-    } else {
-      throw new Error('Unexpected response from userinfo endpoint');
-    }
-  } catch (e) {
-    console.log(`⚠️  Token check failed: ${e.message}`);
-  }
 
   if (tokenValid) {
     // Try to auto-register the redirect URI for this domain
@@ -203,6 +205,7 @@ async function main() {
     }
 
     console.log('\n🎉 Setup complete! You can now:');
+    console.log('   npm run gas:pull   — pull latest code.gs from Apps Script');
     console.log('   npm run gas:push   — push code.gs to Apps Script');
     console.log('   npm run dev        — start the dashboard at /gas');
   } else {

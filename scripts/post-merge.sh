@@ -10,6 +10,8 @@ if [ -z "$GAS_SETUP_PASSWORD" ]; then
   echo "Set the GAS_SETUP_PASSWORD secret to enable automatic clasp authentication."
 else
   node scripts/gas-setup.js "$GAS_SETUP_PASSWORD"
+  echo "=== Pulling latest GAS code ==="
+  node scripts/gas-pull.js
 fi
 
 echo "=== Setup complete ==="
