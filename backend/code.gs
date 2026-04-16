@@ -3368,7 +3368,12 @@ function renderLeaseSigningPage(appId) {
     document.getElementById('alertArea').innerHTML = '';
   }
 
-  document.addEventListener('DOMContentLoaded', function() {
+  let leaseSigningEventsBound = false;
+
+  function bindLeaseSigningEvents() {
+    if (leaseSigningEventsBound) return;
+    leaseSigningEventsBound = true;
+
     const signerEmail = document.getElementById('signerEmail');
     if (signerEmail) {
       signerEmail.addEventListener('input', validateSignatureForm);
@@ -3432,7 +3437,13 @@ function renderLeaseSigningPage(appId) {
     }
 
     validateSignatureForm();
-  });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', bindLeaseSigningEvents);
+  } else {
+    bindLeaseSigningEvents();
+  }
 </script>
 </body>
 </html>
