@@ -221,7 +221,7 @@ a:hover{text-decoration:underline}
   <div class="card">
     <div class="card-header">
       <h2>Recent Executions</h2>
-      <a href="/auth/login" style="font-size:12px;color:#ff9800" id="reauthLink" style="display:none">Re-authorize to enable &rarr;</a>
+      <a href="/auth/login" id="reauthLink" style="display:none;font-size:12px;color:#ff9800">Re-authorize to enable &rarr;</a>
     </div>
     <div class="card-body" id="processContainer">
       <div class="empty">Loading...</div>
