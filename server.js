@@ -172,7 +172,7 @@ async function handleAuthCallback(req, res) {
 .check{font-size:64px}.title{color:#1e7e34;font-size:24px;margin:16px 0}p{color:#555}</style>
 </head>
 <body><div class="card">
-<div class="check">✅</div>
+<div class="check">&#x2705;</div>
 <div class="title">Connected!</div>
 <p>Google account linked successfully. Go back to Replit chat — I can now push code to your Apps Script automatically.</p>
 </div></body></html>`);
