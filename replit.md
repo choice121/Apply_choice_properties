@@ -30,8 +30,11 @@ A static web application for managing rental applications for Choice Properties.
 ├── backend/
 │   ├── code.gs             # Google Apps Script backend source
 │   └── appsscript.json     # GAS manifest used by clasp push
+├── credentials.enc         # AES-256-GCM encrypted GAS credentials (safe to commit)
 ├── scripts/
-│   └── gas-push.js         # One-command GAS push helper
+│   ├── gas-push.js         # Push backend/code.gs to Google Apps Script
+│   ├── gas-encrypt.js      # Encrypt credentials into credentials.enc
+│   └── gas-setup.js        # Decrypt credentials.enc on fresh environments
 └── docs/                   # Architecture docs, implementation plans
 ```
 
@@ -55,13 +58,36 @@ Without the frontend variables, the form renders but submissions and autocomplet
 
 ## Google Apps Script Deployment
 
-The project includes a CLI-based GAS deployment path using `@google/clasp`:
+The project uses `@google/clasp` to push `backend/code.gs` to Google Apps Script directly from Replit.
 
-1. Run `npm run gas:login` and complete the Google authorization flow.
-2. Run `GAS_SCRIPT_ID="your-script-id" npm run gas:push` to push `backend/code.gs` and `backend/appsscript.json`.
-3. Use `npm run gas:open` to open the Apps Script project after `.clasp.json` has been generated locally.
+### Pushing changes
+```
+npm run gas:push
+```
 
-`.clasp.json` and `.clasprc.json` are ignored so local script IDs and OAuth credentials are not committed.
+### Fresh Replit setup (importing from GitHub)
+Credentials are stored encrypted in `credentials.enc` (committed to the repo). To restore on a new Replit:
+
+1. Run `npm run gas:setup` and enter the password when prompted.
+2. Add the new Replit's callback URL to your Google OAuth client's authorized redirect URIs:
+   - Go to console.cloud.google.com → APIs & Credentials → edit the OAuth client
+   - Add: `https://<new-replit-domain>/auth/callback`
+3. Run `npm run gas:push` — everything works.
+
+### Re-encrypting after credential changes
+If you rotate OAuth secrets or the refresh token changes, re-run:
+```
+npm run gas:encrypt
+```
+Then commit the updated `credentials.enc`.
+
+### OAuth credentials (Google Cloud)
+- **Project:** 13445296763
+- **Client ID:** 13445296763-p6rrutohf9j3qc25n7io5c2elh5vo6hr.apps.googleusercontent.com
+- **Script ID:** 1r2IjwGtiMQ2GSiKnfZhg6FxZN9lwub5Oxh25bBDLs6paf8qAkWQxlPd-
+- **Apps Script API:** Enabled at script.google.com/home/usersettings
+
+`.clasp.json` and `.clasprc.json` are gitignored. All sensitive values live in the encrypted `credentials.enc`.
 
 ## Key Features
 

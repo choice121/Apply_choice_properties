@@ -11,7 +11,9 @@
     "gas:login": "clasp login --no-localhost",
     "gas:push": "node scripts/gas-push.js",
     "gas:status": "clasp status",
-    "gas:open": "clasp open"
+    "gas:open": "clasp open",
+    "gas:encrypt": "node scripts/gas-encrypt.js",
+    "gas:setup": "node scripts/gas-setup.js"
   },
   "engines": {
     "node": ">=18"

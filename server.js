@@ -7,6 +7,17 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
+// Load .env if present (written by gas:setup on fresh environments)
+const envFile = path.join(__dirname, '.env');
+if (fs.existsSync(envFile)) {
+  fs.readFileSync(envFile, 'utf8').split('\n').forEach(line => {
+    const [k, ...v] = line.split('=');
+    if (k && k.trim() && !process.env[k.trim()]) {
+      process.env[k.trim()] = v.join('=').trim();
+    }
+  });
+}
+
 const PORT = 5000;
 const HOST = '0.0.0.0';
 
