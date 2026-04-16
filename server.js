@@ -150,6 +150,12 @@ function handleGasDashboard(req, res) {
 <head>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Apps Script Dashboard</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/dracula.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0f1117;color:#e0e0e0;min-height:100vh}
@@ -184,6 +190,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .scriptid{font-family:monospace;font-size:11px;color:#888;word-break:break-all}
 a{color:#90caf9;text-decoration:none}
 a:hover{text-decoration:underline}
+.editor-toolbar{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid #2a2d3a;flex-wrap:wrap}
+.editor-toolbar .file-label{font-family:monospace;font-size:12px;color:#aaa;flex:1}
+.editor-toolbar .line-count{font-size:11px;color:#555}
+.CodeMirror{height:500px;font-size:13px;line-height:1.5}
+.CodeMirror-scroll{max-height:500px}
+#saveOutput{display:none;margin:8px 16px;padding:10px 12px;background:#0a0c12;border:1px solid #2a2d3a;border-radius:6px;font-family:monospace;font-size:12px;color:#a5d6a7;white-space:pre-wrap}
+#saveOutput.err{color:#ef9a9a}
 </style>
 </head>
 <body>
@@ -209,6 +222,21 @@ a:hover{text-decoration:underline}
       </div>
       <div id="pushOutput" class="output-box"></div>
     </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header">
+      <h2>Code Editor &mdash; backend/code.gs</h2>
+      <span class="line-count" id="lineCount">Loading...</span>
+    </div>
+    <div class="editor-toolbar">
+      <button class="btn btn-primary" id="saveBtn" onclick="saveCode(false)">&#x1F4BE; Save</button>
+      <button class="btn btn-primary" style="background:#2e7d32" id="savePushBtn" onclick="saveCode(true)">&#x2191; Save &amp; Push</button>
+      <button class="btn" style="background:#2a2d3a;color:#ccc" onclick="reloadCode()">&#x21BB; Reload</button>
+      <span class="file-label">backend/code.gs</span>
+    </div>
+    <textarea id="codeEditor"></textarea>
+    <div id="saveOutput"></div>
   </div>
 
   <div class="card">
@@ -298,6 +326,65 @@ async function loadProcesses() {
 
 loadDeployments();
 loadProcesses();
+
+let editor;
+async function initEditor() {
+  const r = await fetch('/gas/api/code');
+  const d = await r.json();
+  if (d.error) { document.getElementById('lineCount').textContent = 'Error loading'; return; }
+  document.getElementById('lineCount').textContent = d.lines.toLocaleString() + ' lines';
+  editor = CodeMirror.fromTextArea(document.getElementById('codeEditor'), {
+    mode: 'javascript',
+    theme: 'dracula',
+    lineNumbers: true,
+    indentUnit: 2,
+    tabSize: 2,
+    indentWithTabs: false,
+    lineWrapping: false,
+    foldGutter: true,
+    matchBrackets: true,
+    autoCloseBrackets: true,
+    extraKeys: { 'Ctrl-S': () => saveCode(false), 'Cmd-S': () => saveCode(false), 'Ctrl-Enter': () => saveCode(true), 'Cmd-Enter': () => saveCode(true) },
+  });
+  editor.setValue(d.code);
+  editor.on('change', () => {
+    const lines = editor.lineCount();
+    document.getElementById('lineCount').textContent = lines.toLocaleString() + ' lines';
+  });
+}
+
+async function reloadCode() {
+  if (editor) {
+    const r = await fetch('/gas/api/code');
+    const d = await r.json();
+    if (!d.error) { editor.setValue(d.code); document.getElementById('lineCount').textContent = d.lines.toLocaleString() + ' lines'; }
+  }
+}
+
+async function saveCode(andPush) {
+  if (!editor) return;
+  const saveBtn = document.getElementById('saveBtn');
+  const savePushBtn = document.getElementById('savePushBtn');
+  const out = document.getElementById('saveOutput');
+  saveBtn.disabled = true; savePushBtn.disabled = true;
+  out.style.display = 'block'; out.className = ''; out.textContent = andPush ? 'Saving and pushing...' : 'Saving...';
+  try {
+    const r = await fetch('/gas/api/code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: editor.getValue(), push: andPush }),
+    });
+    const d = await r.json();
+    out.textContent = d.output || (d.saved ? 'Saved successfully.' : 'Save failed.');
+    out.className = d.success ? '' : 'err';
+  } catch(e) {
+    out.textContent = e.message; out.className = 'err';
+  }
+  saveBtn.disabled = false; savePushBtn.disabled = false;
+}
+
+// CodeMirror scripts are loaded in <head>, initEditor runs after DOM ready
+document.addEventListener('DOMContentLoaded', initEditor);
 </script>
 </body></html>`);
 }
