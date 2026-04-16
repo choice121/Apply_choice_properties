@@ -68,11 +68,19 @@ npm run gas:push
 ### Fresh Replit setup (importing from GitHub)
 Credentials are stored encrypted in `credentials.enc` (committed to the repo). To restore on a new Replit:
 
-1. Run `npm run gas:setup` and enter the password when prompted.
-2. Add the new Replit's callback URL to your Google OAuth client's authorized redirect URIs:
-   - Go to console.cloud.google.com → APIs & Credentials → edit the OAuth client
-   - Add: `https://<new-replit-domain>/auth/callback`
-3. Run `npm run gas:push` — everything works.
+1. Run `npm run gas:setup` and enter the password when prompted (password: see scratchpad).
+2. That's it — the script validates the token, confirms the Google account, and gives guidance.
+   - The redirect URI is only needed if the token is revoked (very rare). `gas:setup` prints the
+     exact URI and Google Cloud Console link if that ever happens.
+3. Run `npm run gas:push` or use the dashboard at `/gas`.
+
+### GAS Dashboard (`/gas`)
+A full browser-based GAS management interface:
+- **Manage Code card:** `Push Code` (sync to Apps Script) or `Push & Deploy Live` (push + create new version + update live web app URL — fully automated)
+- **Code Editor:** Edit `backend/code.gs` with syntax highlighting, save and push from browser
+- **Deployments:** Lists all deployments with versions and live URLs
+- **Live Logger.log() Output:** Shows actual Logger.log() messages (requires GCP project linked in Apps Script project settings)
+- **Recent Executions:** Shows function execution history
 
 ### Re-encrypting after credential changes
 If you rotate OAuth secrets or the refresh token changes, re-run:

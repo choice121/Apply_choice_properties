@@ -101,6 +101,28 @@ function httpsGet(url, accessToken) {
   });
 }
 
+function httpsPut(url, accessToken, bodyObj) {
+  const u = new URL(url);
+  const body = JSON.stringify(bodyObj);
+  return httpsRequest({
+    hostname: u.hostname,
+    path: u.pathname + u.search,
+    method: 'PUT',
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+  }, body);
+}
+
+function httpsApiPost(url, accessToken, bodyObj) {
+  const u = new URL(url);
+  const body = JSON.stringify(bodyObj);
+  return httpsRequest({
+    hostname: u.hostname,
+    path: u.pathname + u.search,
+    method: 'POST',
+    headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+  }, body);
+}
+
 function getClasprc() {
   const p = path.join(os.homedir(), '.clasprc.json');
   if (!fs.existsSync(p)) return null;
@@ -211,14 +233,19 @@ a:hover{text-decoration:underline}
 
   <div class="card">
     <div class="card-header">
-      <h2>Deploy Code</h2>
+      <h2>Manage Code</h2>
       <a href="https://script.google.com/d/${scriptId}/edit" target="_blank" style="font-size:12px;color:#90caf9">Open in Apps Script &rarr;</a>
     </div>
     <div class="card-body">
       <p class="scriptid">Script ID: ${scriptId || 'Not configured'}</p>
-      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
-        <button class="btn btn-primary" id="pushBtn" onclick="pushCode()">&#x2191; Push backend/code.gs</button>
-        <button class="btn" style="background:#2a2d3a;color:#ccc" onclick="loadProcesses()">&#x21bb; Refresh Logs</button>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <button class="btn btn-primary" id="pushBtn" onclick="pushCode()">&#x2191; Push Code</button>
+        <button class="btn" style="background:#6a1b9a;color:#fff" id="deployBtn" onclick="deployNewVersion()">&#x1F680; Push &amp; Deploy Live</button>
+        <button class="btn" style="background:#2a2d3a;color:#ccc" onclick="loadProcesses()">&#x21bb; Refresh</button>
+      </div>
+      <div style="margin-top:8px;font-size:11px;color:#555">
+        <b style="color:#888">Push Code</b> = sync to Apps Script editor only &nbsp;|&nbsp;
+        <b style="color:#888">Push &amp; Deploy Live</b> = push + new version + update your live web app URL
       </div>
       <div id="pushOutput" class="output-box"></div>
     </div>
@@ -242,6 +269,16 @@ a:hover{text-decoration:underline}
   <div class="card">
     <div class="card-header"><h2>Deployments</h2></div>
     <div class="card-body" id="deployContainer">
+      <div class="empty">Loading...</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-header" style="display:flex;align-items:center;justify-content:space-between">
+      <h2>Live Logger.log() Output</h2>
+      <button class="btn" style="background:#2a2d3a;color:#ccc;padding:4px 10px;font-size:11px" onclick="loadLogs()">&#x21bb; Refresh</button>
+    </div>
+    <div class="card-body" id="logsContainer">
       <div class="empty">Loading...</div>
     </div>
   </div>
@@ -324,8 +361,67 @@ async function loadProcesses() {
   }
 }
 
+async function deployNewVersion() {
+  const btn = document.getElementById('deployBtn');
+  const out = document.getElementById('pushOutput');
+  btn.disabled = true;
+  btn.textContent = 'Deploying...';
+  out.style.display = 'block';
+  out.className = 'output-box';
+  out.textContent = 'Pushing code, creating version, updating live deployment...';
+  try {
+    const r = await fetch('/gas/api/deploy', { method: 'POST' });
+    const d = await r.json();
+    out.textContent = d.output;
+    out.className = 'output-box ' + (d.success ? '' : 'err');
+    btn.innerHTML = d.success ? '&#x2713; Deployed!' : '&#x2717; Failed';
+    if (d.success) loadDeployments();
+  } catch(e) {
+    out.textContent = e.message;
+    out.className = 'output-box err';
+    btn.textContent = 'Error';
+  }
+  setTimeout(() => { btn.disabled = false; btn.innerHTML = '&#x1F680; Push &amp; Deploy Live'; }, 4000);
+}
+
+async function loadLogs() {
+  const c = document.getElementById('logsContainer');
+  c.innerHTML = '<div class="empty">Loading logs...</div>';
+  try {
+    const r = await fetch('/gas/api/logs');
+    const d = await r.json();
+    if (d.noProject) {
+      c.innerHTML = '<div class="empty" style="color:#ff9800;text-align:left;padding:16px">' +
+        '<b>GCP project not linked</b><br><br>' +
+        'To see Logger.log() output here:<br>' +
+        '1. Open your script in Apps Script<br>' +
+        '2. Go to Project Settings &#x2192; Google Cloud Platform Project<br>' +
+        '3. Enter a GCP project number and save<br><br>' +
+        '<a href="https://script.google.com/d/${scriptId}/edit" target="_blank" style="color:#90caf9">Open in Apps Script &rarr;</a>' +
+        '</div>';
+      return;
+    }
+    if (d.error) { c.innerHTML = '<div class="empty" style="color:#f44336">' + d.error + '</div>'; return; }
+    const entries = d.entries || [];
+    if (!entries.length) { c.innerHTML = '<div class="empty">No log entries found. Logger.log() calls will appear here after your script runs.</div>'; return; }
+    c.innerHTML = '<div style="font-family:monospace;font-size:12px">' + entries.map(e => {
+      const sev = e.severity || 'INFO';
+      const col = sev === 'ERROR' ? '#ef9a9a' : sev === 'WARNING' ? '#ffcc80' : '#a5d6a7';
+      const time = e.time ? new Date(e.time).toLocaleString() : '';
+      return '<div style="padding:6px 0;border-bottom:1px solid #2a2d3a;display:flex;gap:12px;align-items:flex-start">' +
+        '<span style="color:#555;flex-shrink:0;font-size:11px;margin-top:1px">' + time + '</span>' +
+        '<span style="color:#888;flex-shrink:0;font-size:10px;margin-top:2px;width:50px">' + sev + '</span>' +
+        '<span style="color:' + col + ';word-break:break-all">' + (e.message || '').replace(/</g,'&lt;') + '</span>' +
+        '</div>';
+    }).join('') + '</div>';
+  } catch(e) {
+    c.innerHTML = '<div class="empty" style="color:#f44336">' + e.message + '</div>';
+  }
+}
+
 loadDeployments();
 loadProcesses();
+loadLogs();
 
 let editor;
 async function initEditor() {
@@ -432,6 +528,88 @@ async function handleGasApiPush(req, res) {
     res.end(JSON.stringify(result));
   } catch (e) {
     res.end(JSON.stringify({ success: false, output: e.message }));
+  }
+}
+
+async function handleGasApiDeploy(req, res) {
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  const BASE = 'https://script.googleapis.com/v1/projects';
+  const scriptId = process.env.GAS_SCRIPT_ID || '';
+  try {
+    const token = await getFreshAccessToken();
+    if (!scriptId) throw new Error('GAS_SCRIPT_ID not configured');
+
+    const pushResult = await runGasPush();
+    if (!pushResult.success) throw new Error('Push failed: ' + pushResult.output);
+
+    const versionRes = await httpsApiPost(`${BASE}/${scriptId}/versions`, token, {
+      description: 'Deployed from Replit – ' + new Date().toISOString().replace('T', ' ').slice(0, 19) + ' UTC',
+    });
+    if (versionRes.body.error) throw new Error(versionRes.body.error.message);
+    const newVersion = versionRes.body.versionNumber;
+
+    const depsRes = await httpsGet(`${BASE}/${scriptId}/deployments`, token);
+    if (depsRes.body.error) throw new Error(depsRes.body.error.message);
+    const deployments = depsRes.body.deployments || [];
+    const target = deployments.find(d =>
+      d.deploymentConfig && d.deploymentConfig.versionNumber &&
+      d.entryPoints && d.entryPoints.some(e => e.entryPointType === 'WEB_APP')
+    );
+    if (!target) throw new Error('No versioned web app deployment found. Deploy manually once from Apps Script first.');
+
+    const updateRes = await httpsPut(
+      `${BASE}/${scriptId}/deployments/${target.deploymentId}`, token,
+      { deploymentConfig: { ...target.deploymentConfig, versionNumber: newVersion, description: 'Deployed from Replit' } }
+    );
+    if (updateRes.body.error) throw new Error(updateRes.body.error.message);
+
+    res.end(JSON.stringify({
+      success: true,
+      output: `✅ Pushed code\n✅ Created version ${newVersion}\n✅ Deployment updated to v${newVersion}\n\nYour live web app is now running the latest code.`,
+      version: newVersion,
+    }));
+  } catch (e) {
+    res.end(JSON.stringify({ success: false, output: '❌ ' + e.message }));
+  }
+}
+
+async function handleGasApiLogs(req, res) {
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  try {
+    const token = await getFreshAccessToken();
+    const scriptId = process.env.GAS_SCRIPT_ID || '';
+
+    const infoRes = await httpsGet(`https://script.googleapis.com/v1/projects/${scriptId}`, token);
+    const parentId = infoRes.body.parentId;
+    const projectId = parentId ? parentId.replace('projects/', '') : null;
+
+    if (!projectId) {
+      res.end(JSON.stringify({ noProject: true, message: 'Script has no linked GCP project. Link one in Apps Script → Project Settings → Google Cloud Platform Project.' }));
+      return;
+    }
+
+    const logsRes = await httpsApiPost('https://logging.googleapis.com/v2/entries:list', token, {
+      resourceNames: [`projects/${projectId}`],
+      filter: `resource.type="app_script_function" resource.labels.script_id="${scriptId}"`,
+      orderBy: 'timestamp desc',
+      pageSize: 50,
+    });
+
+    if (logsRes.body.error) {
+      res.end(JSON.stringify({ error: logsRes.body.error.message }));
+      return;
+    }
+
+    const entries = (logsRes.body.entries || []).map(e => ({
+      time: e.timestamp,
+      severity: e.severity,
+      message: e.textPayload || (e.jsonPayload && JSON.stringify(e.jsonPayload)) || '',
+      function: e.labels && e.labels['script.googleapis.com/user_logging_request_id'] || '',
+    }));
+
+    res.end(JSON.stringify({ entries }));
+  } catch (e) {
+    res.end(JSON.stringify({ error: e.message }));
   }
 }
 
@@ -587,6 +765,8 @@ const server = http.createServer(async (req, res) => {
   if (urlPath === '/gas/api/push' && req.method === 'POST') { await handleGasApiPush(req, res); return; }
   if (urlPath === '/gas/api/code' && req.method === 'GET') { handleGasApiCodeGet(req, res); return; }
   if (urlPath === '/gas/api/code' && req.method === 'POST') { await handleGasApiCodeSave(req, res); return; }
+  if (urlPath === '/gas/api/deploy' && req.method === 'POST') { await handleGasApiDeploy(req, res); return; }
+  if (urlPath === '/gas/api/logs') { await handleGasApiLogs(req, res); return; }
 
   if (urlPath === '/') urlPath = '/index.html';
 
