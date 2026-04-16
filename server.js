@@ -348,6 +348,37 @@ async function handleGasApiPush(req, res) {
   }
 }
 
+function handleGasApiCodeGet(req, res) {
+  const codePath = path.join(__dirname, 'backend', 'code.gs');
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  try {
+    const code = fs.readFileSync(codePath, 'utf8');
+    const lines = code.split('\n').length;
+    res.end(JSON.stringify({ code, lines, path: 'backend/code.gs' }));
+  } catch (e) {
+    res.end(JSON.stringify({ error: e.message }));
+  }
+}
+
+async function handleGasApiCodeSave(req, res) {
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  try {
+    const body = await new Promise((resolve, reject) => {
+      let data = '';
+      req.on('data', chunk => data += chunk);
+      req.on('end', () => { try { resolve(JSON.parse(data)); } catch(e) { reject(e); } });
+      req.on('error', reject);
+    });
+    if (typeof body.code !== 'string') throw new Error('Missing code in request body');
+    const codePath = path.join(__dirname, 'backend', 'code.gs');
+    fs.writeFileSync(codePath, body.code, 'utf8');
+    const pushResult = body.push ? await runGasPush() : { success: true, output: 'Saved (not pushed)' };
+    res.end(JSON.stringify({ saved: true, ...pushResult }));
+  } catch (e) {
+    res.end(JSON.stringify({ saved: false, success: false, output: e.message }));
+  }
+}
+
 function saveClaspCredentials(tokens) {
   const clasprc = {
     token: {
@@ -467,6 +498,8 @@ const server = http.createServer(async (req, res) => {
   if (urlPath === '/gas/api/processes') { await handleGasApiProcesses(req, res); return; }
   if (urlPath === '/gas/api/deployments') { await handleGasApiDeployments(req, res); return; }
   if (urlPath === '/gas/api/push' && req.method === 'POST') { await handleGasApiPush(req, res); return; }
+  if (urlPath === '/gas/api/code' && req.method === 'GET') { handleGasApiCodeGet(req, res); return; }
+  if (urlPath === '/gas/api/code' && req.method === 'POST') { await handleGasApiCodeSave(req, res); return; }
 
   if (urlPath === '/') urlPath = '/index.html';
 
