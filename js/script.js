@@ -359,7 +359,8 @@ class RentalApplication {
                                 const _lh = document.createElement('div');
                                 _lh.className = 'lease-min-hint field-hint';
                                 _lh.style.color = '#e65100';
-                                _lh.innerHTML = '<i class="fas fa-info-circle"></i> Minimum lease term: ' + minMonthsNum + ' months. Please select a qualifying term.';
+                                const _tLease = this.getTranslations();
+                _lh.innerHTML = '<i class="fas fa-info-circle"></i> <span data-i18n="minLeaseHintPre">' + (_tLease.minLeaseHintPre || 'Minimum lease term:') + '</span> ' + minMonthsNum + ' <span data-i18n="minLeaseHintPost">' + (_tLease.minLeaseHintPost || 'months. Please select a qualifying term.') + '</span>';
                                 _leaseHint.appendChild(_lh);
                             }
                         }
@@ -418,7 +419,8 @@ class RentalApplication {
                       const _notice = document.createElement('div');
                       _notice.className = 'policy-lock-notice';
                       _notice.style.cssText = 'margin-top:8px;padding:8px 12px;background:#fff3e0;border:1px solid #ffb74d;border-radius:6px;font-size:13px;color:#e65100;display:flex;align-items:center;gap:8px;';
-                      _notice.innerHTML = '<i class="fas fa-ban"></i> <span>This property does not allow pets.</span>';
+                      const _tPets = this.getTranslations();
+                      _notice.innerHTML = '<i class="fas fa-ban"></i> <span data-i18n="noPetsPolicy">' + (_tPets.noPetsPolicy || 'This property does not allow pets.') + '</span>';
                       _petsFormGroup.appendChild(_notice);
                   }
               }
@@ -437,7 +439,8 @@ class RentalApplication {
                       const _sNotice = document.createElement('div');
                       _sNotice.className = 'policy-lock-notice';
                       _sNotice.style.cssText = 'margin-top:8px;padding:8px 12px;background:#fce4ec;border:1px solid #ef9a9a;border-radius:6px;font-size:13px;color:#b71c1c;display:flex;align-items:center;gap:8px;';
-                      _sNotice.innerHTML = '<i class="fas fa-smoking-ban"></i> <span>This is a non-smoking property. Smoking is not permitted on the premises.</span>';
+                      const _tSmoke = this.getTranslations();
+                      _sNotice.innerHTML = '<i class="fas fa-smoking-ban"></i> <span data-i18n="noSmokingPolicy">' + (_tSmoke.noSmokingPolicy || 'This is a non-smoking property. Smoking is not permitted on the premises.') + '</span>';
                       _smokeFormGroup.appendChild(_sNotice);
                   }
               }
@@ -2086,7 +2089,29 @@ class RentalApplication {
                 verifyingSubmission: 'Checking your submission status\u2026 Please wait a moment.',
                 serverError: 'Our system is temporarily unavailable. Please try again in a few minutes, or contact us at 707-706-3137.',
                 copied: 'Copied!',
-                pageTitle: 'Rental Application — Choice Properties'
+                pageTitle: 'Rental Application — Choice Properties',
+                howItWorks: 'How this application works',
+                requiredField: 'Required field',
+                autoSavedHint: 'Your progress is automatically saved',
+                uploadTitle: 'Supporting Documents',
+                uploadOptional: '(Optional)',
+                uploadDesc: 'Attaching documents now can speed up your review. You may also provide them when our team contacts you. <strong>Accepted:</strong> PDF, JPG, PNG · Max 4 MB per file · Up to 4 files.',
+                uploadCta: 'Click to upload — or drag files here',
+                uploadHint: 'Government ID &nbsp;·&nbsp; Pay stubs &nbsp;·&nbsp; Bank statements',
+                creditApplied: 'Application Credit Applied',
+                creditAppliedText: 'You have application credits — your application fee is covered.',
+                trustLine: 'Your information is securely processed and will only be used for rental application review.',
+                feeAcknowledge: 'I acknowledge the application fee policy and consent to my personal information being reviewed by Choice Properties staff and the landlord associated with this property solely for rental application evaluation. The application fee is <strong>non-refundable</strong> once submitted and payment is processed, except as described in the <a href="https://choice-properties.pages.dev/application-credit-policy.html" target="_blank" rel="noopener" style="color:var(--primary);">Application Credit Policy</a>.',
+                footerCopyright: '&copy; 2026 Choice Properties. All rights reserved.',
+                startOver: 'Start Over',
+                startOverTitle: 'Start Over?',
+                startOverDesc: "All your entered information will be cleared and you'll return to Step 1.",
+                keepInfo: 'Keep My Information',
+                yesStartOver: 'Yes, Clear Everything',
+                noPetsPolicy: 'This property does not allow pets.',
+                noSmokingPolicy: 'This is a non-smoking property. Smoking is not permitted on the premises.',
+                minLeaseHintPre: 'Minimum lease term:',
+                minLeaseHintPost: 'months. Please select a qualifying term.'
             },
             es: {
                 langText: 'English',
@@ -2369,7 +2394,29 @@ class RentalApplication {
                 verifyingSubmission: 'Verificando el estado de su solicitud\u2026 Por favor espere un momento.',
                 serverError: 'Nuestro sistema está temporalmente no disponible. Por favor intente de nuevo en unos minutos, o contáctenos al 707-706-3137.',
                 copied: '¡Copiado!',
-                pageTitle: 'Solicitud de Arrendamiento — Choice Properties'
+                pageTitle: 'Solicitud de Arrendamiento — Choice Properties',
+                howItWorks: 'Cómo funciona esta solicitud',
+                requiredField: 'Campo requerido',
+                autoSavedHint: 'Su progreso se guarda automáticamente',
+                uploadTitle: 'Documentos de Apoyo',
+                uploadOptional: '(Opcional)',
+                uploadDesc: 'Adjuntar documentos ahora puede agilizar su revisión. También puede proporcionarlos cuando nuestro equipo lo contacte. <strong>Aceptados:</strong> PDF, JPG, PNG · Máx. 4 MB por archivo · Hasta 4 archivos.',
+                uploadCta: 'Haga clic para subir — o arrastre archivos aquí',
+                uploadHint: 'Identificación oficial &nbsp;·&nbsp; Talones de pago &nbsp;·&nbsp; Estados de cuenta',
+                creditApplied: 'Crédito de Solicitud Aplicado',
+                creditAppliedText: 'Tiene créditos de solicitud — su tarifa de solicitud está cubierta.',
+                trustLine: 'Su información es procesada de forma segura y solo se utilizará para la revisión de su solicitud de arrendamiento.',
+                feeAcknowledge: 'Reconozco la política de tarifas de solicitud y autorizo que mi información personal sea revisada por el personal de Choice Properties y el propietario asociado a esta propiedad únicamente para la evaluación de la solicitud de arrendamiento. La tarifa de solicitud es <strong>no reembolsable</strong> una vez enviada y procesado el pago, excepto según lo descrito en la <a href="https://choice-properties.pages.dev/application-credit-policy.html" target="_blank" rel="noopener" style="color:var(--primary);">Política de Crédito de Solicitud</a>.',
+                footerCopyright: '&copy; 2026 Choice Properties. Todos los derechos reservados.',
+                startOver: 'Empezar de Nuevo',
+                startOverTitle: '¿Empezar de Nuevo?',
+                startOverDesc: 'Toda la información ingresada será eliminada y regresará al Paso 1.',
+                keepInfo: 'Conservar Mi Información',
+                yesStartOver: 'Sí, Borrar Todo',
+                noPetsPolicy: 'Esta propiedad no permite mascotas.',
+                noSmokingPolicy: 'Esta es una propiedad libre de humo. No se permite fumar en las instalaciones.',
+                minLeaseHintPre: 'Plazo mínimo de arrendamiento:',
+                minLeaseHintPost: 'meses. Por favor seleccione un plazo que cumpla con el requisito.'
             }
         };
 
@@ -2390,7 +2437,7 @@ class RentalApplication {
                 const t = translations[this.state.language];
                 text.textContent = t.langText;
                 
-                const HTML_KEYS = new Set(['spamWarning']);
+                const HTML_KEYS = new Set(['spamWarning', 'uploadDesc', 'uploadHint', 'feeAcknowledge', 'footerCopyright']);
                 document.querySelectorAll('[data-i18n]').forEach(el => {
                     const key = el.getAttribute('data-i18n');
                     if (t[key] !== undefined) {
@@ -2437,7 +2484,7 @@ class RentalApplication {
         if (_savedLang === 'es' && btn && text) {
             const t = translations['es'];
             text.textContent = t.langText;
-            const HTML_KEYS = new Set(['spamWarning']);
+            const HTML_KEYS = new Set(['spamWarning', 'uploadDesc', 'uploadHint', 'feeAcknowledge', 'footerCopyright']);
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
                 if (t[key] !== undefined) {

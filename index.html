@@ -219,7 +219,7 @@
                 <details class="process-explainer-details" open>
                     <summary class="process-explainer-summary">
                         <i class="fas fa-info-circle"></i>
-                        <span>How this application works</span>
+                        <span data-i18n="howItWorks">How this application works</span>
                         <i class="fas fa-chevron-down process-explainer-chevron"></i>
                     </summary>
                     <div class="process-explainer">
@@ -250,7 +250,7 @@
                 </details>
 
                 <h2><i class="fas fa-home"></i> <span data-i18n="propertyHeader">Property & Applicant Details</span></h2>
-                <p class="required-legend"><span>*</span> Required field &nbsp;·&nbsp; <i class="fas fa-shield-alt" style="color:var(--success);font-size:11px;"></i> &nbsp;Your progress is automatically saved</p>
+                <p class="required-legend"><span>*</span> <span data-i18n="requiredField">Required field</span> &nbsp;·&nbsp; <i class="fas fa-shield-alt" style="color:var(--success);font-size:11px;"></i> &nbsp;<span data-i18n="autoSavedHint">Your progress is automatically saved</span></p>
 
                 <h3 data-i18n="propertyInfo">Property Information</h3>
                 <div class="form-group">
@@ -1022,8 +1022,8 @@
                   <div id="creditNotice" style="display:none;background:#e8f5e9;border:1px solid #43a047;border-radius:8px;padding:14px 16px;margin-bottom:16px;align-items:center;gap:10px;">
                       <i class="fas fa-ticket-alt" style="color:#2e7d32;font-size:18px;"></i>
                       <div>
-                          <strong style="color:#1b5e20;font-size:14px;">Application Credit Applied</strong>
-                          <p style="color:#2e7d32;font-size:13px;margin:2px 0 0;" id="creditNoticeText">You have application credits — your application fee is covered.</p>
+                          <strong style="color:#1b5e20;font-size:14px;" data-i18n="creditApplied">Application Credit Applied</strong>
+                          <p style="color:#2e7d32;font-size:13px;margin:2px 0 0;" id="creditNoticeText" data-i18n="creditAppliedText">You have application credits — your application fee is covered.</p>
                       </div>
                   </div>
 
@@ -1049,14 +1049,14 @@
 
                 <!-- Phase 8.2: Supporting Document Upload -->
                 <div class="upload-section" style="margin:20px 0;">
-                    <h3 style="font-size:16px;font-weight:700;color:var(--primary);margin:0 0 6px;display:flex;align-items:center;gap:8px;"><i class="fas fa-paperclip" style="color:var(--secondary);"></i> Supporting Documents <span style="font-weight:400;font-size:13px;color:#64748b;">(Optional)</span></h3>
-                    <p style="font-size:13px;color:#5f6b7a;margin:0 0 12px;line-height:1.5;">Attaching documents now can speed up your review. You may also provide them when our team contacts you. <strong>Accepted:</strong> PDF, JPG, PNG · Max 4 MB per file · Up to 4 files.</p>
+                    <h3 style="font-size:16px;font-weight:700;color:var(--primary);margin:0 0 6px;display:flex;align-items:center;gap:8px;"><i class="fas fa-paperclip" style="color:var(--secondary);"></i> <span data-i18n="uploadTitle">Supporting Documents</span> <span style="font-weight:400;font-size:13px;color:#64748b;"><span data-i18n="uploadOptional">(Optional)</span></span></h3>
+                    <p style="font-size:13px;color:#5f6b7a;margin:0 0 12px;line-height:1.5;" data-i18n="uploadDesc">Attaching documents now can speed up your review. You may also provide them when our team contacts you. <strong>Accepted:</strong> PDF, JPG, PNG · Max 4 MB per file · Up to 4 files.</p>
                     <div class="upload-zone" id="uploadZone">
                         <input type="file" id="docUpload" multiple accept=".pdf,.jpg,.jpeg,.png" style="display:none;" aria-label="Upload supporting documents">
                         <label for="docUpload" class="upload-label" id="uploadLabel">
                             <i class="fas fa-cloud-upload-alt" style="font-size:30px;color:var(--secondary);margin-bottom:8px;display:block;"></i>
-                            <strong>Click to upload — or drag files here</strong><br>
-                            <span class="upload-hint">Government ID &nbsp;·&nbsp; Pay stubs &nbsp;·&nbsp; Bank statements</span>
+                            <strong data-i18n="uploadCta">Click to upload — or drag files here</strong><br>
+                            <span class="upload-hint" data-i18n="uploadHint">Government ID &nbsp;·&nbsp; Pay stubs &nbsp;·&nbsp; Bank statements</span>
                         </label>
                         <div id="uploadedFiles" class="uploaded-files-list"></div>
                         <div id="uploadError" class="error-message" style="display:none;margin-top:8px;padding:8px 10px;"></div>
@@ -1079,7 +1079,7 @@
 
                         <div class="custom-checkbox">
                             <input type="checkbox" id="feeAcknowledge" name="feeAcknowledge" value="on" required>
-                            <label for="feeAcknowledge">I acknowledge the application fee policy and consent to my personal information being reviewed by Choice Properties staff and the landlord associated with this property solely for rental application evaluation. The application fee is <strong>non-refundable</strong> once submitted and payment is processed, except as described in the <a href="https://choice-properties.pages.dev/application-credit-policy.html" target="_blank" rel="noopener" style="color:var(--primary);">Application Credit Policy</a>.</label>
+                            <label for="feeAcknowledge" data-i18n="feeAcknowledge">I acknowledge the application fee policy and consent to my personal information being reviewed by Choice Properties staff and the landlord associated with this property solely for rental application evaluation. The application fee is <strong>non-refundable</strong> once submitted and payment is processed, except as described in the <a href="https://choice-properties.pages.dev/application-credit-policy.html" target="_blank" rel="noopener" style="color:var(--primary);">Application Credit Policy</a>.</label>
                         </div>
                     </div>
                     <div id="declarationError" class="error-message" style="display:none;margin-top:8px;padding:8px 12px;"></div>
@@ -1087,7 +1087,7 @@
 
                 <div class="trust-submission-line" style="text-align:center;font-size:13px;color:#5f6b7a;margin:16px 0 8px;display:flex;align-items:center;justify-content:center;gap:8px;">
                     <i class="fas fa-shield-alt" style="color:var(--success);font-size:14px;"></i>
-                    <span>Your information is securely processed and will only be used for rental application review.</span>
+                    <span data-i18n="trustLine">Your information is securely processed and will only be used for rental application review.</span>
                 </div>
                 <div class="btn-container">
                     <button type="button" class="btn-prev"><i class="fas fa-arrow-left"></i> <span data-i18n="prevStep">Previous</span></button>
@@ -1112,7 +1112,7 @@
             <div class="footer-logo">
                 <i class="fas fa-building"></i> <span data-i18n="logoText">Choice Properties</span>
             </div>
-            <p>&copy; 2026 Choice Properties. All rights reserved.</p>
+            <p data-i18n="footerCopyright">&copy; 2026 Choice Properties. All rights reserved.</p>
             <div class="footer-links">
                 <a href="mailto:choicepropertygroup@hotmail.com" title="Privacy Policy — contact us for details"><i class="fas fa-shield-alt"></i> <span data-i18n="privacyPolicy">Privacy Policy</span></a>
                 <a href="mailto:choicepropertygroup@hotmail.com" title="Terms of Service — contact us for details"><i class="fas fa-file-contract"></i> <span data-i18n="termsOfService">Terms of Service</span></a>
@@ -1286,7 +1286,7 @@
 
     <!-- Start Over button (user-facing, shown from Step 2 onwards) -->
     <button id="startOverBtn" title="Clear form and start over">
-        <span class="btn-icon">&#x21BA;</span> Start Over
+        <span class="btn-icon">&#x21BA;</span> <span data-i18n="startOver">Start Over</span>
     </button>
 
     <!-- Clear Form confirmation bottom sheet -->
@@ -1294,10 +1294,10 @@
     <div id="clearFormSheet" role="dialog" aria-modal="true" aria-labelledby="clearSheetTitle">
         <div class="sheet-handle"></div>
         <div class="sheet-warning-icon">&#x26A0;&#xFE0F;</div>
-        <h3 id="clearSheetTitle">Start Over?</h3>
-        <p>All your entered information will be cleared and you'll return to Step 1.</p>
-        <button id="clearFormCancel">Keep My Information</button>
-        <button id="clearFormConfirm">Yes, Clear Everything</button>
+        <h3 id="clearSheetTitle" data-i18n="startOverTitle">Start Over?</h3>
+        <p data-i18n="startOverDesc">All your entered information will be cleared and you'll return to Step 1.</p>
+        <button id="clearFormCancel" data-i18n="keepInfo">Keep My Information</button>
+        <button id="clearFormConfirm" data-i18n="yesStartOver">Yes, Clear Everything</button>
     </div>
 
 </body>
