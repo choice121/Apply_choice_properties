@@ -105,6 +105,7 @@ Then commit the updated `credentials.enc`.
 - **Applicant Dashboard:** Status tracking page
 - **Lease Generation:** State-specific legal jurisdictions, e-signatures. Landlord's legal name (from "Property Owner" column) appears only in Article I of the lease. Everywhere else — emails, dashboard, reminder emails, signature block, and confirmation page — shows Choice Properties as the management contact.
 - **Lease Signing Flow:** GAS-rendered signing pages sanitize application data before rendering, validate tenant email and signature server-side, prevent duplicate signature submissions, and only show the final confirmation page once the lease status is recorded as signed.
+- **Lease Dry Run:** Admin lease modal includes a non-destructive dry-run check that validates approval/payment status, required lease fields, computed dates/costs, jurisdiction fallback, sheet columns, and intended writes/emails without changing Sheets or sending messages.
 - **Security:** OTP-based admin login, device fingerprinting
 
 ## Workflows

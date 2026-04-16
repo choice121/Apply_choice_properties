@@ -2048,6 +2048,137 @@ function calculateLeaseEndDate(startDate, termString) {
   return end;
 }
 
+function dryRunLease(appId, monthlyRent, securityDeposit, leaseStartDate, leaseNotes, rentDueDay, gracePeriodDays, lateFeeAmount, unitType, bedrooms, bathrooms, parkingSpace, includedUtilities, petDeposit, monthlyPetRent, verifiedPropertyAddress) {
+  try {
+    const ss    = getSpreadsheet();
+    const sheet = ss.getSheetByName(SHEET_NAME);
+    if (!sheet) throw new Error('Applications sheet not found');
+
+    const col  = getColumnMap(sheet);
+    const data = sheet.getDataRange().getValues();
+    const requiredColumns = [
+      'App ID', 'Payment Status', 'Status', 'Lease Status', 'Desired Lease Term',
+      'Email', 'First Name', 'Last Name', 'Phone', 'Property Address',
+      'Lease Start Date', 'Lease End Date', 'Monthly Rent', 'Security Deposit',
+      'Move-in Costs', 'Lease Notes', 'Tenant Signature', 'Lease Link'
+    ];
+    const errors = [];
+    const warnings = [];
+    const missingColumns = requiredColumns.filter(function(name) { return !col[name]; });
+    if (missingColumns.length) {
+      errors.push('Missing required sheet columns: ' + missingColumns.join(', '));
+    }
+    if (!col['App ID']) {
+      return { success: false, errors: errors, warnings: warnings, computed: {}, wouldWrite: [], wouldEmail: [], note: 'Dry run only. No sheet values were changed and no emails were sent.' };
+    }
+
+    let rowIndex = -1;
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][col['App ID'] - 1] === appId) { rowIndex = i + 1; break; }
+    }
+    if (rowIndex === -1) throw new Error('Application not found: ' + appId);
+
+    const app = {};
+    Object.keys(col).forEach(function(key) {
+      app[key] = data[rowIndex - 1][col[key] - 1];
+    });
+
+    const paymentStatus = app['Payment Status'];
+    const appStatus = app['Status'];
+    const currentLeaseStatus = app['Lease Status'] || 'none';
+    const tenantEmail = (app['Email'] || '').toString().trim();
+    const firstName = (app['First Name'] || '').toString().trim();
+    const lastName = (app['Last Name'] || '').toString().trim();
+    const property = ((verifiedPropertyAddress || '').toString().trim()) || app['Verified Property Address'] || app['Property Address'] || '';
+    const desiredTerm = app['Desired Lease Term'] || '12 months';
+    const rentVal = parseFloat(monthlyRent);
+    const depositVal = parseFloat(securityDeposit);
+    const petDepositVal = parseFloat(petDeposit) || 0;
+    const monthlyPetRentVal = parseFloat(monthlyPetRent) || 0;
+    const rentDue = parseInt(rentDueDay, 10) || 1;
+    const graceDays = parseInt(gracePeriodDays, 10) || 5;
+    const lateFee = parseFloat(lateFeeAmount) || 50;
+    const startDateTest = new Date(leaseStartDate);
+
+    if (paymentStatus !== 'paid') errors.push('Payment Status must be paid before sending a lease.');
+    if (appStatus !== 'approved') errors.push('Application Status must be approved before sending a lease.');
+    if (currentLeaseStatus === 'signed' || currentLeaseStatus === 'executed' || currentLeaseStatus === 'active') errors.push('Lease is already signed/executed and should not be resent.');
+    if (currentLeaseStatus === 'sent') warnings.push('A lease is already marked sent. Sending again would be blocked unless the sheet status is reset intentionally.');
+    if (!tenantEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(tenantEmail)) errors.push('Applicant email is missing or invalid.');
+    if (!firstName || !lastName) errors.push('Applicant first and last name are required for the lease.');
+    if (!property) errors.push('Verified property address or application property address is required.');
+    if (!monthlyRent || isNaN(rentVal) || rentVal <= 0) errors.push('Monthly rent must be greater than $0.');
+    if (securityDeposit === '' || securityDeposit === null || securityDeposit === undefined || isNaN(depositVal) || depositVal < 0) errors.push('Security deposit must be a valid number, including 0 if there is no deposit.');
+    if (!leaseStartDate || isNaN(startDateTest.getTime())) errors.push('Lease start date must be a valid date.');
+    if (petDepositVal < 0) errors.push('Pet deposit cannot be negative.');
+    if (monthlyPetRentVal < 0) errors.push('Monthly pet rent cannot be negative.');
+    if (rentDue < 1 || rentDue > 28) warnings.push('Rent due day should stay between 1 and 28 to avoid month-boundary problems.');
+    if (graceDays < 0 || graceDays > 15) warnings.push('Grace period is outside the expected 0–15 day range.');
+    if (lateFee < 0) errors.push('Late fee cannot be negative.');
+    if (!app['Property State']) warnings.push('Property State is missing; lease will fall back to default Michigan/legal language.');
+    if (!app['Property Owner']) warnings.push('Property Owner is blank; lease will use Choice Properties as landlord in Article I.');
+
+    let endDateStr = '';
+    if (leaseStartDate && !isNaN(startDateTest.getTime())) {
+      const endDateObj = calculateLeaseEndDate(new Date(leaseStartDate), desiredTerm);
+      endDateStr = endDateObj === null
+        ? 'Month-to-Month — No Fixed Expiration'
+        : Utilities.formatDate(endDateObj, Session.getScriptTimeZone(), 'MMMM dd, yyyy');
+    }
+
+    const moveInCosts = (!isNaN(rentVal) ? rentVal : 0) + (!isNaN(depositVal) ? depositVal : 0) + petDepositVal;
+    const propertyState = app['Property State'] || 'MI';
+    const jur = getJurisdiction(propertyState);
+    const baseUrl = ScriptApp.getService().getUrl();
+    const leaseLink = baseUrl + '?path=lease&id=' + encodeURIComponent(String(appId));
+
+    return {
+      success: errors.length === 0,
+      errors: errors,
+      warnings: warnings,
+      computed: {
+        appId: appId,
+        tenantName: (firstName + ' ' + lastName).trim(),
+        tenantEmail: tenantEmail,
+        property: property,
+        propertyState: propertyState,
+        jurisdiction: jur.stateName,
+        term: desiredTerm,
+        leaseStartDate: leaseStartDate || '',
+        leaseEndDate: endDateStr,
+        monthlyRent: isNaN(rentVal) ? null : rentVal,
+        securityDeposit: isNaN(depositVal) ? null : depositVal,
+        petDeposit: petDepositVal,
+        monthlyPetRent: monthlyPetRentVal,
+        moveInCosts: moveInCosts,
+        rentDueDay: rentDue,
+        gracePeriodDays: graceDays,
+        lateFeeAmount: lateFee,
+        unitType: unitType || '',
+        bedrooms: bedrooms || '',
+        bathrooms: bathrooms || '',
+        parkingSpace: parkingSpace || '',
+        includedUtilities: includedUtilities || '',
+        leaseLink: leaseLink
+      },
+      wouldWrite: [
+        'Lease Status = sent',
+        'Lease Sent Date = current timestamp',
+        'Lease Start Date, Lease End Date, Monthly Rent, Security Deposit, Move-in Costs, Lease Notes',
+        'Rent Due Day, Grace Period Days, Late Fee Amount, property detail fields, pet terms',
+        'Lease Link'
+      ],
+      wouldEmail: [
+        'Tenant lease signing email to ' + (tenantEmail || '(missing email)')
+      ],
+      note: 'Dry run only. No sheet values were changed and no emails were sent.'
+    };
+  } catch (error) {
+    console.error('dryRunLease error:', error);
+    return { success: false, errors: [error.toString()], warnings: [], computed: {}, wouldWrite: [], wouldEmail: [], note: 'Dry run only. No sheet values were changed and no emails were sent.' };
+  }
+}
+
 // ── signLease() ───────────────────────────────────────────
 // Called via google.script.run from the lease signing page.
 // ─────────────────────────────────────────────────────────
@@ -7435,6 +7566,7 @@ function renderAdminPanel(authToken) {
     </div>
     <div class="modal-footer">
       <button class="modal-btn btn-cancel" onclick="closeLeaseModal()">Cancel</button>
+      <button class="modal-btn btn-confirm-action" id="leaseDryRunBtn" onclick="runLeaseDryRun()" style="background:#1d4ed8;color:white;"><i class="fas fa-stethoscope"></i> Dry Run Check</button>
       <button class="modal-btn btn-send-lease" id="leaseSendBtn" onclick="submitLease()"><i class="fas fa-paper-plane"></i> Send Lease to Tenant</button>
     </div>
   </div>
@@ -7623,13 +7755,14 @@ function renderAdminPanel(authToken) {
   }
 
   // ── Move-in preview ──
-  ['leaseRent','leaseDeposit'].forEach(id => {
+  ['leaseRent','leaseDeposit','leasePetDeposit'].forEach(id => {
     document.getElementById(id).addEventListener('input', updateMoveInPreview);
   });
   function updateMoveInPreview() {
     const rent    = parseFloat(document.getElementById('leaseRent').value)    || 0;
     const deposit = parseFloat(document.getElementById('leaseDeposit').value) || 0;
-    const total   = rent + deposit;
+    const petDeposit = parseFloat(document.getElementById('leasePetDeposit').value) || 0;
+    const total   = rent + deposit + petDeposit;
     const el = document.getElementById('moveInPreview');
     el.textContent = total > 0
       ? '\$' + total.toLocaleString('en-US', {minimumFractionDigits:2})
@@ -7660,7 +7793,7 @@ function renderAdminPanel(authToken) {
     document.body.classList.remove('modal-open');
     resumePolling();
   }
-  function submitLease() {
+  function getLeaseFormValues() {
     const verifiedAddress = document.getElementById('leasePropertyAddress').value.trim();
     const rent      = document.getElementById('leaseRent').value;
     const deposit   = document.getElementById('leaseDeposit').value;
@@ -7676,23 +7809,81 @@ function renderAdminPanel(authToken) {
     const includedUtilities = document.getElementById('leaseIncludedUtilities').value|| '';
     const petDeposit        = document.getElementById('leasePetDeposit').value       || '0';
     const monthlyPetRent    = document.getElementById('leaseMonthlyPetRent').value   || '0';
+    return { verifiedAddress, rent, deposit, startDate, notes, rentDueDay, graceDays, lateFee, unitType, bedrooms, bathrooms, parkingSpace, includedUtilities, petDeposit, monthlyPetRent };
+  }
+  function validateLeaseForm(values) {
     const alertArea = document.getElementById('leaseAlertArea');
-    // FIX-08: Validate rent and deposit as numeric values, not just truthy strings.
-    // Previously "abc" would pass the !deposit check and silently become $0 on the lease.
-    const rentVal    = parseFloat(rent);
-    const depositVal = parseFloat(deposit);
-    if (!rent || isNaN(rentVal) || rentVal <= 0) {
+    const rentVal    = parseFloat(values.rent);
+    const depositVal = parseFloat(values.deposit);
+    if (!values.rent || isNaN(rentVal) || rentVal <= 0) {
       alertArea.innerHTML = '<div class="alert alert-danger">Monthly rent must be a number greater than $0.</div>';
-      return;
+      return false;
     }
-    if (!deposit || isNaN(depositVal) || depositVal < 0) {
+    if (!values.deposit || isNaN(depositVal) || depositVal < 0) {
       alertArea.innerHTML = '<div class="alert alert-danger">Security deposit must be a valid number (enter 0 if there is no deposit).</div>';
-      return;
+      return false;
     }
-    if (!startDate) {
+    if (!values.startDate) {
       alertArea.innerHTML = '<div class="alert alert-danger">Please select a lease start date.</div>';
-      return;
+      return false;
     }
+    return true;
+  }
+  function renderLeaseDryRunResult(result) {
+    const alertArea = document.getElementById('leaseAlertArea');
+    const safe = function(value) {
+      return String(value === undefined || value === null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    };
+    const errors = result.errors || [];
+    const warnings = result.warnings || [];
+    const computed = result.computed || {};
+    const rows = [
+      ['Tenant', computed.tenantName || '—'],
+      ['Email', computed.tenantEmail || '—'],
+      ['Property', computed.property || '—'],
+      ['Jurisdiction', computed.jurisdiction || '—'],
+      ['Lease Term', computed.term || '—'],
+      ['Lease End', computed.leaseEndDate || '—'],
+      ['Move-in Total', computed.moveInCosts !== undefined ? '$' + Number(computed.moveInCosts || 0).toLocaleString('en-US', {minimumFractionDigits:2}) : '—']
+    ].map(function(row) {
+      return '<div style="display:flex;justify-content:space-between;gap:12px;padding:5px 0;border-bottom:1px solid rgba(0,0,0,.06);"><span style="font-weight:600;">' + safe(row[0]) + '</span><span style="text-align:right;">' + safe(row[1]) + '</span></div>';
+    }).join('');
+    const errorHtml = errors.length ? '<div style="margin-top:10px;"><strong>Fix before sending:</strong><ul style="padding-left:18px;margin-top:5px;">' + errors.map(function(e) { return '<li>' + safe(e) + '</li>'; }).join('') + '</ul></div>' : '';
+    const warningHtml = warnings.length ? '<div style="margin-top:10px;"><strong>Warnings:</strong><ul style="padding-left:18px;margin-top:5px;">' + warnings.map(function(w) { return '<li>' + safe(w) + '</li>'; }).join('') + '</ul></div>' : '';
+    alertArea.innerHTML =
+      '<div class="alert ' + (result.success ? 'alert-success' : 'alert-danger') + '">' +
+      '<strong>' + (result.success ? 'Dry run passed. No data was changed and no email was sent.' : 'Dry run found issues. No data was changed and no email was sent.') + '</strong>' +
+      '<div style="margin-top:10px;">' + rows + '</div>' +
+      errorHtml + warningHtml +
+      '</div>';
+  }
+  function runLeaseDryRun() {
+    const values = getLeaseFormValues();
+    if (!validateLeaseForm(values)) return;
+    const btn = document.getElementById('leaseDryRunBtn');
+    btn.disabled = true; btn.textContent = 'Checking...';
+    document.getElementById('leaseAlertArea').innerHTML = '';
+    google.script.run
+      .withSuccessHandler(function(result) {
+        btn.disabled = false; btn.innerHTML = '<i class="fas fa-stethoscope"></i> Dry Run Check';
+        renderLeaseDryRunResult(result || { success:false, errors:['No response from server.'] });
+      })
+      .withFailureHandler(function(err) {
+        btn.disabled = false; btn.innerHTML = '<i class="fas fa-stethoscope"></i> Dry Run Check';
+        document.getElementById('leaseAlertArea').innerHTML = '<div class="alert alert-danger">Dry run server error: ' + err + '</div>';
+      })
+      .dryRunLease(currentAppId, values.rent, values.deposit, values.startDate, values.notes, values.rentDueDay, values.graceDays, values.lateFee,
+                   values.unitType, values.bedrooms, values.bathrooms, values.parkingSpace, values.includedUtilities, values.petDeposit, values.monthlyPetRent, values.verifiedAddress);
+  }
+  function submitLease() {
+    const values = getLeaseFormValues();
+    if (!validateLeaseForm(values)) return;
+    const alertArea = document.getElementById('leaseAlertArea');
     const btn = document.getElementById('leaseSendBtn');
     btn.disabled = true; btn.textContent = 'Sending...';
     alertArea.innerHTML = '';
@@ -7720,8 +7911,8 @@ function renderAdminPanel(authToken) {
         btn.disabled = false; btn.textContent = 'Send Lease to Tenant';
         alertArea.innerHTML = '<div class="alert alert-danger">Server error: ' + err + '</div>';
       })
-      .generateAndSendLease(currentAppId, rent, deposit, startDate, notes, rentDueDay, graceDays, lateFee,
-                             unitType, bedrooms, bathrooms, parkingSpace, includedUtilities, petDeposit, monthlyPetRent, verifiedAddress);
+      .generateAndSendLease(currentAppId, values.rent, values.deposit, values.startDate, values.notes, values.rentDueDay, values.graceDays, values.lateFee,
+                             values.unitType, values.bedrooms, values.bathrooms, values.parkingSpace, values.includedUtilities, values.petDeposit, values.monthlyPetRent, values.verifiedAddress);
   }
 
   // ── Confirm modal close + submit ──
