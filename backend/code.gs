@@ -3036,7 +3036,7 @@ function renderLeaseSigningPage(appId) {
           <p style="font-size:12px;color:#0369a1;margin:0;"><strong>Please read the full lease agreement above carefully before signing.</strong> By signing, you confirm that you have read, understood, and agree to be bound by all terms of the lease.</p>
           <div style="margin-top:12px;">
             <label style="display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:13px;color:#0c4a6e;line-height:1.5;">
-              <input type="checkbox" id="leaseReadConfirm" style="margin-top:3px;flex-shrink:0;" onchange="validateSignatureForm()">
+              <input type="checkbox" id="leaseReadConfirm" style="margin-top:3px;flex-shrink:0;">
               <span>I have read and understand the lease agreement above, and I agree to be legally bound by its terms.</span>
             </label>
           </div>
@@ -3056,7 +3056,6 @@ function renderLeaseSigningPage(appId) {
                  class="sig-input"
                  placeholder="e.g. jane@example.com"
                  autocomplete="email"
-                 oninput="validateSignatureForm()" onchange="validateSignatureForm()" onblur="validateSignatureForm()"
                  style="font-size:15px;letter-spacing:normal;font-family:sans-serif;">
         </div>
         <!-- Signature input -->
@@ -3070,8 +3069,7 @@ function renderLeaseSigningPage(appId) {
                class="sig-input"
                placeholder="e.g. John Michael Smith"
                autocomplete="off"
-               spellcheck="false"
-               oninput="onSigInput(this)">
+               spellcheck="false">
 
         <!-- Live signature preview -->
         <div class="sig-preview-wrap" id="previewWrap">
@@ -3100,25 +3098,25 @@ function renderLeaseSigningPage(appId) {
 
       <!-- Step 2: Confirmation checkboxes -->
       <div class="checkbox-group" id="step2Panel" style="margin-top:24px;">
-        <div class="checkbox-row" id="row1" onclick="toggleCheck('agreeTerms','row1')">
-          <input type="checkbox" id="agreeTerms" onclick="event.stopPropagation()" onchange="onCbChange(this,'row1')">
-          <label for="agreeTerms" onclick="event.stopPropagation()">I have read and agree to all 25 provisions of this Residential Lease Agreement, including all financial terms, occupancy rules, and my obligations as Tenant.</label>
+        <div class="checkbox-row" id="row1">
+          <input type="checkbox" id="agreeTerms">
+          <label for="agreeTerms">I have read and agree to all 25 provisions of this Residential Lease Agreement, including all financial terms, occupancy rules, and my obligations as Tenant.</label>
         </div>
-        <div class="checkbox-row" id="row2" onclick="toggleCheck('agreeBinding','row2')">
-          <input type="checkbox" id="agreeBinding" onclick="event.stopPropagation()" onchange="onCbChange(this,'row2')">
-          <label for="agreeBinding" onclick="event.stopPropagation()">I understand this electronic signature is legally binding under the ${eSignShort}, and has the same legal effect as a handwritten signature.</label>
+        <div class="checkbox-row" id="row2">
+          <input type="checkbox" id="agreeBinding">
+          <label for="agreeBinding">I understand this electronic signature is legally binding under the ${eSignShort}, and has the same legal effect as a handwritten signature.</label>
         </div>
-        <div class="checkbox-row" id="row3" onclick="toggleCheck('agreeFinancial','row3')">
-          <input type="checkbox" id="agreeFinancial" onclick="event.stopPropagation()" onchange="onCbChange(this,'row3')">
-          <label for="agreeFinancial" onclick="event.stopPropagation()">I agree to pay the move-in total of <b>$${moveInCostWithPet.toLocaleString()}.00</b> prior to taking possession${holdingFeePaid ? ` (after holding fee credit of $${holdingFeeAmt.toLocaleString()}.00)` : ''}${petDeposit > 0 ? ` (includes $${petDeposit.toFixed(2)} pet deposit)` : ''}, and monthly rent of <b>$${rent.toLocaleString()}.00</b> on the ${ordSfx(rentDueDay)} of each month as outlined in Article III.</label>
+        <div class="checkbox-row" id="row3">
+          <input type="checkbox" id="agreeFinancial">
+          <label for="agreeFinancial">I agree to pay the move-in total of <b>$${moveInCostWithPet.toLocaleString()}.00</b> prior to taking possession${holdingFeePaid ? ` (after holding fee credit of $${holdingFeeAmt.toLocaleString()}.00)` : ''}${petDeposit > 0 ? ` (includes $${petDeposit.toFixed(2)} pet deposit)` : ''}, and monthly rent of <b>$${rent.toLocaleString()}.00</b> on the ${ordSfx(rentDueDay)} of each month as outlined in Article III.</label>
         </div>
-        <div class="checkbox-row" id="row4" onclick="toggleCheck('agreeOwnership','row4')">
-          <input type="checkbox" id="agreeOwnership" onclick="event.stopPropagation()" onchange="onCbChange(this,'row4')">
-          <label for="agreeOwnership" onclick="event.stopPropagation()">I understand that <b>Choice Properties</b> is the authorized management agent for this property and will handle all communications, maintenance requests, and rent collection on behalf of the property owner as identified in Article I of this Lease.</label>
+        <div class="checkbox-row" id="row4">
+          <input type="checkbox" id="agreeOwnership">
+          <label for="agreeOwnership">I understand that <b>Choice Properties</b> is the authorized management agent for this property and will handle all communications, maintenance requests, and rent collection on behalf of the property owner as identified in Article I of this Lease.</label>
         </div>
-        <div class="checkbox-row" id="row5" onclick="toggleCheck('agreeInsurance','row5')">
-          <input type="checkbox" id="agreeInsurance" onclick="event.stopPropagation()" onchange="onCbChange(this,'row5')">
-          <label for="agreeInsurance" onclick="event.stopPropagation()">I confirm that I will obtain and maintain a renter's insurance policy for the full duration of this lease term, as required by Clause 13, and will provide proof of coverage upon request.</label>
+        <div class="checkbox-row" id="row5">
+          <input type="checkbox" id="agreeInsurance">
+          <label for="agreeInsurance">I confirm that I will obtain and maintain a renter's insurance policy for the full duration of this lease term, as required by Clause 13, and will provide proof of coverage upon request.</label>
         </div>
       </div>
 
@@ -3131,7 +3129,7 @@ function renderLeaseSigningPage(appId) {
             <span style="font-size:12px;font-weight:400;color:#94a3b8;">Please do not close this page</span>
           </p>
         </div>
-        <button class="btn-sign" id="signBtn" disabled onclick="submitSignature()">
+        <button class="btn-sign" id="signBtn" disabled>
           ✍️ Execute Lease Agreement
         </button>
         <div class="btn-sign-sub" id="signBtnSub">
@@ -3160,7 +3158,7 @@ function renderLeaseSigningPage(appId) {
     📱 707-706-3137 &nbsp;·&nbsp; choicepropertygroup@hotmail.com</p>
     <div class="tagline">Your trust is our standard.</div>
     <div style="margin-top:16px;">
-      <button onclick="window.print()" style="background:transparent;border:1px solid rgba(212,175,55,.5);color:rgba(212,175,55,.8);padding:8px 20px;border-radius:50px;font-size:12px;cursor:pointer;letter-spacing:1px;">
+      <button id="printBtn" style="background:transparent;border:1px solid rgba(212,175,55,.5);color:rgba(212,175,55,.8);padding:8px 20px;border-radius:50px;font-size:12px;cursor:pointer;letter-spacing:1px;">
         🖨️ Print / Save PDF of this Lease
       </button>
     </div>
