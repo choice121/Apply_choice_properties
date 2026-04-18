@@ -2684,6 +2684,11 @@ class RentalApplication {
             return n;
         }
     }
+    isSupabaseBackend() {
+        const backend = this.BACKEND_URL || '';
+        return backend.includes('supabase.co/functions/v1/receive-application');
+    }
+
     // ---------- MODIFIED: handleFormSubmit with retry reset ----------
     async handleFormSubmit(e, isRetry = false) {
         e.preventDefault();
@@ -2839,12 +2844,13 @@ class RentalApplication {
 
             let response;
             const _fetchController = new AbortController();
-            const _fetchTimer = setTimeout(() => _fetchController.abort(), 55000);
+            const _fetchTimer = setTimeout(() => _fetchController.abort(), this.isSupabaseBackend() ? 120000 : 55000);
             try {
                 response = await fetch(this.BACKEND_URL, {
                     method: 'POST',
                     body: formData,
-                    signal: _fetchController.signal
+                    signal: _fetchController.signal,
+                    headers: { 'Accept': 'application/json' }
                 });
             } catch (networkErr) {
                 const netErr = new Error(t.networkError);
@@ -2937,14 +2943,16 @@ class RentalApplication {
                 return;
             }
 
-            // Give GAS 20 s to finish processing and write to Sheets.
-            // Since verify now starts at the same time as the POST, this delay
-            // ensures GAS has had a chance to complete before we start polling.
-            await this.delay(20000);
+            const isSupabase = this.isSupabaseBackend();
+            const INITIAL_DELAY = isSupabase ? 3000 : 20000;
+            const MAX_ATTEMPTS = isSupabase ? 20 : 14;
+            const POLL_INTERVAL = isSupabase ? 3000 : 5000;
+            await this.delay(INITIAL_DELAY);
 
-            const MAX_ATTEMPTS = 14;   // 14 × 5 s = 70 s polling window (total ~90 s)
-            const POLL_INTERVAL = 5000;
-            const verifyUrl = this.BACKEND_URL + '?path=checkRecentSubmission&email=' + encodeURIComponent(email);
+            const verify = new URL(this.BACKEND_URL);
+            verify.searchParams.set('path', 'checkRecentSubmission');
+            verify.searchParams.set('email', email);
+            const verifyUrl = verify.toString();
 
             for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
                 if (attempt > 0) await this.delay(POLL_INTERVAL);
