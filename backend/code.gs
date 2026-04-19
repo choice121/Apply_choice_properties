@@ -1212,6 +1212,7 @@ function renderAdminLoginPage(errorMsg) {
   `).setTitle('Admin Login — Choice Properties');
 }
 
+/* DISABLED — GAS cutover complete. New submissions go to Supabase.
 // ============================================================
 // doPost() — Handle form submissions
 // ============================================================
@@ -1371,6 +1372,7 @@ function doPost(e) {
       .setMimeType(ContentService.MimeType.JSON);
   }
 }
+*/
 
 // ============================================================
 // processApplication()
