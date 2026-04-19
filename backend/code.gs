@@ -1212,11 +1212,12 @@ function renderAdminLoginPage(errorMsg) {
   `).setTitle('Admin Login — Choice Properties');
 }
 
-/* DISABLED — GAS cutover complete. New submissions go to Supabase.
 // ============================================================
 // doPost() — Handle form submissions
 // ============================================================
-function doPost(e) {
+// DISABLED: GAS cutover complete — new submissions go to Supabase
+// Rename back to doPost to re-enable
+function doPost_DISABLED(e) {
   try {
     let formData = {};
     let fileBlob = null;
