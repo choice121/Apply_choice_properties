@@ -1373,7 +1373,6 @@ function doPost_DISABLED(e) {
       .setMimeType(ContentService.MimeType.JSON);
   }
 }
-*/
 
 // ============================================================
 // processApplication()
